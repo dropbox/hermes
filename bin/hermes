@@ -26,8 +26,30 @@ def info_event_types(args):
     logging.debug("info_event_types()")
     session = make_session()
     event_types = models.EventType.query().all()
+    print"\n{}{}".format(str.ljust("CATEGORY", 20), str.ljust("STATE", 20))
     for event_type in event_types:
-        print "%s-%s" % (event_type.category, event_type.state)
+        print "{}{}".format(
+            str.ljust(event_type.category, 20), str.ljust(event_type.state, 20)
+        )
+
+    session.close()
+
+
+def info_fates(args):
+    logging.debug("info_fates()")
+    session = make_session()
+    fates = models.Fates.query().all()
+    print "\nFATES  (created by => completed by)\n "
+    for fate in fates:
+        creation_event = fate.creation_event
+        completion_event = fate.completion_event
+        print "{} => {}".format(
+            creation_event.category + "-" + creation_event.state,
+            completion_event.category + "-" + completion_event.state
+        )
+        print fate.description
+        print ""
+    session.close()
 
 
 def main():
@@ -50,6 +72,8 @@ def main():
     info_subparsers = info_parser.add_subparsers()
     info_event_types_parser = info_subparsers.add_parser("event-types")
     info_event_types_parser.set_defaults(func=info_event_types)
+    info_fates_parser = info_subparsers.add_parser("fates")
+    info_fates_parser.set_defaults(func=info_fates)
 
 
     args = parser.parse_args()

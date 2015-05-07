@@ -217,8 +217,8 @@ class Host(Model):
     hostname = Column(String(32), nullable=False, unique=True)
 
 
-class AutoTask(Model):
-    __tablename__ = "autotasks"
+class Fates(Model):
+    __tablename__ = "fates"
 
     id = Column(Integer, primary_key=True)
     creation_type_id = Column(
@@ -245,9 +245,11 @@ class Event(Model):
     host_id = Column(
         Integer, ForeignKey("hosts.id"), nullable=False, index=True
     )
-    host = relationship(Host, lazy="joined", backref="events")
-    user = Column(String(length=64), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    host = relationship(
+        Host, lazy="joined", backref="events", order_by=timestamp
+    )
+    user = Column(String(length=64), nullable=False)
     event_type_id = Column(
         Integer, ForeignKey("event_types.id"), nullable=False, index=True
     )
@@ -255,14 +257,14 @@ class Event(Model):
     note = Column(String(length=1024))
 
 
-class Task(Model):
-    __tablename__ = "tasks"
+class Achievement(Model):
+    __tablename__ = "achievements"
 
     id = Column(Integer, primary_key=True)
     host_id = Column(
         Integer, ForeignKey("hosts.id"), nullable=False, index=True
     )
-    host = relationship(Host, lazy="joined", backref="tasks")
+    host = relationship(Host, lazy="joined", backref="achievements")
     creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
     ack_time = Column(DateTime, default=datetime.utcnow, nullable=True)
     completion_time = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -270,15 +272,26 @@ class Task(Model):
         Integer, ForeignKey("events.id"), nullable=False, index=True
     )
     creation_event = relationship(
-        Event, lazy="joined", backref="created_tasks",
+        Event, lazy="joined", backref="created_achievements",
         foreign_keys=[creation_event_id]
     )
     completion_event_id = Column(
         Integer, ForeignKey("events.id"), nullable=True, index=True
     )
     completion_event = relationship(
-        Event, lazy="joined", backref="completed_tasks",
+        Event, lazy="joined", backref="completed_achievements",
         foreign_keys=[completion_event_id]
     )
+
+
+class Quest(Model):
+    __tablename__ = "quests"
+
+    id = Column(Integer, primary_key=True)
+    embark_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    completion_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    description = Column(String(4096), nullable=False)
+    creator = Column(String(64), nullable=False)
+
 
 
