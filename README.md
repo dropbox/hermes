@@ -1,2 +1,2 @@
-# Hermes
-An event management system
+# hermes
+An event and autotasking system for SRE.
