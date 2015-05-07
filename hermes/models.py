@@ -210,6 +210,34 @@ class EventType(Model):
     desc = Column(String(length=1024))
 
 
+class Host(Model):
+    __tablename__ = "hosts"
+
+    id = Column(Integer, primary_key=True)
+    hostname = Column(String(32), nullable=False, unique=True)
+
+
+class AutoTask(Model):
+    __tablename__ = "autotasks"
+
+    id = Column(Integer, primary_key=True)
+    creation_type_id = Column(
+        Integer, ForeignKey("event_types.id"), nullable=False, index=True
+    )
+    creation_event = relationship(
+        EventType, lazy="joined", backref="auto_creates",
+        foreign_keys=[creation_type_id]
+    )
+    completion_type_id = Column(
+        Integer, ForeignKey("event_types.id"), nullable=False, index=True
+    )
+    completion_event = relationship(
+        EventType, lazy="joined", backref="auto_completes",
+        foreign_keys=[completion_type_id]
+    )
+    description = Column(String(2048), nullable=True)
+
+
 class Event(Model):
     __tablename__ = "events"
 
@@ -217,7 +245,7 @@ class Event(Model):
     host_id = Column(
         Integer, ForeignKey("hosts.id"), nullable=False, index=True
     )
-    host = relationship(EventType, lazy="joined", backref="hosts")
+    host = relationship(Host, lazy="joined", backref="events")
     user = Column(String(length=64), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     event_type_id = Column(
@@ -227,12 +255,30 @@ class Event(Model):
     note = Column(String(length=1024))
 
 
-class Host(Model):
-    __tablename__ = "hosts"
+class Task(Model):
+    __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True)
-    hostname = Column(String(32), nullable=False, unique=True)
+    host_id = Column(
+        Integer, ForeignKey("hosts.id"), nullable=False, index=True
+    )
+    host = relationship(Host, lazy="joined", backref="tasks")
+    creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    ack_time = Column(DateTime, default=datetime.utcnow, nullable=True)
+    completion_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    creation_event_id = Column(
+        Integer, ForeignKey("events.id"), nullable=False, index=True
+    )
+    creation_event = relationship(
+        Event, lazy="joined", backref="created_tasks",
+        foreign_keys=[creation_event_id]
+    )
+    completion_event_id = Column(
+        Integer, ForeignKey("events.id"), nullable=True, index=True
+    )
+    completion_event = relationship(
+        Event, lazy="joined", backref="completed_tasks",
+        foreign_keys=[completion_event_id]
+    )
 
-
-class
 
