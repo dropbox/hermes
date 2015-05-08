@@ -48,7 +48,7 @@ settings = Settings({
     "database": None,
     "debug": False,
     "port": 8990,
-    "user_auth_header": "X-NSoT-Email",
+    "user_auth_header": "X-Hermes-Email",
     "restrict_networks": [],
     "bind_address": None,
     "api_xsrf_enabled": True,

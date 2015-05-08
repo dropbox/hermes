@@ -32,7 +32,7 @@ class BaseHandler(RequestHandler):
     def get_current_user(self):
         """Default global user fetch by user_auth_header."""
 
-        # Fetch the email address from the auth_header (e.g. X-NSoT-Email)
+        # Fetch the email address from the auth_header (e.g. X-Hermes-Email)
         auth_header = settings.user_auth_header
         log.debug('  fetching auth_header: %s' % auth_header)
         email = self.request.headers.get(auth_header)

@@ -1,10 +1,10 @@
 from tornado.web import HTTPError
 
 class Error(Exception):
-    """ Baseclass for NSoT Exceptions."""
+    """ Baseclass for Hermes Exceptions."""
 
 class ModelError(Error):
-    """ Baseclass for NSoT Model Exceptions."""
+    """ Baseclass for Hermes Model Exceptions."""
 
 class ValidationError(ModelError):
     """ Raised when validation fails on a model."""
