@@ -6,6 +6,6 @@ install:
     - pip install -r requirements-dev.txt
     - pip install .
 
-script: py.test -vv tests/
+script: py.test -vvv tests/
 
 after_success: curl -X POST http://readthedocs.org/build/dbx_hermes

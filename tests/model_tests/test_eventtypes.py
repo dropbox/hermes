@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from hermes import exc
 from hermes import models
 
-from .fixtures import session
+from .fixtures import db_engine, session
 
 
 def test_creation(session):

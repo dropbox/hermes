@@ -274,25 +274,67 @@ class Host(Model):
         return obj
 
 
-class Fates(Model):
+class Fate(Model):
     __tablename__ = "fates"
 
     id = Column(Integer, primary_key=True)
     creation_type_id = Column(
         Integer, ForeignKey("event_types.id"), nullable=False, index=True
     )
-    creation_event = relationship(
+    creation_event_type = relationship(
         EventType, lazy="joined", backref="auto_creates",
         foreign_keys=[creation_type_id]
     )
     completion_type_id = Column(
         Integer, ForeignKey("event_types.id"), nullable=False, index=True
     )
-    completion_event = relationship(
+    completion_event_type = relationship(
         EventType, lazy="joined", backref="auto_completes",
         foreign_keys=[completion_type_id]
     )
     description = Column(String(2048), nullable=True)
+    __table_args__ = (
+        UniqueConstraint(
+            creation_type_id, completion_type_id, name='_creation_completion_uc'
+        ),
+    )
+
+    @classmethod
+    def create(
+            cls, session,
+            creation_event_type, completion_event_type, description=None
+    ):
+        """Create a Fate
+
+        Args:
+            creation_event_type: an EventType that will trigger
+                an achievement creation
+            completion_event_type: an EventType that will trigger
+                an achievement completion
+            description: optional description for display
+
+        Returns:
+            a newly created Fate
+        """
+        if creation_event_type is None or completion_event_type is None:
+            raise exc.ValidationError(
+                "Creation EventType and completion EventType are required"
+            )
+
+        try:
+            obj = cls(
+                creation_event_type=creation_event_type,
+                completion_event_type=completion_event_type,
+                description=description
+            )
+            obj.add(session)
+            session.flush()
+
+        except Exception:
+            session.rollback()
+            raise
+
+        return obj
 
 
 class Event(Model):

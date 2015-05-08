@@ -38,11 +38,11 @@ def info_event_types(args):
 def info_fates(args):
     logging.debug("info_fates()")
     session = make_session()
-    fates = models.Fates.query().all()
+    fates = models.Fate.query().all()
     print "\nFATES  (created by => completed by)\n "
     for fate in fates:
-        creation_event = fate.creation_event
-        completion_event = fate.completion_event
+        creation_event = fate.creation_event_type
+        completion_event = fate.completion_event_type
         print "{} => {}".format(
             creation_event.category + "-" + creation_event.state,
             completion_event.category + "-" + completion_event.state
