@@ -11,12 +11,13 @@ from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, object_session, aliased, validates
 from sqlalchemy.orm import synonym, sessionmaker, Session as _Session, backref
-from sqlalchemy.schema import Column, ForeignKey, Index
+from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.sql import func, label, literal, false
 from sqlalchemy.types import Integer, String, Text, Boolean, SmallInteger
 from sqlalchemy.types import Enum, DateTime, VARBINARY
 
 from .settings import settings
+import exc
 
 log = logging.getLogger(__name__)
 
@@ -208,9 +209,12 @@ class EventType(Model):
     category = Column(String(length=64), nullable=False)
     state = Column(String(length=32), nullable=False)
     description = Column(String(length=1024))
+    __table_args__ = (
+        UniqueConstraint(category, state, name='_category_state_uc'),
+    )
 
     @classmethod
-    def create(cls, session, category, state, desc=None):
+    def create(cls, session, category, state, description=None):
         """Create an EventType
 
         Args:
@@ -223,8 +227,11 @@ class EventType(Model):
             the newly created EventType
         """
 
+        if category is None or state is None:
+            raise exc.ValidationError("Category and State are required")
+
         try:
-            obj = cls(category=category, state=state, description=desc)
+            obj = cls(category=category, state=state, description=description)
             obj.add(session)
             session.flush()
 
@@ -240,6 +247,31 @@ class Host(Model):
 
     id = Column(Integer, primary_key=True)
     hostname = Column(String(32), nullable=False, unique=True)
+
+    @classmethod
+    def create(cls, session, hostname):
+        """Create a new host record
+
+        Args:
+            hostname
+
+        Returns:
+            the newly created Host
+        """
+
+        if hostname is None:
+            raise exc.ValidationError("Hostname is required")
+
+        try:
+            obj = cls(hostname=hostname)
+            obj.add(session)
+            session.flush()
+
+        except Exception:
+            session.rollback()
+            raise
+
+        return obj
 
 
 class Fates(Model):
