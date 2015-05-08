@@ -207,7 +207,32 @@ class EventType(Model):
     id = Column(Integer, primary_key=True)
     category = Column(String(length=64), nullable=False)
     state = Column(String(length=32), nullable=False)
-    desc = Column(String(length=1024))
+    description = Column(String(length=1024))
+
+    @classmethod
+    def create(cls, session, category, state, desc=None):
+        """Create an EventType
+
+        Args:
+            session: the Db session to use
+            category: the category name
+            state: the state name
+            desc: the optional description
+
+        Returns:
+            the newly created EventType
+        """
+
+        try:
+            obj = cls(category=category, state=state, description=desc)
+            obj.add(session)
+            session.flush()
+
+        except Exception:
+            session.rollback()
+            raise
+
+        return obj
 
 
 class Host(Model):

@@ -3,7 +3,7 @@
 
 LOCK TABLES `event_types` WRITE;
 
-INSERT INTO `event_types` (`id`, `category`, `state`, `desc`)
+INSERT INTO `event_types` (`id`, `category`, `state`, `description`)
 VALUES
 	(1,'system-reboot','required','This system requires a reboot.'),
 	(2,'system-reboot','completed','This system rebooted.'),
