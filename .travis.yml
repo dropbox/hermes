@@ -8,4 +8,4 @@ install:
 
 script: py.test -vv tests/
 
-after_success: curl -X POST http://readthedocs.org/build/hermes
+after_success: curl -X POST http://readthedocs.org/build/dbx_hermes
