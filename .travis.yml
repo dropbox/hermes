@@ -1,0 +1,11 @@
+language: python
+python:
+    - "2.7"
+
+install:
+    - pip install -r requirements-dev.txt
+    - pip install .
+
+script: py.test -vv tests/
+
+after_success: curl -X POST http://readthedocs.org/build/hermes
