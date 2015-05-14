@@ -353,7 +353,49 @@ class Event(Model):
         Integer, ForeignKey("event_types.id"), nullable=False, index=True
     )
     event_type = relationship(EventType, lazy="joined", backref="events")
-    note = Column(String(length=1024))
+    note = Column(String(length=1024), nullable=True)
+
+    @classmethod
+    def create(
+            cls, session,
+            host, user, event_type, note=None
+    ):
+        """Log an Event
+
+        Args:
+            host: the host to which this event pertains
+            user: the user that created this event, if manually created
+            event_type: the EventType of this event
+            note: the optional note to be made about this event
+
+        Returns:
+            a newly created Event
+        """
+        if host is None:
+            raise exc.ValidationError(
+                "Host cannot be null for an event"
+            )
+        if event_type is None:
+            raise exc.ValidationError(
+                "EventType cannot be null for an event"
+            )
+        if user is None:
+            raise exc.ValidationError(
+                "A user name must be specified for an event"
+            )
+
+        try:
+            obj = cls(
+                host=host, user=user, event_type=event_type, note=note
+            )
+            obj.add(session)
+            session.flush()
+
+        except Exception:
+            session.rollback()
+            raise
+
+        return obj
 
 
 class Achievement(Model):
