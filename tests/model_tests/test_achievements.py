@@ -50,6 +50,7 @@ def test_lifecycle(sample_data1):
     assert achievements[0].completion_time is not None
     assert achievements[0].completion_event == event
 
+
 def test_lifecycle_complex(sample_data1):
     """Test the automatic creation and closing of achievements based on Events and Fates.
     This version is a bit more complex in that we make sure unaffiliated achievements are left untouched."""
@@ -100,3 +101,53 @@ def test_lifecycle_complex(sample_data1):
     assert achievements[0].completion_event is not None
     assert achievements[1].completion_time is None
     assert achievements[1].completion_event is None
+
+    achievements = models.Achievement.get_open_achievements(sample_data1)
+    assert len(achievements) == 1
+
+    achievements = models.Achievement.get_open_unacknowledged(sample_data1)
+    assert len(achievements) == 1
+
+
+def test_acknowledge(sample_data1):
+    """Test to ensure that acknowledgement correctly flags Achievements as such"""
+
+    achievements = sample_data1.query(models.Achievement).all()
+    assert len(achievements) == 0
+
+    fate = sample_data1.query(models.Fate).first()
+    host = sample_data1.query(models.Host).first()
+
+    models.Event.create(sample_data1, host, "system", fate.creation_event_type)
+
+    event = (
+        sample_data1.query(models.Event)
+        .order_by(desc(models.Event.id)).first()
+    )
+
+    assert event.host == host
+    assert event.event_type == fate.creation_event_type
+
+    achievements = models.Achievement.get_open_unacknowledged(sample_data1)
+    assert len(achievements) == 1
+    assert achievements[0].completion_time is None
+    assert achievements[0].completion_event is None
+    assert achievements[0].ack_time is None
+    assert achievements[0].ack_user is None
+    assert achievements[0].creation_event == event
+
+    achievements[0].acknowledge("testman")
+
+    achievements = sample_data1.query(models.Achievement).all()
+    assert len(achievements) == 1
+    assert achievements[0].completion_time is None
+    assert achievements[0].completion_event is None
+    assert achievements[0].ack_time is not None
+    assert achievements[0].ack_user == "testman"
+    assert achievements[0].creation_event == event
+
+    achievements = models.Achievement.get_open_unacknowledged(sample_data1)
+    assert len(achievements) == 0
+
+
+

@@ -194,6 +194,20 @@ def flush_transaction(method):
 
 
 class EventType(Model):
+    """An EventType is a meta type for events.  All events must be of a given
+    and previously defined EventType.  The event type of an event is used to
+    match events to Fates.
+
+    Attributes:
+        id: the unique id
+        category: an arbitrary name to define the event type (ex: "system-needsreboot")
+        state: a unique state that the above category can be in (ex: "complete")
+        description: the optional human readable description of this EventType
+
+    Notes:
+        the combination of category and state form a uniqueness constraint
+
+    """
     __tablename__ = "event_types"
 
     id = Column(Integer, primary_key=True)
@@ -234,6 +248,18 @@ class EventType(Model):
 
 
 class Host(Model):
+    """A basic declaration of a host, which should map to unique server (real or virtual)
+
+    Attributes:
+        id: the unique database id
+        hostname: the name of this host
+
+    Note:
+        matching on hostname is done in a very rudimentary fashion.  The code makes
+        no attempt to check if a domain has been specified so be sure to be consistent
+        in usage to avoid duplicates.
+    """
+
     __tablename__ = "hosts"
 
     id = Column(Integer, primary_key=True)
@@ -266,6 +292,16 @@ class Host(Model):
 
 
 class Fate(Model):
+    """A Fate is a mapping of EventTypes to inform the system what kind of Events
+    automatically create or satisfy Achievements.
+
+    Attributes:
+        id: the unique database id
+        creation_type: the EventType that creates an Achievement based on this Fate
+        completion_type: the EventType that closes an Achievement created by this Fate
+        description: the optional human readable description of this Fate
+    """
+
     __tablename__ = "fates"
 
     id = Column(Integer, primary_key=True)
@@ -355,7 +391,7 @@ class Fate(Model):
                 open_achievements = (
                     session.query(Achievement).filter(
                         Achievement.completion_event == None
-                    )
+                    ).all()
                 )
                 for open_achievement in open_achievements:
                     if (
@@ -367,6 +403,22 @@ class Fate(Model):
 
 
 class Event(Model):
+    """An Event is a single occurrence of an event, such as a system reboot,
+    or an operator marking a system as needing a reboot.  Events can be
+    system events or human generated.
+
+    Attributes:
+        id: the unique database id
+        host: the Host to which this event pertains
+        user: the user or other arbitrary identifier for the registrar of this event
+        event_type: the EventType that informs what this event is
+        note: an optional human readable note attached to this Event
+
+    Notes:
+        the user field is for auditing purposes only.  It is not enforced or
+        validated in any way.
+    """
+
     __tablename__ = "events"
 
     id = Column(Integer, primary_key=True)
@@ -430,6 +482,23 @@ class Event(Model):
 
 
 class Achievement(Model):
+    """An Achievement is a task that must be completed to satisfy a Quest.
+
+    Attributes:
+        id: the unique database id
+        host: the Host to which this Achievement pertains
+        creation_time: when this Achievement was created
+        ack_time: when this Achievement was acknowledged
+        ack_user: the user who acknowledged the Achievement
+        creation_event: the Event that triggered a Fate to create this Achievement
+        completion_event: the Event that triggered a Fate to close this Achievement
+        complete_time: when this Achievement was closed
+
+    Notes:
+        the user field is for auditing purposes only.  It is not enforced or
+        validated in any way.
+    """
+
     __tablename__ = "achievements"
 
     id = Column(Integer, primary_key=True)
@@ -438,7 +507,8 @@ class Achievement(Model):
     )
     host = relationship(Host, lazy="joined", backref="achievements")
     creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
-    ack_time = Column(DateTime, default=datetime.utcnow, nullable=True)
+    ack_time = Column(DateTime, nullable=True)
+    ack_user = Column(String(64), nullable=True)
     completion_time = Column(DateTime, nullable=True)
     creation_event_id = Column(
         Integer, ForeignKey("events.id"), nullable=False, index=True
@@ -491,6 +561,41 @@ class Achievement(Model):
 
         return obj
 
+    @classmethod
+    def get_open_achievements(cls, session):
+        """Get all open Achievements, regardless of acknowledgement
+
+        Returns:
+            the list of open Achievements
+        """
+        open_achievements = session.query(Achievement).filter(
+            Achievement.completion_event == None
+        ).all()
+
+        return open_achievements
+
+    @classmethod
+    def get_open_unacknowledged(cls, session):
+        """Get all the open unacknowledged Achievements
+
+        Returns:
+            the list of open and unacknowledged Achievements
+        """
+        open_achievements = session.query(Achievement).filter(and_(
+            Achievement.completion_event == None,
+            Achievement.ack_time == None
+        )).all()
+
+        return open_achievements
+
+    def acknowledge(self, user):
+        """Mark the Achievement as acknowledged by the given user at this time.
+
+        Args:
+            user: the arbitrary user name acknowledging this Achievement
+        """
+        self.update(ack_time=datetime.now(), ack_user=user)
+
     def achieve(self, event):
         """Mark an achievement as completed.
 
@@ -502,8 +607,6 @@ class Achievement(Model):
         )
 
 
-
-
 class Quest(Model):
     __tablename__ = "quests"
 
@@ -512,6 +615,4 @@ class Quest(Model):
     completion_time = Column(DateTime, default=datetime.utcnow, nullable=False)
     description = Column(String(4096), nullable=False)
     creator = Column(String(64), nullable=False)
-
-
 
