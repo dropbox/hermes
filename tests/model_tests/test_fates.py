@@ -7,17 +7,17 @@ from hermes import models
 from .fixtures import db_engine, session, sample_data1
 
 
-def test_creation(session, sample_data1):
-    event_types = session.query(models.EventType).all()
+def test_creation(sample_data1):
+    event_types = sample_data1.query(models.EventType).all()
     assert len(event_types) == 4
 
     event_type1 = event_types[2]
     event_type2 = event_types[3]
 
-    models.Fate.create(session, event_type1, event_type2, "New fate")
-    session.commit()
+    models.Fate.create(sample_data1, event_type1, event_type2, "New fate")
+    sample_data1.commit()
 
-    fates = session.query(models.Fate).all()
+    fates = sample_data1.query(models.Fate).all()
 
     # the total number of fates should be 2 now.  We care about the new one
     assert len(fates) == 2
@@ -28,12 +28,12 @@ def test_creation(session, sample_data1):
     assert fate.description == "New fate"
 
 
-def test_duplicate(session, sample_data1):
-    event_types = session.query(models.EventType).all()
+def test_duplicate(sample_data1):
+    event_types = sample_data1.query(models.EventType).all()
     assert len(event_types) == 4
 
     event_type1 = event_types[0]
     event_type2 = event_types[1]
 
     with pytest.raises(IntegrityError):
-        models.Fate.create(session, event_type1, event_type2, "Dup fate")
+        models.Fate.create(sample_data1, event_type1, event_type2, "Dup fate")

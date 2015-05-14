@@ -23,8 +23,10 @@ def session(db_engine, request, tmpdir):
     return session
 
 @pytest.fixture
-def sample_data1(db_engine):
+def sample_data1(session):
     sql_file = open('tests/sample_data/sample_data1.sql')
     sql = sql_file.read()
     for statement in sql.split(";"):
-        db_engine.execute(statement)
+        session.execute(statement)
+
+    return session
