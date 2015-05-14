@@ -34,6 +34,7 @@ def test_creation(sample_data1):
 
 
 def test_duplicate(sample_data1):
+    """Test to ensure duplicate events are fine b/c there can be multiple identical events"""
     event_types = sample_data1.query(models.EventType).all()
     assert len(event_types) == 6
     event_type1 = event_types[0]

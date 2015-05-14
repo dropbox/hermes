@@ -4,7 +4,7 @@ from datetime import datetime
 import functools
 import logging
 
-from sqlalchemy import create_engine, or_, union_all, desc
+from sqlalchemy import create_engine, or_, union_all, desc, and_
 from sqlalchemy.event import listen
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
@@ -83,20 +83,11 @@ class Model(object):
         return obj_name
 
     @classmethod
-    def before_create(cls, session, user_id):
-        """ Hook for before object creation."""
-
-    def after_create(self, user_id):
-        """ Hook for after object creation."""
-
-    @classmethod
-    def create(cls, session, _user_id, **kwargs):
+    def create(cls, session, **kwargs):
         commit = kwargs.pop("commit", True)
         try:
-            cls.before_create(session, _user_id)
             obj = cls(**kwargs).add(session)
             session.flush()
-            obj.after_create(_user_id)
             if commit:
                 session.commit()
         except Exception:
@@ -105,7 +96,7 @@ class Model(object):
 
         return obj
 
-    def update(self, user_id, **kwargs):
+    def update(self, **kwargs):
         session = self.session
         try:
             for key, value in kwargs.iteritems():
@@ -336,6 +327,44 @@ class Fate(Model):
 
         return obj
 
+    @classmethod
+    def question_the_fates(cls, session, event):
+        """Look through the Fates and see if we need to create or close Achievements
+
+        Args:
+            session: active database session
+            event: the Event for which we need to question the Fates
+        """
+        host = event.host
+        event_type = event.event_type
+
+        fates = session.query(Fate).all()
+
+        # Examine all the Fates.
+        for fate in fates:
+            # If this type of Event is a creation type for a Fate,
+            # create an Achievement
+            if fate.creation_event_type == event_type:
+                Achievement.create(session, host, event)
+
+            # If this type of Event is a completion type for a Fate,
+            # find all open Achievements for the related creation type and
+            # mark them as complete.
+            if fate.completion_event_type == event_type:
+                # FIXME -- can't this be done with one query?
+                open_achievements = (
+                    session.query(Achievement).filter(
+                        Achievement.completion_event == None
+                    )
+                )
+                for open_achievement in open_achievements:
+                    if (
+                        open_achievement.creation_event.event_type
+                            == fate.creation_event_type
+                            and open_achievement.host == event.host
+                    ):
+                        open_achievement.achieve(event)
+
 
 class Event(Model):
     __tablename__ = "events"
@@ -395,6 +424,8 @@ class Event(Model):
             session.rollback()
             raise
 
+        Fate.question_the_fates(session, obj)
+
         return obj
 
 
@@ -408,7 +439,7 @@ class Achievement(Model):
     host = relationship(Host, lazy="joined", backref="achievements")
     creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
     ack_time = Column(DateTime, default=datetime.utcnow, nullable=True)
-    completion_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    completion_time = Column(DateTime, nullable=True)
     creation_event_id = Column(
         Integer, ForeignKey("events.id"), nullable=False, index=True
     )
@@ -423,6 +454,54 @@ class Achievement(Model):
         Event, lazy="joined", backref="completed_achievements",
         foreign_keys=[completion_event_id]
     )
+
+    @classmethod
+    def create(
+            cls, session,
+            host, creation_event
+    ):
+        """Create an Achievement
+
+        Args:
+            host: the host to which this event pertains
+            creation_event: the Event that lead to the creation of this achievement
+
+        Returns:
+            a newly created Achievement
+        """
+        if host is None:
+            raise exc.ValidationError(
+                "Host cannot be null for an achievement"
+            )
+        if creation_event is None:
+            raise exc.ValidationError(
+                "Creation Event cannot be null for an achievement"
+            )
+
+        try:
+            obj = cls(
+                host=host, creation_event=creation_event
+            )
+            obj.add(session)
+            session.flush()
+
+        except Exception:
+            session.rollback()
+            raise
+
+        return obj
+
+    def achieve(self, event):
+        """Mark an achievement as completed.
+
+        Args:
+            event: the event that closed this achievement
+        """
+        self.update(
+            completion_event=event, completion_time=datetime.now()
+        )
+
+
 
 
 class Quest(Model):
