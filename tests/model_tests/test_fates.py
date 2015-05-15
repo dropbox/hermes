@@ -27,6 +27,14 @@ def test_creation(sample_data1):
     assert fate.completion_event_type == event_type5
     assert fate.description == "New fate"
 
+    assert len(event_type4.auto_creates) == 1
+    assert event_type4.auto_creates[0] == fate
+    assert len(event_type4.auto_completes) == 0
+
+    assert len(event_type5.auto_creates) == 0
+    assert len(event_type5.auto_completes) == 1
+    assert event_type5.auto_completes[0] == fate
+
 
 def test_duplicate(sample_data1):
     event_types = sample_data1.query(models.EventType).all()

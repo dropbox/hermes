@@ -16,6 +16,7 @@ def test_lifecycle(sample_data1):
 
     fate = sample_data1.query(models.Fate).first()
     host = sample_data1.query(models.Host).first()
+    assert len(host.achievements) == 0
 
     models.Event.create(sample_data1, host, "system", fate.creation_event_type)
 
@@ -32,6 +33,9 @@ def test_lifecycle(sample_data1):
     assert achievements[0].completion_time is None
     assert achievements[0].completion_event is None
     assert achievements[0].creation_event == event
+    assert len(host.achievements) == 1
+    assert len(event.created_achievements) == 1
+    assert len(event.completed_achievements) == 0
 
     models.Event.create(
         sample_data1, host, "system", fate.completion_event_type
@@ -49,6 +53,10 @@ def test_lifecycle(sample_data1):
     assert len(achievements) == 1
     assert achievements[0].completion_time is not None
     assert achievements[0].completion_event == event
+    assert len(event.created_achievements) == 0
+    assert len(event.completed_achievements) == 1
+
+    assert len(host.achievements) == 1
 
 
 def test_lifecycle_complex(sample_data1):

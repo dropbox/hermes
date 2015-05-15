@@ -11,10 +11,12 @@ def test_creation(sample_data1):
     event_types = sample_data1.query(models.EventType).all()
     assert len(event_types) == 6
     event_type1 = event_types[0]
+    assert len(event_type1.events) == 1
 
     hosts = sample_data1.query(models.Host).all()
     assert len(hosts) == 3
     host = hosts[0]
+    assert len(host.events) == 2
 
     models.Event.create(
         sample_data1, host, "testman", event_type1, note="This is a test event"
@@ -31,6 +33,9 @@ def test_creation(sample_data1):
     assert event.user == "testman"
     assert event.event_type == event_type1
     assert event.note == "This is a test event"
+
+    assert len(host.events) == 3
+    assert len(event_type1.events) == 2
 
 
 def test_duplicate(sample_data1):
