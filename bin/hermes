@@ -2,6 +2,8 @@
 
 """ Command-line interface to Hermes."""
 
+from __future__ import division
+
 import argparse
 import getpass
 import logging
@@ -84,6 +86,7 @@ def list_host_events(args):
 
     events = host.get_latest_events(args.limit)
 
+    print "EVENTS FOR {}:".format(host.hostname)
     for event in events:
         print "{}  {} {}  {}".format(
             event.timestamp, event.event_type.category,
@@ -101,12 +104,13 @@ def list_host_achievements(args):
 
     achievements = host.get_open_achievements(args.limit)
 
+    print "OPEN ACHIEVEMENTS FOR {}:".format(host.hostname)
     for achievement in achievements:
-        print "{} created by {} {}  {}".format(
+        print "{} created by event {} {}  {}".format(
             achievement.creation_time,
             achievement.creation_event.event_type.category,
             achievement.creation_event.event_type.state,
-            achievement.creation_event.note
+            achievement.creation_event.note or ""
         )
 
 
@@ -123,7 +127,7 @@ def create_event(args):
 
     if event_type is None:
         logging.error(
-            "No matching EventState found for %s %s", args.category, args.state
+            "No matching event state found for %s %s", args.category, args.state
         )
         session.close()
         return
@@ -138,7 +142,9 @@ def create_event(args):
     event = Event.create(session, host, user, event_type, args.note)
 
     if event:
-        print "Event created."
+        print "Event created: {} => {} {}".format(
+            host.hostname, event_type.category, event_type.state
+        )
         session.commit()
     else:
         print "Event creation failed."
@@ -155,9 +161,35 @@ def list_quests(args):
 
     print "QUESTS:"
     for quest in quests:
-        print "{}  {}  {}".format(
-            quest.embark_time, quest.creator, quest.description
+        print "{} by {}.  Embarked on {}".format(
+            quest.description, quest.creator, quest.embark_time
         )
+
+        print "The quest has {} total achievements.  The following remain open:".format(
+            len(quest.achievements)
+        )
+
+        max_width = 0
+        for achievement in quest.achievements:
+            if len(achievement.host.hostname) > max_width:
+                max_width = len(achievement.host.hostname)
+
+        achievements_remaining = 0
+        for achievement in quest.achievements:
+            if achievement.completion_time is None:
+                achievements_remaining += 1
+                print "{} must achieve {} {}".format(
+                    achievement.host.hostname.rjust(max_width + 4),
+                    achievement.creation_event.event_type.category,
+                    achievement.creation_event.event_type.state
+                )
+
+        print "{:.2%} complete.  {} total achievements remain open.\n".format(
+            achievements_remaining/len(quest.achievements),
+            achievements_remaining
+        )
+
+
 
     session.close()
 
@@ -171,7 +203,7 @@ def create_quest(args):
 
     session = make_session()
 
-    print "Creating Quest... (could take some time)"
+    print "Creating quest... (could take some time)"
 
     hosts = []
 
@@ -182,7 +214,7 @@ def create_quest(args):
             logging.debug("Specified host: %s", hostname)
             host = Host.get_host(session, hostname)
             if host is None:
-                host = Host.create(session, hostname)
+                Host.create(session, hostname)
             hosts.append(hostname)
     else:
         for hostname in sys.stdin.read().split("\n"):
@@ -191,7 +223,7 @@ def create_quest(args):
             logging.debug("Entered host: %s", hostname)
             host = Host.get_host(session, hostname)
             if host is None:
-                host = Host.create(session, hostname)
+                Host.create(session, hostname)
             hosts.append(hostname)
 
     if len(hosts) == 0:
@@ -201,7 +233,7 @@ def create_quest(args):
     event_type = EventType.get_event_type(session, args.category, args.state)
     if event_type is None:
         logging.error(
-            "No matching EventState found for %s %s", args.category, args.state
+            "No matching event state found for %s %s", args.category, args.state
         )
         session.close()
         return
@@ -210,7 +242,9 @@ def create_quest(args):
 
     quest = Quest.create(session, user, hosts, event_type, description=args.note)
 
-    print "Quest {} created".format(quest.id)
+    print "Quest {} created with {} achievements".format(
+        quest.id, len(quest.achievements)
+    )
 
     session.commit()
     session.close()
@@ -253,7 +287,7 @@ def parse_cli_args():
     host_events_parser.add_argument("hostname")
     host_events_parser.add_argument(
         "-l", "--limit", default=20, type=int,
-        help="Limit the number of Events displayed"
+        help="Limit the number of events displayed"
     )
     host_events_parser.set_defaults(func=list_host_events)
     # Host achievements parser
@@ -261,7 +295,7 @@ def parse_cli_args():
     host_achievements_parser.add_argument("hostname")
     host_achievements_parser.add_argument(
         "-l", "--limit", default=20, type=int,
-        help="Limit the number of Achievements displayed"
+        help="Limit the number of achievements displayed"
     )
     host_achievements_parser.set_defaults(func=list_host_achievements)
 
