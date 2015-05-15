@@ -3,10 +3,9 @@
 """ Command-line interface to Hermes."""
 
 import argparse
-import BaseHTTPServer
-import code
 import getpass
 import logging
+import sys
 
 import hermes
 from hermes import models
@@ -148,6 +147,75 @@ def create_event(args):
     session.close()
 
 
+def list_quests(args):
+    logging.debug("list_quests()")
+    session = make_session()
+
+    quests = Quest.get_open_quests(session)
+
+    print "QUESTS:"
+    for quest in quests:
+        print "{}  {}  {}".format(
+            quest.embark_time, quest.creator, quest.description
+        )
+
+    session.close()
+
+
+def create_quest(args):
+    logging.debug("create_quest()")
+    logging.debug(
+        "category: %s    state: %s    note: %s",
+        args.category, args.state, args.note
+    )
+
+    session = make_session()
+
+    print "Creating Quest... (could take some time)"
+
+    hosts = []
+
+    if args.hosts:
+        for hostname in args.hosts.split(","):
+            if not hostname:
+                continue
+            logging.debug("Specified host: %s", hostname)
+            host = Host.get_host(session, hostname)
+            if host is None:
+                host = Host.create(session, hostname)
+            hosts.append(hostname)
+    else:
+        for hostname in sys.stdin.read().split("\n"):
+            if not hostname:
+                continue
+            logging.debug("Entered host: %s", hostname)
+            host = Host.get_host(session, hostname)
+            if host is None:
+                host = Host.create(session, hostname)
+            hosts.append(hostname)
+
+    if len(hosts) == 0:
+        logging.error("No hosts specified")
+        return
+
+    event_type = EventType.get_event_type(session, args.category, args.state)
+    if event_type is None:
+        logging.error(
+            "No matching EventState found for %s %s", args.category, args.state
+        )
+        session.close()
+        return
+
+    user = getpass.getuser()
+
+    quest = Quest.create(session, user, hosts, event_type, description=args.note)
+
+    print "Quest {} created".format(quest.id)
+
+    session.commit()
+    session.close()
+
+
 def parse_cli_args():
     description_msg = "Hermes CLI"
     parser = argparse.ArgumentParser(description=description_msg)
@@ -173,11 +241,14 @@ def parse_cli_args():
     # Add host command line parser
     host_parser = subparsers.add_parser("host", help="Host level operations")
     host_subparser = host_parser.add_subparsers()
+    # Host list parser
     host_list_parsers = host_subparser.add_parser("list")
     host_list_parsers.set_defaults(func=list_hosts)
+    # Host add parser
     host_add_parser = host_subparser.add_parser("add")
     host_add_parser.add_argument("hostname")
     host_add_parser.set_defaults(func=add_host)
+    # Host events parsers
     host_events_parser = host_subparser.add_parser("events")
     host_events_parser.add_argument("hostname")
     host_events_parser.add_argument(
@@ -185,6 +256,7 @@ def parse_cli_args():
         help="Limit the number of Events displayed"
     )
     host_events_parser.set_defaults(func=list_host_events)
+    # Host achievements parser
     host_achievements_parser = host_subparser.add_parser("achievements")
     host_achievements_parser.add_argument("hostname")
     host_achievements_parser.add_argument(
@@ -195,7 +267,7 @@ def parse_cli_args():
 
     # events command line parser
     event_parser = subparsers.add_parser(
-        "event", help="Create and list events"
+        "event", help="Create and list Events"
     )
     event_subparser = event_parser.add_subparsers()
     event_create_parser = event_subparser.add_parser("create")
@@ -203,9 +275,30 @@ def parse_cli_args():
     event_create_parser.add_argument("category")
     event_create_parser.add_argument("state")
     event_create_parser.add_argument(
-        "-n", "--note", type=str, help="Note to attach to the event"
+        "-n", "--note", type=str, help="Note to attach to the Event"
     )
     event_create_parser.set_defaults(func=create_event)
+
+    # quest command line parser
+    quest_parser = subparsers.add_parser(
+        "quest", help="Create and list Quests"
+    )
+    quest_subparser = quest_parser.add_subparsers()
+    quest_list_parser = quest_subparser.add_parser("list")
+    quest_list_parser.set_defaults(func=list_quests)
+    # quest creation parser
+    quest_create_parser = quest_subparser.add_parser("create")
+    quest_create_parser.add_argument("category")
+    quest_create_parser.add_argument("state")
+    quest_create_parser.add_argument(
+        "-n", "--note", type=str, required=True,
+        help="Note to attach to the Quest"
+    )
+    quest_create_parser.add_argument(
+        "-s", "--hosts", type=str,
+        help="Comma separated Hosts involved in this Quest"
+    )
+    quest_create_parser.set_defaults(func=create_quest)
 
     return parser.parse_args()
 

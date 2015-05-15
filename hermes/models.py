@@ -653,6 +653,23 @@ class Quest(Model):
                 completion_time = datetime.now()
             )
 
+    @classmethod
+    def get_open_quests(cls, session, limit=20):
+        """Get a list of open Quests
+
+        Args:
+            session: an open database session
+            limit: the number of Quests to display
+
+        Returns:
+            list of Quests that are open
+        """
+        return (
+            session.query(Quest).filter(Quest.completion_time == None)
+            .order_by(desc(Quest.embark_time)).limit(limit)
+            .from_self().order_by(Quest.embark_time)
+        )
+
 
 class Achievement(Model):
     """An Achievement is a task that must be completed to satisfy a Quest.
