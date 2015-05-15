@@ -86,7 +86,29 @@ def list_host_events(args):
     events = host.get_latest_events(args.limit)
 
     for event in events:
-        print "{}  {} {}  {}".format(event.timestamp, event.event_type.category, event.event_type.state, event.note)
+        print "{}  {} {}  {}".format(
+            event.timestamp, event.event_type.category,
+            event.event_type.state, event.note
+        )
+
+
+def list_host_achievements(args):
+    logging.debug("list_host_achievements(%s)", args.hostname)
+    session = make_session()
+    host = Host.get_host(session, args.hostname)
+    if host is None:
+        logging.error("Could not find hostname %s", args.hostname)
+        return
+
+    achievements = host.get_open_achievements(args.limit)
+
+    for achievement in achievements:
+        print "{} created by {} {}  {}".format(
+            achievement.creation_time,
+            achievement.creation_event.event_type.category,
+            achievement.creation_event.event_type.state,
+            achievement.creation_event.note
+        )
 
 
 def create_event(args):
@@ -160,9 +182,16 @@ def parse_cli_args():
     host_events_parser.add_argument("hostname")
     host_events_parser.add_argument(
         "-l", "--limit", default=20, type=int,
-        help="Limit the number of events displayed"
+        help="Limit the number of Events displayed"
     )
     host_events_parser.set_defaults(func=list_host_events)
+    host_achievements_parser = host_subparser.add_parser("achievements")
+    host_achievements_parser.add_argument("hostname")
+    host_achievements_parser.add_argument(
+        "-l", "--limit", default=20, type=int,
+        help="Limit the number of Achievements displayed"
+    )
+    host_achievements_parser.set_defaults(func=list_host_achievements)
 
     # events command line parser
     event_parser = subparsers.add_parser(

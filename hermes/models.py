@@ -321,10 +321,10 @@ class Host(Model):
         return session.query(Host).filter(Host.hostname == hostname).first()
 
     def get_latest_events(self, limit=20):
-        """Get the latest events for this Host
+        """Get the latest Events for this Host
 
         Args:
-            limit: the number of events to return
+            limit: the number of Events to return
 
         Returns:
             list of Events
@@ -333,6 +333,25 @@ class Host(Model):
             self.session.query(Event).filter(Event.host == self)
             .order_by(desc(Event.timestamp)).limit(limit)
             .from_self().order_by(Event.timestamp)
+        )
+
+    def get_open_achievements(self, limit=20):
+        """Get the open Achievements for this Host
+
+        Args:
+            limit: the number of Achievements to return
+
+        Returns:
+            list of Achievements
+        """
+        return (
+            self.session.query(Achievement).filter(
+                and_(
+                    Achievement.host == self,
+                    Achievement.completion_time == None
+                ))
+            .order_by(desc(Achievement.creation_time)).limit(limit)
+            .from_self().order_by(Achievement.creation_time)
         )
 
 
