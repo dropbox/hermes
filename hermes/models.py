@@ -381,26 +381,27 @@ class Fate(Model):
         for fate in fates:
             # If this type of Event is a creation type for a Fate,
             # create an Achievement
-            if fate.creation_event_type == event_type:
+            if event_type == fate.creation_event_type:
                 Achievement.create(session, host, event)
 
             # If this type of Event is a completion type for a Fate,
             # find all open Achievements for the related creation type and
             # mark them as complete.
-            if fate.completion_event_type == event_type:
-                # FIXME -- can't this be done with one query?
+            if event_type == fate.completion_event_type:
+                subquery = (
+                    session.query(Event.id).filter(
+                        Event.event_type == fate.creation_event_type
+                    ).subquery()
+                )
                 open_achievements = (
                     session.query(Achievement).filter(and_(
                         Achievement.completion_event == None,
-                        Achievement.host == event.host
+                        Achievement.host == event.host,
+                        Achievement.creation_event_id.in_(subquery)
                     )).all()
                 )
+
                 for open_achievement in open_achievements:
-                    if (
-                        open_achievement.creation_event.event_type
-                            == fate.creation_event_type
-                            and open_achievement.host == event.host
-                    ):
                         open_achievement.achieve(event)
 
 
