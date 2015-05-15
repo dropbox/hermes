@@ -7,17 +7,17 @@ import BaseHTTPServer
 import code
 import getpass
 import logging
-from pprint import pprint
 
 import hermes
 from hermes import models
+from hermes.models import Event, EventType, Host, Fate, Achievement, Quest
 from hermes.settings import settings
 
 sa_log = logging.getLogger("sqlalchemy.engine.base.Engine")
 
 
 def make_session():
-    db_engine = models.get_db_engine(settings["database"])
+    db_engine = models.get_db_engine(settings["database"], echo=False)
     models.Session.configure(bind=db_engine)
     return models.Session()
 
@@ -25,7 +25,7 @@ def make_session():
 def info_event_types(args):
     logging.debug("info_event_types()")
     session = make_session()
-    event_types = models.EventType.query().all()
+    event_types = EventType.query().all()
     print"\n{}{}".format(str.ljust("CATEGORY", 20), str.ljust("STATE", 20))
     for event_type in event_types:
         print "{}{}".format(
@@ -38,7 +38,7 @@ def info_event_types(args):
 def info_fates(args):
     logging.debug("info_fates()")
     session = make_session()
-    fates = models.Fate.query().all()
+    fates = Fate.query().all()
     print "\nFATES  (created by => completed by)\n "
     for fate in fates:
         creation_event = fate.creation_event_type
@@ -49,6 +49,25 @@ def info_fates(args):
         )
         print fate.description
         print ""
+    session.close()
+
+
+def list_hosts(args):
+    logging.debug("list_hosts()")
+    session = make_session()
+    hosts = Host.query().all()
+    print "HOSTS:"
+    for host in hosts:
+        print "{}".format(host.hostname)
+    session.close()
+
+
+def add_host(args):
+    logging.debug("add_host(%s)", args.hostname)
+    session = make_session()
+    Host.create(session, args.hostname)
+    print "Created host {}".format(args.hostname)
+    session.commit()
     session.close()
 
 
@@ -65,15 +84,24 @@ def main():
                         version="%%(prog)s %s" % hermes.__version__,
                         help="Display version information.")
 
-    subparsers = parser.add_subparsers(dest="command")
+    subparsers = parser.add_subparsers()
 
     # Add the command line parsers for info commands
-    info_parser = subparsers.add_parser("info", help="Display information about EMS types.")
+    info_parser = subparsers.add_parser("info", help="Display information about defined types.")
     info_subparsers = info_parser.add_subparsers()
     info_event_types_parser = info_subparsers.add_parser("event-types")
     info_event_types_parser.set_defaults(func=info_event_types)
     info_fates_parser = info_subparsers.add_parser("fates")
     info_fates_parser.set_defaults(func=info_fates)
+
+    # Add host command line parser
+    host_parser = subparsers.add_parser("host", help="Host level operations")
+    host_subparser = host_parser.add_subparsers()
+    host_list_parsers = host_subparser.add_parser("list")
+    host_list_parsers.set_defaults(func=list_hosts)
+    host_add_parser = host_subparser.add_parser("add")
+    host_add_parser.add_argument("hostname")
+    host_add_parser.set_defaults(func=add_host)
 
 
     args = parser.parse_args()

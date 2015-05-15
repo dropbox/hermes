@@ -141,7 +141,7 @@ def _set_sqlite_pragma(dbapi_connection, connection_record):
 
 
 def get_db_engine(url, echo=False):
-    engine = create_engine(url, pool_recycle=300, echo=False)
+    engine = create_engine(url, pool_recycle=300, echo=echo)
     Model.metadata.create_all(engine)
 
     if engine.driver == "pysqlite":
@@ -278,6 +278,9 @@ class Host(Model):
 
         if hostname is None:
             raise exc.ValidationError("Hostname is required")
+
+        if session.query(Host).filter(Host.hostname == hostname).all():
+            raise exc.Conflict("Hostname already exists")
 
         try:
             obj = cls(hostname=hostname)
@@ -447,7 +450,7 @@ class Event(Model):
         """Log an Event
 
         Args:
-            host: the host to which this event pertains
+            host: the Host to which this event pertains
             user: the user that created this event, if manually created
             event_type: the EventType of this event
             note: the optional note to be made about this event
