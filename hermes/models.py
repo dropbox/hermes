@@ -365,7 +365,8 @@ class Fate(Model):
 
     @classmethod
     def question_the_fates(cls, session, event):
-        """Look through the Fates and see if we need to create or close Achievements
+        """Look through the Fates and see if we need to create or close
+        Achievements based on this event.
 
         Args:
             session: active database session
@@ -389,9 +390,10 @@ class Fate(Model):
             if fate.completion_event_type == event_type:
                 # FIXME -- can't this be done with one query?
                 open_achievements = (
-                    session.query(Achievement).filter(
-                        Achievement.completion_event == None
-                    ).all()
+                    session.query(Achievement).filter(and_(
+                        Achievement.completion_event == None,
+                        Achievement.host == event.host
+                    )).all()
                 )
                 for open_achievement in open_achievements:
                     if (
@@ -466,19 +468,125 @@ class Event(Model):
             )
 
         try:
-            obj = cls(
+            event = cls(
                 host=host, user=user, event_type=event_type, note=note
             )
-            obj.add(session)
+            event.add(session)
             session.flush()
 
         except Exception:
             session.rollback()
             raise
 
-        Fate.question_the_fates(session, obj)
+        Fate.question_the_fates(session, event)
 
-        return obj
+        return event
+
+
+class Quest(Model):
+    __tablename__ = "quests"
+
+    id = Column(Integer, primary_key=True)
+    embark_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    completion_time = Column(DateTime, nullable=True)
+    creator = Column(String(64), nullable=False)
+    description = Column(String(4096), nullable=False)
+
+    @classmethod
+    def create(
+            cls, session, creator, hosts, creation_event_type,
+            create=True, description=None
+    ):
+        """Create a new Quest.
+
+        We will always specify the creator and a list
+        of hosts for which this Quest will encompass.  We also specify the
+        EventType of the events we will create (or look up).
+
+        If create is True,
+        we will create the events of EventType for all Hosts and tie the created
+        Achievements to this Quest.  If create is False, we will look for
+        existing open Achievements for the Hosts that have a Event of EventType
+        and claim them for this Quest.
+
+        Args:
+            session: an active database session
+            creator: the person or system creating the Quest
+            hosts: a list of hosts for which to create Events (and Achievements)
+            creation_event_type: the EventType of which to create Events
+            create: if True, Events will be created; if False, reclaim existing Achievements
+            description: a required human readable text to describe this Quest
+        """
+        if creator is None:
+            raise exc.ValidationError("Quest must have a creator")
+        if hosts is None:
+            raise exc.ValidationError("Quest must have a list of hosts")
+        if creation_event_type is None:
+            raise exc.ValidationError("Quest must have an EventType")
+
+        try:
+            quest = cls(
+                creator=creator, description=description
+            )
+            quest.add(session)
+            session.flush()
+
+        except Exception:
+            session.rollback()
+            raise
+
+        found_hosts = []
+        for host in hosts:
+            found_host = (
+                session.query(Host).filter(Host.hostname == host).first()
+            )
+            if found_host is None:
+                logging.error("Could not find host %s", host)
+            else:
+                found_hosts.append(found_host)
+
+        if create:
+            for host in found_hosts:
+                created_event = Event.create(
+                    session, host, creator, creation_event_type
+                )
+                created_achievements = (
+                    session.query(Achievement)
+                    .filter(Achievement.creation_event == created_event).all()
+                )
+                for achievement in created_achievements:
+                    achievement.add_to_quest(quest)
+        else:
+            open_achievements = (
+                session.query(Achievement).filter(
+                    Achievement.completion_event == None
+                ).all()
+            )
+
+            for open_achievement in open_achievements:
+                if (
+                    open_achievement.creation_event.event_type
+                        == creation_event_type
+                        and open_achievement.host in found_hosts
+                ):
+                    open_achievement.add_to_quest(quest)
+
+        return quest
+
+    def check_for_victory(self):
+        """Test to see if all the Achievements are completed.
+
+        Called when an associated Achievment is completed.
+        """
+        complete = True
+        for achievement in self.achievements:
+            if achievement.completion_time is None:
+                complete = False
+
+        if complete:
+            self.update(
+                completion_time = datetime.now()
+            )
 
 
 class Achievement(Model):
@@ -502,6 +610,10 @@ class Achievement(Model):
     __tablename__ = "achievements"
 
     id = Column(Integer, primary_key=True)
+    quest_id = Column(
+        Integer, ForeignKey("quests.id"), nullable=True, index=True
+    )
+    quest = relationship(Quest, lazy="joined", backref="achievements")
     host_id = Column(
         Integer, ForeignKey("hosts.id"), nullable=False, index=True
     )
@@ -606,13 +718,15 @@ class Achievement(Model):
             completion_event=event, completion_time=datetime.now()
         )
 
+        if self.quest:
+            self.quest.check_for_victory()
 
-class Quest(Model):
-    __tablename__ = "quests"
+    def add_to_quest(self, quest):
+        """Tie this achievement to a particular Quest
 
-    id = Column(Integer, primary_key=True)
-    embark_time = Column(DateTime, default=datetime.utcnow, nullable=False)
-    completion_time = Column(DateTime, default=datetime.utcnow, nullable=False)
-    description = Column(String(4096), nullable=False)
-    creator = Column(String(64), nullable=False)
+        Args:
+            quest: the quest that should own this Achievement
+        """
+        self.update(quest=quest)
+
 
