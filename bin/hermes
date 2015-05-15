@@ -75,6 +75,20 @@ def add_host(args):
     session.close()
 
 
+def list_host_events(args):
+    logging.debug("list_host_events(%s)", args.hostname)
+    session = make_session()
+    host = Host.get_host(session, args.hostname)
+    if host is None:
+        logging.error("Could not find hostname %s", args.hostname)
+        return
+
+    events = host.get_latest_events(args.limit)
+
+    for event in events:
+        print "{}  {} {}  {}".format(event.timestamp, event.event_type.category, event.event_type.state, event.note)
+
+
 def create_event(args):
     logging.debug("create_event()")
     logging.debug(
@@ -142,6 +156,13 @@ def parse_cli_args():
     host_add_parser = host_subparser.add_parser("add")
     host_add_parser.add_argument("hostname")
     host_add_parser.set_defaults(func=add_host)
+    host_events_parser = host_subparser.add_parser("events")
+    host_events_parser.add_argument("hostname")
+    host_events_parser.add_argument(
+        "-l", "--limit", default=20, type=int,
+        help="Limit the number of events displayed"
+    )
+    host_events_parser.set_defaults(func=list_host_events)
 
     # events command line parser
     event_parser = subparsers.add_parser(
@@ -165,11 +186,11 @@ def main():
     settings.update_from_config(args.config)
 
     if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, format=settings.log_format)
     elif args.quiet:
-        logging.basicConfig(level=logging.ERROR)
+        logging.basicConfig(level=logging.ERROR, format=settings.log_format)
     else:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO, format=settings.log_format)
 
     args.func(args)
 

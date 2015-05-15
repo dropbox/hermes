@@ -11,6 +11,7 @@ from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, object_session, aliased, validates
 from sqlalchemy.orm import synonym, sessionmaker, Session as _Session, backref
+from sqlalchemy.orm import subqueryload
 from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.sql import func, label, literal, false
 from sqlalchemy.types import Integer, String, Text, Boolean, SmallInteger
@@ -318,6 +319,21 @@ class Host(Model):
             hostname: the name to look for
         """
         return session.query(Host).filter(Host.hostname == hostname).first()
+
+    def get_latest_events(self, limit=20):
+        """Get the latest events for this Host
+
+        Args:
+            limit: the number of events to return
+
+        Returns:
+            list of Events
+        """
+        return (
+            self.session.query(Event).filter(Event.host == self)
+            .order_by(desc(Event.timestamp)).limit(limit)
+            .from_self().order_by(Event.timestamp)
+        )
 
 
 class Fate(Model):
