@@ -246,6 +246,25 @@ class EventType(Model):
 
         return obj
 
+    @classmethod
+    def get_event_type(cls, session, category, state):
+        """Look up an EventType with the given category and state
+
+        Args:
+            session: a live database session
+            category: the category to match
+            state: the state to match
+
+        Returns:
+            the matching EventType, or None
+        """
+        return session.query(EventType).filter(
+            and_(
+                EventType.category == category,
+                EventType.state == state
+            )
+        ).first()
+
 
 class Host(Model):
     """A basic declaration of a host, which should map to unique server (real or virtual)
@@ -279,9 +298,6 @@ class Host(Model):
         if hostname is None:
             raise exc.ValidationError("Hostname is required")
 
-        if session.query(Host).filter(Host.hostname == hostname).all():
-            raise exc.Conflict("Hostname already exists")
-
         try:
             obj = cls(hostname=hostname)
             obj.add(session)
@@ -292,6 +308,16 @@ class Host(Model):
             raise
 
         return obj
+
+    @classmethod
+    def get_host(cls, session, hostname):
+        """Find a host with a given hostname
+
+        Args:
+            session: a database session
+            hostname: the name to look for
+        """
+        return session.query(Host).filter(Host.hostname == hostname).first()
 
 
 class Fate(Model):

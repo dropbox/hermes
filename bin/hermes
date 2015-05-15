@@ -65,15 +65,55 @@ def list_hosts(args):
 def add_host(args):
     logging.debug("add_host(%s)", args.hostname)
     session = make_session()
-    Host.create(session, args.hostname)
-    print "Created host {}".format(args.hostname)
-    session.commit()
+    host = Host.get_host(session, args.hostname)
+    if host is None:
+        Host.create(session, args.hostname)
+        print "Created host {}".format(args.hostname)
+        session.commit()
+    else:
+        print "Host {} already exists".format(args.hostname)
     session.close()
 
 
-def main():
+def create_event(args):
+    logging.debug("create_event()")
+    logging.debug(
+        "host: %s    category: %s    state: %s    note: %s",
+        args.hostname, args.category, args.state, args.note
+    )
 
-    description_msg = "EMS CLI"
+    session = make_session()
+
+    event_type = EventType.get_event_type(session, args.category, args.state)
+
+    if event_type is None:
+        logging.error(
+            "No matching EventState found for %s %s", args.category, args.state
+        )
+        session.close()
+        return
+
+    host = Host.get_host(session, args.hostname)
+
+    if host is None:
+        host = Host.create(session, args.hostname)
+
+    user = getpass.getuser()
+
+    event = Event.create(session, host, user, event_type, args.note)
+
+    if event:
+        print "Event created."
+        session.commit()
+    else:
+        print "Event creation failed."
+        session.rollback()
+
+    session.close()
+
+
+def parse_cli_args():
+    description_msg = "Hermes CLI"
     parser = argparse.ArgumentParser(description=description_msg)
 
     parser.add_argument("-c", "--config", default="/etc/hermes.yaml",
@@ -103,8 +143,25 @@ def main():
     host_add_parser.add_argument("hostname")
     host_add_parser.set_defaults(func=add_host)
 
+    # events command line parser
+    event_parser = subparsers.add_parser(
+        "event", help="Create and list events"
+    )
+    event_subparser = event_parser.add_subparsers()
+    event_create_parser = event_subparser.add_parser("create")
+    event_create_parser.add_argument("hostname")
+    event_create_parser.add_argument("category")
+    event_create_parser.add_argument("state")
+    event_create_parser.add_argument(
+        "-n", "--note", type=str, help="Note to attach to the event"
+    )
+    event_create_parser.set_defaults(func=create_event)
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    args = parse_cli_args()
     settings.update_from_config(args.config)
 
     if args.verbose:
