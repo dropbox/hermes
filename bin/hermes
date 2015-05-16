@@ -184,12 +184,11 @@ def list_quests(args):
                     achievement.creation_event.event_type.state
                 )
 
+        total_achievements = len(quest.achievements)
         print "{:.2%} complete.  {} total achievements remain open.\n".format(
-            achievements_remaining/len(quest.achievements),
+            (total_achievements - achievements_remaining)/total_achievements,
             achievements_remaining
         )
-
-
 
     session.close()
 
