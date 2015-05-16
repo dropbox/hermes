@@ -9,6 +9,8 @@ import getpass
 import logging
 import sys
 
+from sqlalchemy import desc
+
 import hermes
 from hermes import models
 from hermes.models import Event, EventType, Host, Fate, Achievement, Quest
@@ -27,9 +29,16 @@ def info_event_types(args):
     logging.debug("info_event_types()")
     session = make_session()
     event_types = EventType.query().all()
-    print"\n{}{}".format(str.ljust("CATEGORY", 20), str.ljust("STATE", 20))
+    last_event_type = EventType.query().order_by(desc(EventType.id)).first()
+    max_length = len(str(last_event_type.id))
+
+    print"{}{}{}".format(
+        str.ljust("ID", max_length + 3),
+        str.ljust("CATEGORY", 20), str.ljust("STATE", 20)
+    )
     for event_type in event_types:
-        print "{}{}".format(
+        print "{}{}{}".format(
+            str.ljust("[" + str(event_type.id) + "]", max_length + 3),
             str.ljust(event_type.category, 20), str.ljust(event_type.state, 20)
         )
 
@@ -40,11 +49,12 @@ def info_fates(args):
     logging.debug("info_fates()")
     session = make_session()
     fates = Fate.query().all()
-    print "\nFATES  (created by => completed by)\n "
+    print "FATES  ([id] created by => completed by)\n "
     for fate in fates:
         creation_event = fate.creation_event_type
         completion_event = fate.completion_event_type
-        print "{} => {}".format(
+        print "[{}] {} => {}".format(
+            fate.id,
             creation_event.category + "-" + creation_event.state,
             completion_event.category + "-" + completion_event.state
         )
