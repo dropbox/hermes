@@ -161,34 +161,73 @@ def list_quests(args):
 
     print "QUESTS:"
     for quest in quests:
-        print "{} by {}.  Embarked on {}".format(
-            quest.description, quest.creator, quest.embark_time
+        print "[{}] {} by {}.  Embarked on {}".format(
+            quest.id, quest.description, quest.creator, quest.embark_time
         )
-
-        print "The quest has {} total achievements.  The following remain open:".format(
-            len(quest.achievements)
-        )
-
-        max_width = 0
-        for achievement in quest.achievements:
-            if len(achievement.host.hostname) > max_width:
-                max_width = len(achievement.host.hostname)
 
         achievements_remaining = 0
         for achievement in quest.achievements:
             if achievement.completion_time is None:
                 achievements_remaining += 1
-                print "{} must achieve {} {}".format(
-                    achievement.host.hostname.rjust(max_width + 4),
-                    achievement.creation_event.event_type.category,
-                    achievement.creation_event.event_type.state
-                )
 
         total_achievements = len(quest.achievements)
-        print "{:.2%} complete.  {} total achievements remain open.\n".format(
+        print "{:.2%} complete.  {} total achievements.  {} remain open.\n".format(
             (total_achievements - achievements_remaining)/total_achievements,
+            total_achievements,
             achievements_remaining
         )
+
+    session.close()
+
+
+def show_quest(args):
+    logging.debug("show_quest(%d)", args.quest_id)
+    session = make_session()
+
+    quest = session.query(Quest).get(args.quest_id)
+
+    print "QUEST {}:".format(args.quest_id)
+    print "{} by {}.  Embarked on {}".format(
+        quest.description, quest.creator, quest.embark_time
+    )
+
+    max_width = 0
+    for achievement in quest.achievements:
+        if len(achievement.host.hostname) > max_width:
+            max_width = len(achievement.host.hostname)
+
+    remaining = []
+    completed = []
+    for achievement in quest.achievements:
+        if args.all is True or achievement.completion_time is None:
+            if achievement.completion_time is None:
+                remaining.append(achievement)
+            else:
+                completed.append(achievement)
+
+    for achievement in completed:
+        print "{} achieved {} {} on {}".format(
+            achievement.host.hostname.rjust(max_width + 4),
+            achievement.creation_event.event_type.category,
+            achievement.creation_event.event_type.state,
+            achievement.completion_time
+        )
+
+    for achievement in remaining:
+        print "{} must achieve {} {}".format(
+            achievement.host.hostname.rjust(max_width + 4),
+            achievement.creation_event.event_type.category,
+            achievement.creation_event.event_type.state
+        )
+
+    total_achievements = len(quest.achievements)
+    achievements_remaining = len(remaining)
+    achievements_completed = len(completed)
+    print "{:.2%} complete.  {} total achievements.  {} remain open.\n".format(
+        (achievements_completed)/total_achievements,
+        total_achievements,
+        achievements_remaining
+    )
 
     session.close()
 
@@ -317,8 +356,17 @@ def parse_cli_args():
         "quest", help="Create and list Quests"
     )
     quest_subparser = quest_parser.add_subparsers()
+    # quest list parser
     quest_list_parser = quest_subparser.add_parser("list")
     quest_list_parser.set_defaults(func=list_quests)
+    # quest show parser
+    quest_show_parser = quest_subparser.add_parser("show")
+    quest_show_parser.add_argument("quest_id")
+    quest_show_parser.add_argument(
+        "-a", "--all", action="store_true",
+        help="Show all associated achievements"
+    )
+    quest_show_parser.set_defaults(func=show_quest)
     # quest creation parser
     quest_create_parser = quest_subparser.add_parser("create")
     quest_create_parser.add_argument("category")
