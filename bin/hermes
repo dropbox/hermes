@@ -186,11 +186,6 @@ def show_quest(args):
 
     quest = session.query(Quest).get(args.quest_id)
 
-    print "QUEST {}:".format(args.quest_id)
-    print "{} by {}.  Embarked on {}".format(
-        quest.description, quest.creator, quest.embark_time
-    )
-
     max_width = 0
     for achievement in quest.achievements:
         if len(achievement.host.hostname) > max_width:
@@ -199,35 +194,48 @@ def show_quest(args):
     remaining = []
     completed = []
     for achievement in quest.achievements:
-        if args.all is True or achievement.completion_time is None:
-            if achievement.completion_time is None:
-                remaining.append(achievement)
-            else:
-                completed.append(achievement)
+        if achievement.completion_time is None:
+            remaining.append(achievement)
+        else:
+            completed.append(achievement)
 
-    for achievement in completed:
-        print "{} achieved {} {} on {}".format(
-            achievement.host.hostname.rjust(max_width + 4),
-            achievement.creation_event.event_type.category,
-            achievement.creation_event.event_type.state,
-            achievement.completion_time
+    if not args.list_only:
+        print "QUEST {}:".format(args.quest_id)
+        print "{} by {}.  Embarked on {}".format(
+            quest.description, quest.creator, quest.embark_time
         )
 
-    for achievement in remaining:
-        print "{} must achieve {} {}".format(
-            achievement.host.hostname.rjust(max_width + 4),
-            achievement.creation_event.event_type.category,
-            achievement.creation_event.event_type.state
-        )
+        if args.all or args.completed_only:
+            for achievement in completed:
+                print "{} achieved {} {} on {}".format(
+                    achievement.host.hostname.rjust(max_width + 4),
+                    achievement.creation_event.event_type.category,
+                    achievement.creation_event.event_type.state,
+                    achievement.completion_time
+                )
+        if not args.completed_only:
+            for achievement in remaining:
+                print "{} must achieve {} {}".format(
+                    achievement.host.hostname.rjust(max_width + 4),
+                    achievement.creation_event.event_type.category,
+                    achievement.creation_event.event_type.state
+                )
 
-    total_achievements = len(quest.achievements)
-    achievements_remaining = len(remaining)
-    achievements_completed = len(completed)
-    print "{:.2%} complete.  {} total achievements.  {} remain open.\n".format(
-        (achievements_completed)/total_achievements,
-        total_achievements,
-        achievements_remaining
-    )
+        total_achievements = len(quest.achievements)
+        achievements_remaining = len(remaining)
+        achievements_completed = len(completed)
+        print "{:.2%} complete.  {} total achievements.  {} remain open.\n".format(
+            achievements_completed/total_achievements,
+            total_achievements,
+            achievements_remaining
+        )
+    else:
+        if args.completed_only or args.all:
+            for achievement in completed:
+                print achievement.host.hostname
+        if not args.completed_only:
+            for achievement in remaining:
+                print achievement.host.hostname
 
     session.close()
 
@@ -303,7 +311,9 @@ def parse_cli_args():
     subparsers = parser.add_subparsers()
 
     # Add the command line parsers for info commands
-    info_parser = subparsers.add_parser("info", help="Display information about defined types.")
+    info_parser = subparsers.add_parser(
+        "info", help="Display information about defined types."
+    )
     info_subparsers = info_parser.add_subparsers()
     info_event_types_parser = info_subparsers.add_parser("event-types")
     info_event_types_parser.set_defaults(func=info_event_types)
@@ -362,9 +372,18 @@ def parse_cli_args():
     # quest show parser
     quest_show_parser = quest_subparser.add_parser("show")
     quest_show_parser.add_argument("quest_id")
-    quest_show_parser.add_argument(
-        "-a", "--all", action="store_true",
+    quest_show_list_options = quest_show_parser.add_mutually_exclusive_group()
+    quest_show_list_options.add_argument(
+        "--all", action="store_true",
         help="Show all associated achievements"
+    )
+    quest_show_list_options.add_argument(
+        "--completed", action="store_true", dest="completed_only",
+        help="Show only completed achievements"
+    )
+    quest_show_parser.add_argument(
+        "--list", dest="list_only", action="store_true",
+        help="Only output a list of hostnames with open achievements"
     )
     quest_show_parser.set_defaults(func=show_quest)
     # quest creation parser
