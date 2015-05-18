@@ -12,15 +12,19 @@ VALUES
 
 INSERT INTO event_types
 VALUES
-	(4,'system-maintenance','completed','System maintenance completed.');
+	(4,'system-maintenance','ready','This system is ready for maintenance.');
 
 INSERT INTO event_types
 VALUES
-	(5,'system-shutdown','required','System shutdown required.');
+	(5,'system-maintenance','completed','System maintenance completed.');
 
 INSERT INTO event_types
 VALUES
-	(6,'system-shutdown','complete','System shutdown complete.');
+	(6,'system-shutdown','required','System shutdown required.');
+
+INSERT INTO event_types
+VALUES
+	(7,'system-shutdown','complete','System shutdown complete.');
 
 INSERT INTO fates
 VALUES

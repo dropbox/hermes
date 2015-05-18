@@ -8,7 +8,7 @@ VALUES
 	(1,'system-reboot','required','This system requires a reboot.'),
 	(2,'system-reboot','completed','This system rebooted.'),
 	(3,'system-maintenance','required','This system requires maintenance.'),
-	(4,'system-maintenance','ready','This system is ready for maintenance.');
+	(4,'system-maintenance','ready','This system is ready for maintenance.'),
 	(5,'system-maintenance','completed','System maintenance completed.');
 
 UNLOCK TABLES;

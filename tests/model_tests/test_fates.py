@@ -9,7 +9,7 @@ from .fixtures import db_engine, session, sample_data1
 
 def test_creation(sample_data1):
     event_types = sample_data1.query(models.EventType).all()
-    assert len(event_types) == 6
+    assert len(event_types) == 7
 
     event_type4 = event_types[4]
     event_type5 = event_types[5]
@@ -38,7 +38,7 @@ def test_creation(sample_data1):
 
 def test_duplicate(sample_data1):
     event_types = sample_data1.query(models.EventType).all()
-    assert len(event_types) == 6
+    assert len(event_types) == 7
 
     event_type1 = event_types[0]
     event_type2 = event_types[1]

@@ -9,7 +9,7 @@ from .fixtures import db_engine, session, sample_data1
 
 def test_creation(sample_data1):
     event_types = sample_data1.query(models.EventType).all()
-    assert len(event_types) == 6
+    assert len(event_types) == 7
     event_type1 = event_types[0]
     assert len(event_type1.events) == 1
 
@@ -41,7 +41,7 @@ def test_creation(sample_data1):
 def test_duplicate(sample_data1):
     """Test to ensure duplicate events are fine b/c there can be multiple identical events"""
     event_types = sample_data1.query(models.EventType).all()
-    assert len(event_types) == 6
+    assert len(event_types) == 7
     event_type1 = event_types[0]
 
     hosts = sample_data1.query(models.Host).all()
