@@ -296,6 +296,9 @@ def test_complex_chaining2(sample_data2):
     # are created for both events
     found_hosts = sample_data2.query(Host).filter(Host.hostname.in_(hosts)).all()
     assert len(found_hosts) == 2
+    assert len(found_hosts[0].events) == 2
+    assert len(found_hosts[1].events) == 2
+
     event1 = Event.create(
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")
@@ -304,6 +307,9 @@ def test_complex_chaining2(sample_data2):
         sample_data2, found_hosts[1], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")
     )
+
+    assert len(found_hosts[0].events) == 3
+    assert len(found_hosts[1].events) == 3
 
     assert len(bravo_quest.achievements) == 4
     assert len(bravo_quest.get_open_achievements()) == 2
