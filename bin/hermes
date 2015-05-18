@@ -25,8 +25,8 @@ def make_session():
     return models.Session()
 
 
-def info_event_types(args):
-    logging.debug("info_event_types()")
+def list_event_types(args):
+    logging.debug("list_event_types()")
     session = make_session()
     event_types = EventType.query().all()
     last_event_type = EventType.query().order_by(desc(EventType.id)).first()
@@ -45,8 +45,23 @@ def info_event_types(args):
     session.close()
 
 
-def info_fates(args):
-    logging.debug("info_fates()")
+def create_event_type(args):
+    logging.debug("create_event_type({},{})", args.category, args.state)
+    session = make_session()
+    event_type = EventType.create(
+        session, args.category, args.state, args.description
+    )
+    if event_type:
+        print "Created event type {}".format(event_type.id)
+        session.commit()
+    else:
+        print "Error creating event type."
+
+    session.close()
+
+
+def list_fates(args):
+    logging.debug("list_fates()")
     session = make_session()
     fates = Fate.query().all()
     print "FATES  ([id] created by => completed by)\n "
@@ -60,6 +75,58 @@ def info_fates(args):
         )
         print fate.description
         print ""
+    session.close()
+
+
+def create_fate(args):
+    logging.debug("create_fates()")
+    if not args.ct and not (args.cc and args.cs):
+        print (
+            "To create a fate, you must specify either --creation-type,\nor "
+            "--creation-category and creation-state."
+        )
+        return
+    if not args.xt and not (args.xc and args.xs):
+        print (
+            "To create a fate, you must specify either --completion-type,\nor "
+            "--completion-category and completion-state."
+        )
+        return
+
+    session = make_session()
+    if args.cc and args.cs:
+        creation_event_type = EventType.get_event_type(
+            session, args.cc, args.cs
+        )
+    else:
+        creation_event_type = EventType.query().get(args.ct)
+
+    if not creation_event_type:
+        print "Creation event type not found."
+        return
+
+    if args.xc and args.xs:
+        completion_event_type = EventType.get_event_type(
+            session, args.xc, args.xs
+        )
+    else:
+        completion_event_type = EventType.query().get(args.xt)
+
+    if not completion_event_type:
+        print "Completion event type not found."
+        return
+
+    fate = Fate.create(
+        session, creation_event_type, completion_event_type,
+        description=args.description
+    )
+
+    if fate:
+        print "Create fate {}".format(fate.id)
+        session.commit()
+    else:
+        print "Error creating fate."
+
     session.close()
 
 
@@ -320,15 +387,70 @@ def parse_cli_args():
 
     subparsers = parser.add_subparsers()
 
-    # Add the command line parsers for info commands
-    info_parser = subparsers.add_parser(
-        "info", help="Display information about defined types."
+    # event type command line parser
+    event_type_parser = subparsers.add_parser(
+        "event-type", help="Create and list event types"
     )
-    info_subparsers = info_parser.add_subparsers()
-    info_event_types_parser = info_subparsers.add_parser("event-types")
-    info_event_types_parser.set_defaults(func=info_event_types)
-    info_fates_parser = info_subparsers.add_parser("fates")
-    info_fates_parser.set_defaults(func=info_fates)
+    event_type_subparser = event_type_parser.add_subparsers()
+    # event type list command line parser
+    event_type_list_parser = event_type_subparser.add_parser("list")
+    event_type_list_parser.set_defaults(func=list_event_types)
+    # event type create command line parser
+    event_type_create_parser = event_type_subparser.add_parser("create")
+    event_type_create_parser.add_argument(
+        "-c", "--category", required=True,
+        help="Category of the new event type"
+    )
+    event_type_create_parser.add_argument(
+        "-s", "--state", required=True,
+        help="State of the new event type"
+    )
+    event_type_create_parser.add_argument(
+        "-d", "--description", required=True,
+        help="Human readable description for this event type"
+    )
+    event_type_create_parser.set_defaults(func=create_event_type)
+
+    # fate command line parser
+    fate_parser = subparsers.add_parser(
+        "fate", help="Create and list fates"
+    )
+    # fate list parser
+    fate_subparser = fate_parser.add_subparsers()
+    fate_list_subparser = fate_subparser.add_parser("list")
+    fate_list_subparser.set_defaults(func=list_fates)
+    # fate create parser
+    fate_create_subparser = fate_subparser.add_parser("create")
+    fate_create_subparser.add_argument(
+        "-cc", "--creation-category", help="The category of the creation event type",
+        dest="cc", type=str
+    )
+    fate_create_subparser.add_argument(
+        "-cs", "--creation-state", help="The state of the creation event type",
+        dest="cs", type=str
+    )
+    fate_create_subparser.add_argument(
+        "-ct", "--creation-type", help="The ID of the creation type",
+        dest="ct", type=str
+    )
+    fate_create_subparser.add_argument(
+        "-cx", "--completion-category",
+        help="The category of the completion event type",
+        dest="xc", type=str
+    )
+    fate_create_subparser.add_argument(
+        "-xs", "--completion-state", help="The state of the completion event type",
+        dest="xs", type=str
+    )
+    fate_create_subparser.add_argument(
+        "-xt", "--completion-type", help="The ID of the completion event type",
+        dest="xt", type=str
+    )
+    fate_create_subparser.add_argument(
+        "--description", help="The human readable description of this fate",
+        required=True
+    )
+    fate_create_subparser.set_defaults(func=create_fate)
 
     # Add host command line parser
     host_parser = subparsers.add_parser("host", help="Host level operations")
@@ -359,7 +481,7 @@ def parse_cli_args():
 
     # events command line parser
     event_parser = subparsers.add_parser(
-        "event", help="Create and list Events"
+        "event", help="Create and list events"
     )
     event_subparser = event_parser.add_subparsers()
     event_create_parser = event_subparser.add_parser("create")
