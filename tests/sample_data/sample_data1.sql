@@ -32,7 +32,11 @@ VALUES
 
 INSERT INTO fates
 VALUES
-	(2,3,4,'A system that needs a maintenance must be attended to.');
+	(2,3,4,'A system that needs maintenance made ready before maintenance can occur.');
+
+INSERT INTO fates
+VALUES
+	(3,4,5,'Maintenance must be performed on a system that is prepped.');
 
 INSERT INTO hosts
     VALUES (1, 'example.dropbox.com');

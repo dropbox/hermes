@@ -30,3 +30,12 @@ def sample_data1(session):
         session.execute(statement)
 
     return session
+
+@pytest.fixture
+def sample_data2(session):
+    sql_file = open('tests/sample_data/sample_data2.sql')
+    sql = sql_file.read()
+    for statement in sql.split(";"):
+        session.execute(statement)
+
+    return session

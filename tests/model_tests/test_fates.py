@@ -11,29 +11,29 @@ def test_creation(sample_data1):
     event_types = sample_data1.query(models.EventType).all()
     assert len(event_types) == 7
 
-    event_type4 = event_types[4]
-    event_type5 = event_types[5]
+    event_type6 = event_types[5]
+    event_type7 = event_types[6]
 
-    models.Fate.create(sample_data1, event_type4, event_type5, "New fate")
+    models.Fate.create(sample_data1, event_type6, event_type7, "New fate")
     sample_data1.commit()
 
     fates = sample_data1.query(models.Fate).all()
 
-    # the total number of fates should be 3 now.  We care about the new one
-    assert len(fates) == 3
-    fate = fates[2]
-    assert fate.id == 3
-    assert fate.creation_event_type == event_type4
-    assert fate.completion_event_type == event_type5
+    # the total number of fates should be 4 now.  We care about the new one
+    assert len(fates) == 4
+    fate = fates[3]
+    assert fate.id == 4
+    assert fate.creation_event_type == event_type6
+    assert fate.completion_event_type == event_type7
     assert fate.description == "New fate"
 
-    assert len(event_type4.auto_creates) == 1
-    assert event_type4.auto_creates[0] == fate
-    assert len(event_type4.auto_completes) == 0
+    assert len(event_type6.auto_creates) == 1
+    assert event_type6.auto_creates[0] == fate
+    assert len(event_type6.auto_completes) == 0
 
-    assert len(event_type5.auto_creates) == 0
-    assert len(event_type5.auto_completes) == 1
-    assert event_type5.auto_completes[0] == fate
+    assert len(event_type7.auto_creates) == 0
+    assert len(event_type7.auto_completes) == 1
+    assert event_type7.auto_completes[0] == fate
 
 
 def test_duplicate(sample_data1):

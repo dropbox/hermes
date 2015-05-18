@@ -123,8 +123,8 @@ def test_acknowledge(sample_data1):
     achievements = sample_data1.query(models.Achievement).all()
     assert len(achievements) == 0
 
-    fate = sample_data1.query(models.Fate).first()
-    host = sample_data1.query(models.Host).first()
+    fate = sample_data1.query(models.Fate).get(1)
+    host = sample_data1.query(models.Host).get(1)
 
     models.Event.create(sample_data1, host, "system", fate.creation_event_type)
 

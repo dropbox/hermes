@@ -351,7 +351,7 @@ class Host(Model):
                     Achievement.completion_time == None
                 ))
             .order_by(desc(Achievement.creation_time)).limit(limit)
-            .from_self().order_by(Achievement.creation_time)
+            .from_self().order_by(Achievement.creation_time).all()
         )
 
 
@@ -439,34 +439,47 @@ class Fate(Model):
         host = event.host
         event_type = event.event_type
 
+        print "********* {}  {}".format(host.hostname, event_type.description)
+
         fates = session.query(Fate).all()
+
+        # we need to track created achievements in case we need to tie to a
+        # quest because this event both closes and creates an achievement
+        should_create = False
+        should_close = False
+        achievements_to_close = []
 
         # Examine all the Fates.
         for fate in fates:
             # If this type of Event is a creation type for a Fate,
-            # create an Achievement
+            # flag that we need to create achievements
             if event_type == fate.creation_event_type:
-                Achievement.create(session, host, event)
+                should_create = True
 
             # If this type of Event is a completion type for a Fate,
-            # find all open Achievements for the related creation type and
-            # mark them as complete.
+            # flag that we need to look for open achievements to close
+            # for this Host.  Add those to a list in case we need to morph this
+            # achievement because this is also a creation type event
             if event_type == fate.completion_event_type:
-                subquery = (
-                    session.query(Event.id).filter(
-                        Event.event_type == fate.creation_event_type
-                    ).subquery()
-                )
-                open_achievements = (
-                    session.query(Achievement).filter(and_(
-                        Achievement.completion_event == None,
-                        Achievement.host == event.host,
-                        Achievement.creation_event_id.in_(subquery)
-                    )).all()
-                )
+                for open_achievement in host.get_open_achievements(limit=None):
+                    if (open_achievement.creation_event.event_type == fate.creation_event_type):
+                        achievements_to_close.append(open_achievement)
+                        should_close = True
 
-                for open_achievement in open_achievements:
-                        open_achievement.achieve(event)
+        if should_close and should_create:
+            print "*** SHOULD CLOSE AND SHOULD CREATE"
+            for achievement in achievements_to_close:
+                new_achievement = Achievement.create(session, host, event)
+                if achievement.quest:
+                    new_achievement.add_to_quest(achievement.quest)
+                achievement.achieve(event)
+        elif should_close and not should_create:
+            print "*** SHOULD CLOSE AND NOT CREATE"
+            for achievement in achievements_to_close:
+                achievement.achieve(event)
+        elif not should_close and should_create:
+            print "*** SHOULD NOT CLOSE AND SHOULD CREATE"
+            new_achievement = Achievement.create(session, host, event)
 
 
 class Event(Model):
@@ -597,6 +610,7 @@ class Quest(Model):
             session.flush()
 
         except Exception:
+            print session
             session.rollback()
             raise
 
@@ -650,7 +664,7 @@ class Quest(Model):
 
         if complete:
             self.update(
-                completion_time = datetime.now()
+                completion_time=datetime.now()
             )
 
     @classmethod
@@ -668,6 +682,21 @@ class Quest(Model):
             session.query(Quest).filter(Quest.completion_time == None)
             .order_by(desc(Quest.embark_time)).limit(limit)
             .from_self().order_by(Quest.embark_time)
+        )
+
+    def get_open_achievements(self):
+        """Get the open achievements associated with this quest
+
+        Returns:
+            list of open achievements
+        """
+        return (
+            self.session.query(Achievement).filter(
+                and_(
+                    Achievement.quest == self,
+                    Achievement.completion_time == None
+                )
+            ).all()
         )
 
 
