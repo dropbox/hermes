@@ -14,7 +14,9 @@ def test_creation(sample_data1):
     event_type6 = event_types[5]
     event_type7 = event_types[6]
 
-    models.Fate.create(sample_data1, event_type6, event_type7, "New fate")
+    models.Fate.create(
+        sample_data1, event_type6, event_type7, description="New fate"
+    )
     sample_data1.commit()
 
     fates = sample_data1.query(models.Fate).all()
@@ -44,4 +46,6 @@ def test_duplicate(sample_data1):
     event_type2 = event_types[1]
 
     with pytest.raises(IntegrityError):
-        models.Fate.create(sample_data1, event_type1, event_type2, "Dup fate")
+        models.Fate.create(
+            sample_data1, event_type1, event_type2, description="Dup fate"
+        )

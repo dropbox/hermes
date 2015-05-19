@@ -399,7 +399,8 @@ class Fate(Model):
     @classmethod
     def create(
             cls, session,
-            creation_event_type, completion_event_type, description=None
+            creation_event_type, completion_event_type, intermediate=False,
+            description=None
     ):
         """Create a Fate
 
@@ -408,6 +409,7 @@ class Fate(Model):
                 an labor creation
             completion_event_type: an EventType that will trigger
                 an labor completion
+            intermediate: if True, this is a mid-workflow Fate
             description: optional description for display
 
         Returns:
@@ -422,6 +424,7 @@ class Fate(Model):
             obj = cls(
                 creation_event_type=creation_event_type,
                 completion_event_type=completion_event_type,
+                intermediate=intermediate,
                 description=description
             )
             obj.add(session)

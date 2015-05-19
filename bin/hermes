@@ -99,7 +99,7 @@ def create_fate(args):
             session, args.cc, args.cs
         )
     else:
-        creation_event_type = EventType.query().get(args.ct)
+        creation_event_type = session.query(EventType).get(args.ct)
 
     if not creation_event_type:
         print "Creation event type not found."
@@ -110,7 +110,7 @@ def create_fate(args):
             session, args.xc, args.xs
         )
     else:
-        completion_event_type = EventType.query().get(args.xt)
+        completion_event_type = session.query(EventType).get(args.xt)
 
     if not completion_event_type:
         print "Completion event type not found."
@@ -118,6 +118,7 @@ def create_fate(args):
 
     fate = Fate.create(
         session, creation_event_type, completion_event_type,
+        intermediate=args.intermediate,
         description=args.description
     )
 
@@ -398,11 +399,11 @@ def parse_cli_args():
     # event type create command line parser
     event_type_create_parser = event_type_subparser.add_parser("create")
     event_type_create_parser.add_argument(
-        "-c", "--category", required=True,
+        "category",
         help="Category of the new event type"
     )
     event_type_create_parser.add_argument(
-        "-s", "--state", required=True,
+        "state",
         help="State of the new event type"
     )
     event_type_create_parser.add_argument(
@@ -445,6 +446,10 @@ def parse_cli_args():
     fate_create_subparser.add_argument(
         "-xt", "--completion-type", help="The ID of the completion event type",
         dest="xt", type=str
+    )
+    fate_create_subparser.add_argument(
+        "-i", "--intermediate", action="store_true",
+        help="When flagged, this fate only creates a new labor if closing an existing one"
     )
     fate_create_subparser.add_argument(
         "--description", help="The human readable description of this fate",
