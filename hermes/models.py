@@ -362,7 +362,10 @@ class Fate(Model):
     Attributes:
         id: the unique database id
         creation_type: the EventType that creates an Labor based on this Fate
-        completion_type: the EventType that closes an Labor created by this Fate
+        completion_type: the EventType that closes an Labor created by this
+            Fate
+        intermediate: if True, this Fate only creates a Labor if also
+            closing a previous Labor
         description: the optional human readable description of this Fate
     """
 
@@ -382,6 +385,9 @@ class Fate(Model):
     completion_event_type = relationship(
         EventType, lazy="joined", backref="auto_completes",
         foreign_keys=[completion_type_id]
+    )
+    intermediate = Column(
+        Boolean, nullable=False, default=False
     )
     description = Column(String(2048), nullable=True)
     __table_args__ = (
@@ -446,6 +452,7 @@ class Fate(Model):
         # we need to track created labors in case we need to tie to a
         # quest because this event both closes and creates an labor
         should_create = False
+        should_create_if_intermediate = False
         should_close = False
         labors_to_close = []
 
@@ -454,7 +461,10 @@ class Fate(Model):
             # If this type of Event is a creation type for a Fate,
             # flag that we need to create labors
             if event_type == fate.creation_event_type:
-                should_create = True
+                if fate.intermediate:
+                    should_create_if_intermediate = True
+                else:
+                    should_create = True
 
             # If this type of Event is a completion type for a Fate,
             # flag that we need to look for open labors to close
@@ -466,20 +476,18 @@ class Fate(Model):
                         labors_to_close.append(open_labor)
                         should_close = True
 
-        if should_close and should_create:
-            print "*** SHOULD CLOSE AND SHOULD CREATE"
-            for labor in labors_to_close:
-                new_labor = Labor.create(session, host, event)
-                if labor.quest:
-                    new_labor.add_to_quest(labor.quest)
-                labor.achieve(event)
-        elif should_close and not should_create:
-            print "*** SHOULD CLOSE AND NOT CREATE"
-            for labor in labors_to_close:
-                labor.achieve(event)
-        elif not should_close and should_create:
-            print "*** SHOULD NOT CLOSE AND SHOULD CREATE"
+        if should_create:
+            print "**** CREATING RAW LABOR"
             new_labor = Labor.create(session, host, event)
+
+        if should_close:
+            print "*** SHOULD CLOSE"
+            for labor in labors_to_close:
+                if should_create_if_intermediate:
+                    new_labor = Labor.create(session, host, event)
+                    if labor.quest:
+                        new_labor.add_to_quest(labor.quest)
+                labor.achieve(event)
 
 
 class Event(Model):

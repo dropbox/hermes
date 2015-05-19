@@ -28,27 +28,27 @@ VALUES
 
 INSERT INTO fates
 VALUES
-	(1,1,2,'Audit is required before maintenance needed.');
+	(1,1,2,0, 'Audit is required before maintenance needed.');
 
 INSERT INTO fates
 VALUES
-	(2,2,3,'Maintenance is needed so machine must be made ready.');
+	(2,2,3,1,'Maintenance is needed so machine must be made ready.');
 
 INSERT INTO fates
 VALUES
-	(3,3,4,'System is ready for maintenance might need work done.');
+	(3,3,4,1,'System is ready for maintenance might need work done.');
 
 INSERT INTO fates
 VALUES
-	(4,2,6,'Maintenance is needed but a reboot might work.');
+	(4,2,6,1,'Maintenance is needed but a reboot might work.');
 
 INSERT INTO fates
 VALUES
-	(5,5,6,'Reboot is needed so a reboot should be done.');
+	(5,5,6,0,'Reboot is needed so a reboot should be done.');
 
 INSERT INTO fates
 VALUES
-	(6,6,7,'Reboot was completed so puppet must be restarted.');
+	(6,6,7,1,'Reboot was completed so puppet must be restarted.');
 
 INSERT INTO hosts
     VALUES (1, 'example.dropbox.com');

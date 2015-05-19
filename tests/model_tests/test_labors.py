@@ -158,4 +158,24 @@ def test_acknowledge(sample_data1):
     assert len(labors) == 0
 
 
+def test_cannot_start_in_midworkflow(sample_data1):
+    labors = sample_data1.query(Labor).all()
+    assert len(labors) == 0
+
+    fate = sample_data1.query(Fate).get(3)
+    host = sample_data1.query(Host).get(1)
+
+    Event.create(sample_data1, host, "system", fate.creation_event_type)
+
+    event = (
+        sample_data1.query(Event)
+        .order_by(desc(Event.id)).first()
+    )
+
+    assert event.host == host
+    assert event.event_type == fate.creation_event_type
+
+    labors = Labor.get_open_unacknowledged(sample_data1)
+    assert len(labors) == 0
+
 

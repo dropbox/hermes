@@ -275,58 +275,69 @@ def test_complex_chaining2(sample_data2):
     fates = sample_data2.query(Fate).all()
     assert len(fates) == 6
 
-    hosts = ['example.dropbox.com', 'test.dropbox.com']
+    hosts = ['example.dropbox.com']
 
+    print "creating bravo"
     bravo_quest = Quest.create(
         sample_data2, "testman", hosts,
-        EventType.get_event_type(sample_data2, "system-maintenance", "needed"),
+        EventType.get_event_type(sample_data2, "system-maintenance", "audit"),
         description="System maintenance is needed"
     )
+    print "creating charlie"
     charlie_quest = Quest.create(
         sample_data2, "testman", hosts,
         EventType.get_event_type(sample_data2, "system-reboot", "needed"),
         description="Systems need a reboot"
     )
+    print "finished with quest creation"
     assert bravo_quest
     assert charlie_quest
-    assert len(bravo_quest.labors) == 2
-    assert len(charlie_quest.labors) == 2
+    assert len(bravo_quest.labors) == 1
+    assert len(charlie_quest.labors) == 1
 
     # now we create the reboot-complete events and ensure new labors
     # are created for both events
     found_hosts = sample_data2.query(Host).filter(Host.hostname.in_(hosts)).all()
-    assert len(found_hosts) == 2
+    assert len(found_hosts) == 1
     assert len(found_hosts[0].events) == 2
-    assert len(found_hosts[1].events) == 2
 
+    print "event 1"
     event1 = Event.create(
+        sample_data2, found_hosts[0], "system",
+        EventType.get_event_type(sample_data2, "system-maintenance", "needed")
+    )
+    assert bravo_quest.get_open_labors()[0].creation_event == event1
+    print "event 2"
+    event2 = Event.create(
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")
     )
-    event2 = Event.create(
-        sample_data2, found_hosts[1], "system",
+    # since the previous event progressed the workflow, this one below
+    # shouldn't create a labor since system-reboot-completed labors are
+    # intermediates
+    print "event 3"
+    event3 = Event.create(
+        sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")
     )
 
-    assert len(found_hosts[0].events) == 3
-    assert len(found_hosts[1].events) == 3
+    # we will have a 5th event here due to event3
+    assert len(found_hosts[0].events) == 5
 
-    assert len(bravo_quest.labors) == 4
-    assert len(bravo_quest.get_open_labors()) == 2
-    assert len(charlie_quest.labors) == 4
-    assert len(charlie_quest.get_open_labors()) == 2
+    assert len(bravo_quest.labors) == 3
+    assert len(bravo_quest.get_open_labors()) == 1
+    assert len(charlie_quest.labors) == 2
+    assert len(charlie_quest.get_open_labors()) == 1
 
-    assert bravo_quest.get_open_labors()[0].creation_event == event1
-    assert bravo_quest.get_open_labors()[1].creation_event == event2
-    assert charlie_quest.get_open_labors()[0].creation_event == event1
-    assert charlie_quest.get_open_labors()[1].creation_event == event2
+    assert bravo_quest.get_open_labors()[0].creation_event == event2
+    assert charlie_quest.get_open_labors()[0].creation_event == event2
 
     assert bravo_quest.get_open_labors()[0].quest == bravo_quest
-    assert bravo_quest.get_open_labors()[1].quest == bravo_quest
     assert charlie_quest.get_open_labors()[0].quest == charlie_quest
-    assert charlie_quest.get_open_labors()[1].quest == charlie_quest
 
-    assert len(sample_data2.query(Labor).all()) == 8
+    # despite event3, we should only have 5 total labors b/c event 2 progressed
+    # both bravo and charlie quests
+    assert len(sample_data2.query(Labor).all()) == 5
 
 
 
