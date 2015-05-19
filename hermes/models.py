@@ -335,34 +335,34 @@ class Host(Model):
             .from_self().order_by(Event.timestamp)
         )
 
-    def get_open_achievements(self, limit=20):
-        """Get the open Achievements for this Host
+    def get_open_labors(self, limit=20):
+        """Get the open Labors for this Host
 
         Args:
-            limit: the number of Achievements to return
+            limit: the number of Labors to return
 
         Returns:
-            list of Achievements
+            list of Labors
         """
         return (
-            self.session.query(Achievement).filter(
+            self.session.query(Labor).filter(
                 and_(
-                    Achievement.host == self,
-                    Achievement.completion_time == None
+                    Labor.host == self,
+                    Labor.completion_time == None
                 ))
-            .order_by(desc(Achievement.creation_time)).limit(limit)
-            .from_self().order_by(Achievement.creation_time).all()
+            .order_by(desc(Labor.creation_time)).limit(limit)
+            .from_self().order_by(Labor.creation_time).all()
         )
 
 
 class Fate(Model):
     """A Fate is a mapping of EventTypes to inform the system what kind of Events
-    automatically create or satisfy Achievements.
+    automatically create or satisfy Labors.
 
     Attributes:
         id: the unique database id
-        creation_type: the EventType that creates an Achievement based on this Fate
-        completion_type: the EventType that closes an Achievement created by this Fate
+        creation_type: the EventType that creates an Labor based on this Fate
+        completion_type: the EventType that closes an Labor created by this Fate
         description: the optional human readable description of this Fate
     """
 
@@ -399,9 +399,9 @@ class Fate(Model):
 
         Args:
             creation_event_type: an EventType that will trigger
-                an achievement creation
+                an labor creation
             completion_event_type: an EventType that will trigger
-                an achievement completion
+                an labor completion
             description: optional description for display
 
         Returns:
@@ -430,7 +430,7 @@ class Fate(Model):
     @classmethod
     def question_the_fates(cls, session, event):
         """Look through the Fates and see if we need to create or close
-        Achievements based on this event.
+        Labors based on this event.
 
         Args:
             session: active database session
@@ -443,43 +443,43 @@ class Fate(Model):
 
         fates = session.query(Fate).all()
 
-        # we need to track created achievements in case we need to tie to a
-        # quest because this event both closes and creates an achievement
+        # we need to track created labors in case we need to tie to a
+        # quest because this event both closes and creates an labor
         should_create = False
         should_close = False
-        achievements_to_close = []
+        labors_to_close = []
 
         # Examine all the Fates.
         for fate in fates:
             # If this type of Event is a creation type for a Fate,
-            # flag that we need to create achievements
+            # flag that we need to create labors
             if event_type == fate.creation_event_type:
                 should_create = True
 
             # If this type of Event is a completion type for a Fate,
-            # flag that we need to look for open achievements to close
+            # flag that we need to look for open labors to close
             # for this Host.  Add those to a list in case we need to morph this
-            # achievement because this is also a creation type event
+            # labor because this is also a creation type event
             if event_type == fate.completion_event_type:
-                for open_achievement in host.get_open_achievements(limit=None):
-                    if (open_achievement.creation_event.event_type == fate.creation_event_type):
-                        achievements_to_close.append(open_achievement)
+                for open_labor in host.get_open_labors(limit=None):
+                    if (open_labor.creation_event.event_type == fate.creation_event_type):
+                        labors_to_close.append(open_labor)
                         should_close = True
 
         if should_close and should_create:
             print "*** SHOULD CLOSE AND SHOULD CREATE"
-            for achievement in achievements_to_close:
-                new_achievement = Achievement.create(session, host, event)
-                if achievement.quest:
-                    new_achievement.add_to_quest(achievement.quest)
-                achievement.achieve(event)
+            for labor in labors_to_close:
+                new_labor = Labor.create(session, host, event)
+                if labor.quest:
+                    new_labor.add_to_quest(labor.quest)
+                labor.achieve(event)
         elif should_close and not should_create:
             print "*** SHOULD CLOSE AND NOT CREATE"
-            for achievement in achievements_to_close:
-                achievement.achieve(event)
+            for labor in labors_to_close:
+                labor.achieve(event)
         elif not should_close and should_create:
             print "*** SHOULD NOT CLOSE AND SHOULD CREATE"
-            new_achievement = Achievement.create(session, host, event)
+            new_labor = Labor.create(session, host, event)
 
 
 class Event(Model):
@@ -583,16 +583,16 @@ class Quest(Model):
 
         If create is True,
         we will create the events of EventType for all Hosts and tie the created
-        Achievements to this Quest.  If create is False, we will look for
-        existing open Achievements for the Hosts that have a Event of EventType
+        Labors to this Quest.  If create is False, we will look for
+        existing open Labors for the Hosts that have a Event of EventType
         and claim them for this Quest.
 
         Args:
             session: an active database session
             creator: the person or system creating the Quest
-            hosts: a list of hosts for which to create Events (and Achievements)
+            hosts: a list of hosts for which to create Events (and Labors)
             creation_event_type: the EventType of which to create Events
-            create: if True, Events will be created; if False, reclaim existing Achievements
+            create: if True, Events will be created; if False, reclaim existing Labors
             description: a required human readable text to describe this Quest
         """
         if creator is None:
@@ -629,37 +629,37 @@ class Quest(Model):
                 created_event = Event.create(
                     session, host, creator, creation_event_type
                 )
-                created_achievements = (
-                    session.query(Achievement)
-                    .filter(Achievement.creation_event == created_event).all()
+                created_labors = (
+                    session.query(Labor)
+                    .filter(Labor.creation_event == created_event).all()
                 )
-                for achievement in created_achievements:
-                    achievement.add_to_quest(quest)
+                for labor in created_labors:
+                    labor.add_to_quest(quest)
         else:
-            open_achievements = (
-                session.query(Achievement).filter(
-                    Achievement.completion_event == None
+            open_labors = (
+                session.query(Labor).filter(
+                    Labor.completion_event == None
                 ).all()
             )
 
-            for open_achievement in open_achievements:
+            for open_labor in open_labors:
                 if (
-                    open_achievement.creation_event.event_type
+                    open_labor.creation_event.event_type
                         == creation_event_type
-                        and open_achievement.host in found_hosts
+                        and open_labor.host in found_hosts
                 ):
-                    open_achievement.add_to_quest(quest)
+                    open_labor.add_to_quest(quest)
 
         return quest
 
     def check_for_victory(self):
-        """Test to see if all the Achievements are completed.
+        """Test to see if all the Labors are completed.
 
         Called when an associated Achievment is completed.
         """
         complete = True
-        for achievement in self.achievements:
-            if achievement.completion_time is None:
+        for labor in self.labors:
+            if labor.completion_time is None:
                 complete = False
 
         if complete:
@@ -684,51 +684,51 @@ class Quest(Model):
             .from_self().order_by(Quest.embark_time)
         )
 
-    def get_open_achievements(self):
-        """Get the open achievements associated with this quest
+    def get_open_labors(self):
+        """Get the open labors associated with this quest
 
         Returns:
-            list of open achievements
+            list of open labors
         """
         return (
-            self.session.query(Achievement).filter(
+            self.session.query(Labor).filter(
                 and_(
-                    Achievement.quest == self,
-                    Achievement.completion_time == None
+                    Labor.quest == self,
+                    Labor.completion_time == None
                 )
             ).all()
         )
 
 
-class Achievement(Model):
-    """An Achievement is a task that must be completed to satisfy a Quest.
+class Labor(Model):
+    """An Labor is a task that must be completed to satisfy a Quest.
 
     Attributes:
         id: the unique database id
-        host: the Host to which this Achievement pertains
-        creation_time: when this Achievement was created
-        ack_time: when this Achievement was acknowledged
-        ack_user: the user who acknowledged the Achievement
-        creation_event: the Event that triggered a Fate to create this Achievement
-        completion_event: the Event that triggered a Fate to close this Achievement
-        complete_time: when this Achievement was closed
+        host: the Host to which this Labor pertains
+        creation_time: when this Labor was created
+        ack_time: when this Labor was acknowledged
+        ack_user: the user who acknowledged the Labor
+        creation_event: the Event that triggered a Fate to create this Labor
+        completion_event: the Event that triggered a Fate to close this Labor
+        complete_time: when this Labor was closed
 
     Notes:
         the user field is for auditing purposes only.  It is not enforced or
         validated in any way.
     """
 
-    __tablename__ = "achievements"
+    __tablename__ = "labors"
 
     id = Column(Integer, primary_key=True)
     quest_id = Column(
         Integer, ForeignKey("quests.id"), nullable=True, index=True
     )
-    quest = relationship(Quest, lazy="joined", backref="achievements")
+    quest = relationship(Quest, lazy="joined", backref="labors")
     host_id = Column(
         Integer, ForeignKey("hosts.id"), nullable=False, index=True
     )
-    host = relationship(Host, lazy="joined", backref="achievements")
+    host = relationship(Host, lazy="joined", backref="labors")
     creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
     ack_time = Column(DateTime, nullable=True)
     ack_user = Column(String(64), nullable=True)
@@ -737,14 +737,14 @@ class Achievement(Model):
         Integer, ForeignKey("events.id"), nullable=False, index=True
     )
     creation_event = relationship(
-        Event, lazy="joined", backref="created_achievements",
+        Event, lazy="joined", backref="created_labors",
         foreign_keys=[creation_event_id]
     )
     completion_event_id = Column(
         Integer, ForeignKey("events.id"), nullable=True, index=True
     )
     completion_event = relationship(
-        Event, lazy="joined", backref="completed_achievements",
+        Event, lazy="joined", backref="completed_labors",
         foreign_keys=[completion_event_id]
     )
 
@@ -753,22 +753,22 @@ class Achievement(Model):
             cls, session,
             host, creation_event
     ):
-        """Create an Achievement
+        """Create an Labor
 
         Args:
             host: the host to which this event pertains
-            creation_event: the Event that lead to the creation of this achievement
+            creation_event: the Event that lead to the creation of this labor
 
         Returns:
-            a newly created Achievement
+            a newly created Labor
         """
         if host is None:
             raise exc.ValidationError(
-                "Host cannot be null for an achievement"
+                "Host cannot be null for an labor"
             )
         if creation_event is None:
             raise exc.ValidationError(
-                "Creation Event cannot be null for an achievement"
+                "Creation Event cannot be null for an labor"
             )
 
         try:
@@ -785,45 +785,45 @@ class Achievement(Model):
         return obj
 
     @classmethod
-    def get_open_achievements(cls, session):
-        """Get all open Achievements, regardless of acknowledgement
+    def get_open_labors(cls, session):
+        """Get all open Labors, regardless of acknowledgement
 
         Returns:
-            the list of open Achievements
+            the list of open Labors
         """
-        open_achievements = session.query(Achievement).filter(
-            Achievement.completion_event == None
+        open_labors = session.query(Labor).filter(
+            Labor.completion_event == None
         ).all()
 
-        return open_achievements
+        return open_labors
 
     @classmethod
     def get_open_unacknowledged(cls, session):
-        """Get all the open unacknowledged Achievements
+        """Get all the open unacknowledged Labors
 
         Returns:
-            the list of open and unacknowledged Achievements
+            the list of open and unacknowledged Labors
         """
-        open_achievements = session.query(Achievement).filter(and_(
-            Achievement.completion_event == None,
-            Achievement.ack_time == None
+        open_labors = session.query(Labor).filter(and_(
+            Labor.completion_event == None,
+            Labor.ack_time == None
         )).all()
 
-        return open_achievements
+        return open_labors
 
     def acknowledge(self, user):
-        """Mark the Achievement as acknowledged by the given user at this time.
+        """Mark the Labor as acknowledged by the given user at this time.
 
         Args:
-            user: the arbitrary user name acknowledging this Achievement
+            user: the arbitrary user name acknowledging this Labor
         """
         self.update(ack_time=datetime.now(), ack_user=user)
 
     def achieve(self, event):
-        """Mark an achievement as completed.
+        """Mark an labor as completed.
 
         Args:
-            event: the event that closed this achievement
+            event: the event that closed this labor
         """
         self.update(
             completion_event=event, completion_time=datetime.now()
@@ -833,10 +833,10 @@ class Achievement(Model):
             self.quest.check_for_victory()
 
     def add_to_quest(self, quest):
-        """Tie this achievement to a particular Quest
+        """Tie this labor to a particular Quest
 
         Args:
-            quest: the quest that should own this Achievement
+            quest: the quest that should own this Labor
         """
         self.update(quest=quest)
 

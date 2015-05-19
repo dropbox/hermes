@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from hermes import exc
-from hermes.models import EventType, Host, Quest, Achievement, Event, Fate
+from hermes.models import EventType, Host, Quest, Labor, Event, Fate
 
 from .fixtures import db_engine, session, sample_data1, sample_data2
 
@@ -10,8 +10,8 @@ from .fixtures import db_engine, session, sample_data1, sample_data2
 def test_creation(sample_data1):
     hosts = ['example.dropbox.com', 'test.dropbox.com']
 
-    achievements = sample_data1.query(Achievement).all()
-    assert len(achievements) == 0
+    labors = sample_data1.query(Labor).all()
+    assert len(labors) == 0
 
     creation_event_type = (
         sample_data1.query(EventType)
@@ -30,13 +30,13 @@ def test_creation(sample_data1):
     assert quests[0].completion_time is None
     assert quests[0].description == "Embark on the long road of maintenance"
     assert quests[0].creator == "testman"
-    assert len(quests[0].achievements) == 2
+    assert len(quests[0].labors) == 2
 
-    achievements = Achievement.get_open_unacknowledged(sample_data1)
-    assert len(achievements) == 2
+    labors = Labor.get_open_unacknowledged(sample_data1)
+    assert len(labors) == 2
 
     # now we want to test the closing of the quest by throwing events
-    # that fulfill the achievements
+    # that fulfill the labors
 
     found_hosts = sample_data1.query(Host).filter(Host.hostname.in_(hosts)).all()
 
@@ -54,8 +54,8 @@ def test_creation(sample_data1):
         sample_data1, found_hosts[1], "testdude", completion_event_type
     )
 
-    achievements = Achievement.get_open_unacknowledged(sample_data1)
-    assert len(achievements) == 0
+    labors = Labor.get_open_unacknowledged(sample_data1)
+    assert len(labors) == 0
 
     quests = sample_data1.query(Quest).all()
 
@@ -64,14 +64,14 @@ def test_creation(sample_data1):
     assert quests[0].completion_time is not None
     assert quests[0].description == "Embark on the long road of maintenance"
     assert quests[0].creator == "testman"
-    assert len(quests[0].achievements) == 2
+    assert len(quests[0].labors) == 2
 
 
 def test_mass_creation(sample_data1):
     hosts = ['example.dropbox.com', 'test.dropbox.com']
 
-    achievements = sample_data1.query(Achievement).all()
-    assert len(achievements) == 0
+    labors = sample_data1.query(Labor).all()
+    assert len(labors) == 0
 
     creation_event_type1 = (
         sample_data1.query(EventType)
@@ -102,15 +102,15 @@ def test_mass_creation(sample_data1):
     assert quests[1].completion_time is None
     assert quests[2].embark_time is not None
     assert quests[2].completion_time is None
-    assert len(quests[0].achievements) == 2
-    assert len(quests[1].achievements) == 2
-    assert len(quests[2].achievements) == 2
+    assert len(quests[0].labors) == 2
+    assert len(quests[1].labors) == 2
+    assert len(quests[2].labors) == 2
 
-    achievements = Achievement.get_open_unacknowledged(sample_data1)
-    assert len(achievements) == 6
+    labors = Labor.get_open_unacknowledged(sample_data1)
+    assert len(labors) == 6
 
     # now we want to test the closing of the quest by throwing events
-    # that fulfill the achievements
+    # that fulfill the labors
 
     found_hosts = sample_data1.query(Host).filter(Host.hostname.in_(hosts)).all()
 
@@ -128,8 +128,8 @@ def test_mass_creation(sample_data1):
         sample_data1, found_hosts[1], "testdude", completion_event_type1
     )
 
-    achievements = Achievement.get_open_unacknowledged(sample_data1)
-    assert len(achievements) == 0
+    labors = Labor.get_open_unacknowledged(sample_data1)
+    assert len(labors) == 0
 
     quests = sample_data1.query(Quest).all()
 
@@ -142,7 +142,7 @@ def test_mass_creation(sample_data1):
     assert quests[2].completion_time is not None
     assert quests[0].description == "Embark on the long road of maintenance"
     assert quests[0].creator == "testman"
-    assert len(quests[0].achievements) == 2
+    assert len(quests[0].labors) == 2
 
 
 def test_quest_preservation(sample_data1):
@@ -151,8 +151,8 @@ def test_quest_preservation(sample_data1):
     """
     hosts = ['example.dropbox.com', 'test.dropbox.com']
 
-    achievements = sample_data1.query(Achievement).all()
-    assert len(achievements) == 0
+    labors = sample_data1.query(Labor).all()
+    assert len(labors) == 0
 
     creation_event_type = (
         sample_data1.query(EventType)
@@ -171,12 +171,12 @@ def test_quest_preservation(sample_data1):
     assert quests[0].completion_time is None
     assert quests[0].description == "Embark on the long road of maintenance"
     assert quests[0].creator == "testman"
-    assert len(quests[0].achievements) == 2
+    assert len(quests[0].labors) == 2
 
-    achievements = Achievement.get_open_unacknowledged(sample_data1)
-    assert len(achievements) == 2
+    labors = Labor.get_open_unacknowledged(sample_data1)
+    assert len(labors) == 2
 
-    # now we want to throw events that create the subsequent achievements
+    # now we want to throw events that create the subsequent labors
     found_hosts = sample_data1.query(Host).filter(Host.hostname.in_(hosts)).all()
     assert len(found_hosts) == 2
 
@@ -189,8 +189,8 @@ def test_quest_preservation(sample_data1):
         sample_data1, found_hosts[1], "testdude", completion_event_type1
     )
 
-    assert len(quests[0].achievements) == 4
-    assert len(quests[0].get_open_achievements()) == 2
+    assert len(quests[0].labors) == 4
+    assert len(quests[0].get_open_labors()) == 2
 
 
 def test_complex_chaining1(sample_data2):
@@ -207,7 +207,7 @@ def test_complex_chaining1(sample_data2):
     reboot-complete => puppet-restart
 
     Quests:
-    Alpha: servers need sys-audit; on sys-needed event, add only 1 achievement for sys-needed and add to quest
+    Alpha: servers need sys-audit; on sys-needed event, add only 1 labor for sys-needed and add to quest
     """
     event_types = sample_data2.query(EventType).all()
     assert len(event_types) == 7
@@ -224,7 +224,7 @@ def test_complex_chaining1(sample_data2):
     )
 
     assert quest
-    assert len(quest.get_open_achievements()) == 2
+    assert len(quest.get_open_labors()) == 2
 
     # now we fire the system-maintenance needed event
     found_hosts = sample_data2.query(Host).filter(Host.hostname.in_(hosts)).all()
@@ -238,17 +238,17 @@ def test_complex_chaining1(sample_data2):
         EventType.get_event_type(sample_data2, "system-maintenance", "needed")
     )
 
-    assert len(quest.achievements) == 4
-    assert len(quest.get_open_achievements()) == 2
+    assert len(quest.labors) == 4
+    assert len(quest.get_open_labors()) == 2
     assert quest.completion_time is None
 
-    achievement1 = quest.get_open_achievements()[0]
-    achievement2 = quest.get_open_achievements()[1]
+    labor1 = quest.get_open_labors()[0]
+    labor2 = quest.get_open_labors()[1]
 
-    assert achievement1.host.hostname == hosts[0]
-    assert achievement2.host.hostname == hosts[1]
-    assert achievement1.creation_event == event1
-    assert achievement2.creation_event == event2
+    assert labor1.host.hostname == hosts[0]
+    assert labor2.host.hostname == hosts[1]
+    assert labor1.creation_event == event1
+    assert labor2.creation_event == event2
 
 
 def test_complex_chaining2(sample_data2):
@@ -267,7 +267,7 @@ def test_complex_chaining2(sample_data2):
     Quests:
     Bravo: servers need sys-needed
     Charlie: servers need reboot-needed
-    On reboot-complete event, create new achievement for reboot-complete and add to both quests
+    On reboot-complete event, create new labor for reboot-complete and add to both quests
     """
     event_types = sample_data2.query(EventType).all()
     assert len(event_types) == 7
@@ -289,10 +289,10 @@ def test_complex_chaining2(sample_data2):
     )
     assert bravo_quest
     assert charlie_quest
-    assert len(bravo_quest.achievements) == 2
-    assert len(charlie_quest.achievements) == 2
+    assert len(bravo_quest.labors) == 2
+    assert len(charlie_quest.labors) == 2
 
-    # now we create the reboot-complete events and ensure new achievements
+    # now we create the reboot-complete events and ensure new labors
     # are created for both events
     found_hosts = sample_data2.query(Host).filter(Host.hostname.in_(hosts)).all()
     assert len(found_hosts) == 2
@@ -311,22 +311,22 @@ def test_complex_chaining2(sample_data2):
     assert len(found_hosts[0].events) == 3
     assert len(found_hosts[1].events) == 3
 
-    assert len(bravo_quest.achievements) == 4
-    assert len(bravo_quest.get_open_achievements()) == 2
-    assert len(charlie_quest.achievements) == 4
-    assert len(charlie_quest.get_open_achievements()) == 2
+    assert len(bravo_quest.labors) == 4
+    assert len(bravo_quest.get_open_labors()) == 2
+    assert len(charlie_quest.labors) == 4
+    assert len(charlie_quest.get_open_labors()) == 2
 
-    assert bravo_quest.get_open_achievements()[0].creation_event == event1
-    assert bravo_quest.get_open_achievements()[1].creation_event == event2
-    assert charlie_quest.get_open_achievements()[0].creation_event == event1
-    assert charlie_quest.get_open_achievements()[1].creation_event == event2
+    assert bravo_quest.get_open_labors()[0].creation_event == event1
+    assert bravo_quest.get_open_labors()[1].creation_event == event2
+    assert charlie_quest.get_open_labors()[0].creation_event == event1
+    assert charlie_quest.get_open_labors()[1].creation_event == event2
 
-    assert bravo_quest.get_open_achievements()[0].quest == bravo_quest
-    assert bravo_quest.get_open_achievements()[1].quest == bravo_quest
-    assert charlie_quest.get_open_achievements()[0].quest == charlie_quest
-    assert charlie_quest.get_open_achievements()[1].quest == charlie_quest
+    assert bravo_quest.get_open_labors()[0].quest == bravo_quest
+    assert bravo_quest.get_open_labors()[1].quest == bravo_quest
+    assert charlie_quest.get_open_labors()[0].quest == charlie_quest
+    assert charlie_quest.get_open_labors()[1].quest == charlie_quest
 
-    assert len(sample_data2.query(Achievement).all()) == 8
+    assert len(sample_data2.query(Labor).all()) == 8
 
 
 

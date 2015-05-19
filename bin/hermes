@@ -13,7 +13,7 @@ from sqlalchemy import desc
 
 import hermes
 from hermes import models
-from hermes.models import Event, EventType, Host, Fate, Achievement, Quest
+from hermes.models import Event, EventType, Host, Fate, Labor, Quest
 from hermes.settings import settings
 
 sa_log = logging.getLogger("sqlalchemy.engine.base.Engine")
@@ -171,23 +171,23 @@ def list_host_events(args):
         )
 
 
-def list_host_achievements(args):
-    logging.debug("list_host_achievements(%s)", args.hostname)
+def list_host_labors(args):
+    logging.debug("list_host_labors(%s)", args.hostname)
     session = make_session()
     host = Host.get_host(session, args.hostname)
     if host is None:
         logging.error("Could not find hostname %s", args.hostname)
         return
 
-    achievements = host.get_open_achievements(args.limit)
+    labors = host.get_open_labors(args.limit)
 
     print "OPEN ACHIEVEMENTS FOR {}:".format(host.hostname)
-    for achievement in achievements:
+    for labor in labors:
         print "{} created by event {} {}  {}".format(
-            achievement.creation_time,
-            achievement.creation_event.event_type.category,
-            achievement.creation_event.event_type.state,
-            achievement.creation_event.note or ""
+            labor.creation_time,
+            labor.creation_event.event_type.category,
+            labor.creation_event.event_type.state,
+            labor.creation_event.note or ""
         )
 
 
@@ -242,16 +242,16 @@ def list_quests(args):
             quest.id, quest.description, quest.creator, quest.embark_time
         )
 
-        achievements_remaining = 0
-        for achievement in quest.achievements:
-            if achievement.completion_time is None:
-                achievements_remaining += 1
+        labors_remaining = 0
+        for labor in quest.labors:
+            if labor.completion_time is None:
+                labors_remaining += 1
 
-        total_achievements = len(quest.achievements)
-        print "{:.2%} complete.  {} total achievements.  {} remain open.\n".format(
-            (total_achievements - achievements_remaining)/total_achievements,
-            total_achievements,
-            achievements_remaining
+        total_labors = len(quest.labors)
+        print "{:.2%} complete.  {} total labors.  {} remain open.\n".format(
+            (total_labors - labors_remaining)/total_labors,
+            total_labors,
+            labors_remaining
         )
 
     session.close()
@@ -264,17 +264,17 @@ def show_quest(args):
     quest = session.query(Quest).get(args.quest_id)
 
     max_width = 0
-    for achievement in quest.achievements:
-        if len(achievement.host.hostname) > max_width:
-            max_width = len(achievement.host.hostname)
+    for labor in quest.labors:
+        if len(labor.host.hostname) > max_width:
+            max_width = len(labor.host.hostname)
 
     remaining = []
     completed = []
-    for achievement in quest.achievements:
-        if achievement.completion_time is None:
-            remaining.append(achievement)
+    for labor in quest.labors:
+        if labor.completion_time is None:
+            remaining.append(labor)
         else:
-            completed.append(achievement)
+            completed.append(labor)
 
     if not args.list_only:
         print "QUEST {}:".format(args.quest_id)
@@ -283,36 +283,36 @@ def show_quest(args):
         )
 
         if args.all or args.completed_only:
-            for achievement in completed:
+            for labor in completed:
                 print "{} achieved {} {} on {}".format(
-                    achievement.host.hostname.rjust(max_width + 4),
-                    achievement.creation_event.event_type.category,
-                    achievement.creation_event.event_type.state,
-                    achievement.completion_time
+                    labor.host.hostname.rjust(max_width + 4),
+                    labor.creation_event.event_type.category,
+                    labor.creation_event.event_type.state,
+                    labor.completion_time
                 )
         if not args.completed_only:
-            for achievement in remaining:
+            for labor in remaining:
                 print "{} must achieve {} {}".format(
-                    achievement.host.hostname.rjust(max_width + 4),
-                    achievement.creation_event.event_type.category,
-                    achievement.creation_event.event_type.state
+                    labor.host.hostname.rjust(max_width + 4),
+                    labor.creation_event.event_type.category,
+                    labor.creation_event.event_type.state
                 )
 
-        total_achievements = len(quest.achievements)
-        achievements_remaining = len(remaining)
-        achievements_completed = len(completed)
-        print "{:.2%} complete.  {} total achievements.  {} remain open.\n".format(
-            achievements_completed/total_achievements,
-            total_achievements,
-            achievements_remaining
+        total_labors = len(quest.labors)
+        labors_remaining = len(remaining)
+        labors_completed = len(completed)
+        print "{:.2%} complete.  {} total labors.  {} remain open.\n".format(
+            labors_completed/total_labors,
+            total_labors,
+            labors_remaining
         )
     else:
         if args.completed_only or args.all:
-            for achievement in completed:
-                print achievement.host.hostname
+            for labor in completed:
+                print labor.host.hostname
         if not args.completed_only:
-            for achievement in remaining:
-                print achievement.host.hostname
+            for labor in remaining:
+                print labor.host.hostname
 
     session.close()
 
@@ -365,8 +365,8 @@ def create_quest(args):
 
     quest = Quest.create(session, user, hosts, event_type, description=args.note)
 
-    print "Quest {} created with {} achievements".format(
-        quest.id, len(quest.achievements)
+    print "Quest {} created with {} labors".format(
+        quest.id, len(quest.labors)
     )
 
     session.commit()
@@ -470,14 +470,14 @@ def parse_cli_args():
         help="Limit the number of events displayed"
     )
     host_events_parser.set_defaults(func=list_host_events)
-    # Host achievements parser
-    host_achievements_parser = host_subparser.add_parser("achievements")
-    host_achievements_parser.add_argument("hostname")
-    host_achievements_parser.add_argument(
+    # Host labors parser
+    host_labors_parser = host_subparser.add_parser("labors")
+    host_labors_parser.add_argument("hostname")
+    host_labors_parser.add_argument(
         "-l", "--limit", default=20, type=int,
-        help="Limit the number of achievements displayed"
+        help="Limit the number of labors displayed"
     )
-    host_achievements_parser.set_defaults(func=list_host_achievements)
+    host_labors_parser.set_defaults(func=list_host_labors)
 
     # events command line parser
     event_parser = subparsers.add_parser(
@@ -507,15 +507,15 @@ def parse_cli_args():
     quest_show_list_options = quest_show_parser.add_mutually_exclusive_group()
     quest_show_list_options.add_argument(
         "--all", action="store_true",
-        help="Show all associated achievements"
+        help="Show all associated labors"
     )
     quest_show_list_options.add_argument(
         "--completed", action="store_true", dest="completed_only",
-        help="Show only completed achievements"
+        help="Show only completed labors"
     )
     quest_show_parser.add_argument(
         "--list", dest="list_only", action="store_true",
-        help="Only output a list of hostnames with open achievements"
+        help="Only output a list of hostnames with open labors"
     )
     quest_show_parser.set_defaults(func=show_quest)
     # quest creation parser

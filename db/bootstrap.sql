@@ -21,7 +21,7 @@ LOCK TABLES `fates` WRITE;
 INSERT INTO `fates` (`id`, `creation_type_id`, `completion_type_id`, `description`)
 VALUES
 	(1,1,2,'A system that needs a reboot can be cleared by rebooting the machine.'),
-	(2,3,4,'A system that needs maintenance made ready before maintenance can occur.');
+	(2,3,4,'A system that needs maintenance made ready before maintenance can occur.'),
 	(3,4,5,'Maintenance must be performed on a system that is prepped.');
 
 UNLOCK TABLES;
