@@ -14,14 +14,12 @@ As journal entries, events provide an audit trail and can potentially be used to
 
 Each event must be of a predefined event type.  An event type consists of a category and state, the combination of which provides meaningful grouping and definition:
 
-```
-ID  CATEGORY            STATE
-[1] system-reboot       required
-[2] system-reboot       completed
-[3] system-maintenance  required
-[4] system-maintenance  ready
-[5] system-maintenance  completed
-```
+    ID  CATEGORY            STATE
+    [1] system-reboot       required
+    [2] system-reboot       completed
+    [3] system-maintenance  required
+    [4] system-maintenance  ready
+    [5] system-maintenance  completed
 
 Event types are often written simply as `category-state`, such as `system-reboot-required`.
 
@@ -37,24 +35,18 @@ Labors are usually referred to by the event which triggered its creation, so a `
 ### Basics ###
 The fates define how labors are created and completed.  A typical fate will specify which event type will result in the creation of a labor for the host, and which event type will close labors for a host.
 
-```
-[1] system-reboot-required => system-reboot-completed
-```
+    [1] system-reboot-required => system-reboot-completed
 
 ### Chained Fates ###
 An `intermediate` flag in the definition of a fate indicates if the fate only applies to existing labors.  This allows fates to be chained together to essentially create a workflow engine.
 
 For example:
-```
-[1] system-maintenance-required => system-maintenance-ready
-[2] system-maintenance-ready => system-maintenance-completed
-```
+    [1] system-maintenance-required => system-maintenance-ready
+    [2] system-maintenance-ready => system-maintenance-completed
 
 (with the second fate being flagged as an intermediate) would essentially mean:
 
-```
-system-maintenance-required => system-maintenance-ready => system-maintenance-completed
-```
+    system-maintenance-required => system-maintenance-ready => system-maintenance-completed
 
 In this example, an event of type `system-maintenance-ready` only creates a labor if an existing labor created by an event of type `system-maintenance-required` was present.
 
@@ -62,10 +54,8 @@ In this example, an event of type `system-maintenance-ready` only creates a labo
 
 Fates can allow multiple ways to resolve a labor.
 
-```
-[1] puppet-restart-required => puppet-restart-completed
-[2] puppet-restart-required => system-restart-completed
-```
+    [1] puppet-restart-required => puppet-restart-completed
+    [2] puppet-restart-required => system-restart-completed
 
 In this example, a labor created by the event `puppet-restart-required` can be completed by either a `puppet-restart-completed` event, or a `system-restart-completed` event.
 
@@ -126,82 +116,77 @@ Multiple expansion parameters can be used.
 
 To get host data, use `/api/v1/hosts/[hostname]/`
 
-```
-{
-    id: int,
-    hostname: string,
-    limit: int,
-    page: int,
-    lastEvent: timestamp,
-    events: [],
-    labors: [],
-    quests: [],
-}
-```
+    {
+        id: int,
+        hostname: string,
+        limit: int,
+        page: int,
+        lastEvent: timestamp,
+        events: [],
+        labors: [],
+        quests: [],
+    }
 
 To get all hosts, use `/api/v1/hosts/` (with an appropriate limit and page)
 
-```
-{
-    limit: int,
-    page: int,
-    totalHosts: int,
-    hosts: [],
-}
-```
+    {
+        limit: int,
+        page: int,
+        totalHosts: int,
+        hosts: [],
+    }
 
 ### Event Types ###
 
 To get event types, use `/api/v1/eventtypes/`
 
-```
-{
-    limit: int,
-    page: int,
-    totalEventTypes: int,
-    eventTypes: [
-        {
-            id: int,
-            category: string,
-            state: string,
-            description: string,
-        },
-        ...
-    ],
-}
-```
-
-### Events ###
-
-To get events, use `/api/v1/events/`
-
-```
-{
-    limit: int,
-    page: int,
-    totalEvents: int,
-    events: [
-        {
-            id: int,
-            host: {
-                id: int,
-                hostname: string,
-            },
-            timestamp: timestamp,
-            user: string,
-            eventType: {
+    {
+        limit: int,
+        page: int,
+        totalEventTypes: int,
+        eventTypes: [
+            {
                 id: int,
                 category: string,
                 state: string,
                 description: string,
             },
-            note: string,
-        },
-        ...
-    ],
-}
-```
+            ...
+        ],
+    }
+
+### Events ###
+
+To get events, use `/api/v1/events/`
+
+    {
+        limit: int,
+        page: int,
+        totalEvents: int,
+        events: [
+            {
+                id: int,
+                host: {
+                    id: int,
+                    hostname: string,
+                },
+                timestamp: timestamp,
+                user: string,
+                eventType: {
+                    id: int,
+                    category: string,
+                    state: string,
+                    description: string,
+                },
+                note: string,
+            },
+            ...
+        ],
+    }
 
 Events can also be expanded in other queries, like host queries.  Never
 expand both host and event in a query or you will trigger infinite
 expansion.
+
+
+
