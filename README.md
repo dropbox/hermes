@@ -71,8 +71,8 @@ Quests will eventually contain information to outside references, such as Jira t
 
 Development is in the early phases.  The first production roll-out of Hermes will offer:
 
-    * **Hermes server:** a central server, run by SysEng, with a REST API
-    * **Hermes CLI:** a command line interface to the Hermes server available on any and all necessary servers
+ * *Hermes server:* a central server, run by SysEng, with a REST API
+ * *Hermes CLI:* a command line interface to the Hermes server available on any and all necessary servers
 
 Development can be tracked at [GitHub](https://github.com/dropbox/hermes)
 and [Travis CI](https://travis-ci.org/dropbox/herme)
@@ -220,7 +220,7 @@ To get fates, use `/api/v1/fates`
 
 ### Labors ###
 
-To get laboes, use `/api/v1/labors/`
+To get labors, use `/api/v1/labors/`
 
     {
         limit: int,
