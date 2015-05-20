@@ -118,5 +118,90 @@ parameter.
 
 Multiple expansion parameters can be used.
 
-`/api/v1/quest/[questid]/?expand=labors&expand=events`
+`/api/v1/quests/[questid]/?expand=labors&expand=events`
 
+## GETs ##
+
+### Hosts ###
+
+To get host data, use `/api/v1/hosts/[hostname]/`
+
+```
+{
+    id: int,
+    hostname: string,
+    limit: int,
+    page: int,
+    lastEvent: timestamp,
+    events: [],
+    labors: [],
+    quests: [],
+}
+```
+
+To get all hosts, use `/api/v1/hosts/` (with an appropriate limit and page)
+
+```
+{
+    limit: int,
+    page: int,
+    totalHosts: int,
+    hosts: [],
+}
+```
+
+### Event Types ###
+
+To get event types, use `/api/v1/eventtypes/`
+
+```
+{
+    limit: int,
+    page: int,
+    totalEventTypes: int,
+    eventTypes: [
+        {
+            id: int,
+            category: string,
+            state: string,
+            description: string,
+        },
+        ...
+    ],
+}
+```
+
+### Events ###
+
+To get events, use `/api/v1/events/`
+
+```
+{
+    limit: int,
+    page: int,
+    totalEvents: int,
+    events: [
+        {
+            id: int,
+            host: {
+                id: int,
+                hostname: string,
+            },
+            timestamp: timestamp,
+            user: string,
+            eventType: {
+                id: int,
+                category: string,
+                state: string,
+                description: string,
+            },
+            note: string,
+        },
+        ...
+    ],
+}
+```
+
+Events can also be expanded in other queries, like host queries.  Never
+expand both host and event in a query or you will trigger infinite
+expansion.
