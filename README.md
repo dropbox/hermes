@@ -71,8 +71,8 @@ Quests will eventually contain information to outside references, such as Jira t
 
 Development is in the early phases.  The first production roll-out of Hermes will offer:
 
- * *Hermes server:* a central server, run by SysEng, with a REST API
- * *Hermes CLI:* a command line interface to the Hermes server available on any and all necessary servers
+ * **Hermes server:** a central server, run by SysEng, with a REST API
+ * **Hermes CLI:** a command line interface to the Hermes server available on any and all necessary servers
 
 Development can be tracked at [GitHub](https://github.com/dropbox/hermes)
 and [Travis CI](https://travis-ci.org/dropbox/herme)
@@ -188,6 +188,8 @@ Events can also be expanded in other queries, like host queries.  Never
 expand both host and event in a query or you will trigger infinite
 expansion.
 
+To get a particular event, use `/api/v1/events/[eventId]`.
+
 ### Fates ###
 
 To get fates, use `/api/v1/fates`
@@ -217,6 +219,8 @@ To get fates, use `/api/v1/fates`
             ...
         ],
     }
+
+To get a particular fate, use `/api/v1/fates/[fateId]`.
 
 ### Labors ###
 
@@ -260,3 +264,53 @@ To get labors, use `/api/v1/labors/`
             ...
         ],
     }
+
+To get a particular labor, use `/api/v1/labors/[laborId]`.
+
+### Quests ###
+
+To get quests, use `/api/v1/quests/`
+
+    {
+        limit: int,
+        page: int,
+        totalQuests: int,
+        quests: [
+            {
+                id: int,
+                embarkTime: timestamp,
+                completionTime: timestamp,
+                creator: string,
+                description: string,
+                labors: [
+                    {
+                        id: int,
+                        host: {
+                            id: int,
+                            hostname: string,
+                        },
+                        creationTime: timestamp,
+                        ackTime: timestamp,
+                        ackUser: string,
+                        completionTime: timestamp,
+                        creationEvent: {
+                            id: int,
+                            timestamp: timestamp,
+                            user: string,
+                            note: string,
+                        },
+                        completionEvent: {
+                            id: int,
+                            timestamp: timestamp,
+                            user: string,
+                            note: string,
+                        },
+                    },
+                    ...
+                ],
+            },
+            ...
+        ],
+    }
+
+To get a particular quest, use `/api/v1/quests/[questId]`.
