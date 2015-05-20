@@ -87,11 +87,36 @@ Development is in the early phases.  The first production roll-out of Hermes wil
 Development can be tracked at [GitHub](https://github.com/dropbox/hermes)
 and [Travis CI](https://travis-ci.org/dropbox/herme)
 
-# Using Hermes #
+# REST API #
 
-## REST API ##
-
-### Versioning ###
+## Versioning ##
 
 At the root of all REST URLs is the version.  So you will notice that the
 base URL is is `/api/v1/`.
+
+## Limits ##
+
+For any GETs that could potentially return large datasets, a limit can be
+explicitly set using the limit parameter in the URL.  The limit value,
+whether specified or applied by default, will be reflected in the data
+returned.
+
+`/api/v1/host/[hostname]/events/?limit=50`
+
+## Paging ##
+
+In conjuction with limits, a particular page of data can be requested with
+the page parameter.
+
+`/api/v1/host/[hostname]/events/?limit=20&page=2`
+
+## Expansion ##
+
+When requesting data, such as a quest, you can choose to automatically
+expand and include data of children data, such as labors, using the expand
+parameter.
+
+Multiple expansion parameters can be used.
+
+`/api/v1/quest/[questid]/?expand=labors&expand=events`
+
