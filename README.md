@@ -84,4 +84,14 @@ Development is in the early phases.  The first production roll-out of Hermes wil
     * **Hermes server:** a central server, run by SysEng, with a REST API
     * **Hermes CLI:** a command line interface to the Hermes server available on any and all necessary servers
 
-Development can be tracked at [[ https://github.com/dropbox/hermes | GitHub ]] and [[ https://travis-ci.org/dropbox/hermes | Travis CI ]]
+Development can be tracked at [GitHub](https://github.com/dropbox/hermes)
+and [Travis CI](https://travis-ci.org/dropbox/herme)
+
+# Using Hermes #
+
+## REST API ##
+
+### Versioning ###
+
+At the root of all REST URLs is the version.  So you will notice that the
+base URL is is `/api/v1/`.
