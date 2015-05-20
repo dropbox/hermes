@@ -271,6 +271,7 @@ To get a particular labor, use `/api/v1/labors/[laborId]`.
 
 To get quests, use `/api/v1/quests/`
 
+```JSON
     {
         limit: int,
         page: int,
@@ -312,5 +313,6 @@ To get quests, use `/api/v1/quests/`
             ...
         ],
     }
+```
 
 To get a particular quest, use `/api/v1/quests/[questId]`.
