@@ -1,12 +1,12 @@
-= Introduction =
+# Introduction #
 
 Hermes logs events, generates tasks, and tracks tasks in logical groups.
 
-= Terminology =
+# Terminology #
 
 Rather than mimic the overloaded and overused terminology typically used, and in keeping with the Dropbox principal of "cupcake," Hermes adopts a more interesting language.
 
-== Events and Event Types ==
+## Events and Event Types ##
 
 Events double as journal entries, logging system activities like server restarts, and requests for action, such as a need to restart or turn off a server.
 
@@ -27,21 +27,21 @@ Event types are often written simply as `category-state`, such as `system-reboot
 
 An individual event entry consists of the event type, the host, and the time of occurrence.
 
-== Labors ==
+## Labors ##
 
 Labors represent tasks that need to be performed or outstanding issues that need to be addressed for a host.  All labors are created and closed as the result of events.
 
 Labors are usually referred to by the event which triggered its creation, so a `system-reboot-required` event creates a `system-reboot-required` labor.
 
-== Fates ==
-=== Basics ===
+## Fates ##
+### Basics ###
 The fates define how labors are created and completed.  A typical fate will specify which event type will result in the creation of a labor for the host, and which event type will close labors for a host.
 
 ```
 [1] system-reboot-required => system-reboot-completed
 ```
 
-=== Chained Fates ===
+### Chained Fates ###
 An `intermediate` flag in the definition of a fate indicates if the fate only applies to existing labors.  This allows fates to be chained together to essentially create a workflow engine.
 
 For example:
@@ -58,7 +58,7 @@ system-maintenance-required => system-maintenance-ready => system-maintenance-co
 
 In this example, an event of type `system-maintenance-ready` only creates a labor if an existing labor created by an event of type `system-maintenance-required` was present.
 
-=== Choose Your Own Adventure ===
+### Choose Your Own Adventure ###
 
 Fates can allow multiple ways to resolve a labor.
 
@@ -69,7 +69,7 @@ Fates can allow multiple ways to resolve a labor.
 
 In this example, a labor created by the event `puppet-restart-required` can be completed by either a `puppet-restart-completed` event, or a `system-restart-completed` event.
 
-== Quests ==
+## Quests ##
 
 Quests are collections of labors, making tracking and reporting of progress much easier.
 
@@ -77,7 +77,7 @@ For example, when a security fix is released that requires all web servers to be
 
 Quests will eventually contain information to outside references, such as Jira tickets.
 
-= Status =
+# Status #
 
 Development is in the early phases.  The first production roll-out of Hermes will offer:
 
