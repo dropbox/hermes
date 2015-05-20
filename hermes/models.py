@@ -462,7 +462,8 @@ class Fate(Model):
         # Examine all the Fates.
         for fate in fates:
             # If this type of Event is a creation type for a Fate,
-            # flag that we need to create labors
+            # flag that we need to create labors.  We also need to track if
+            # this is a creation type for an intermediate fate or not.
             if event_type == fate.creation_event_type:
                 if fate.intermediate:
                     should_create_if_intermediate = True
@@ -479,12 +480,17 @@ class Fate(Model):
                         labors_to_close.append(open_labor)
                         should_close = True
 
+        # If we need to create a labor because of a non-intermediate fate,
+        # create that now
         if should_create:
-            print "**** CREATING RAW LABOR"
             new_labor = Labor.create(session, host, event)
 
+        # If we need to close some labors, lets do that now
         if should_close:
-            print "*** SHOULD CLOSE"
+            # We will examine each labor that needs to get closed.  If we are
+            # also supposed to create a labor because of an intermediate fate,
+            # we will do that now and tie the new labor to the quest of the
+            # labor we are closing, if it exists
             for labor in labors_to_close:
                 if should_create_if_intermediate:
                     new_labor = Labor.create(session, host, event)
