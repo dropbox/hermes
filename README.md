@@ -188,5 +188,75 @@ Events can also be expanded in other queries, like host queries.  Never
 expand both host and event in a query or you will trigger infinite
 expansion.
 
+### Fates ###
 
+To get fates, use `/api/v1/fates`
 
+    {
+        limit: int,
+        page: int,
+        totalFates: int,
+        fates: [
+            {
+                id: int,
+                creationEventType: {
+                    id: int,
+                    category: string,
+                    state: string,
+                    description: string,
+                },
+                completionEventType: {
+                    id: int,
+                    category: string,
+                    state: string,
+                    description: string,
+                },
+                intermediate: true|false,
+                description: string,
+            },
+            ...
+        ],
+    }
+
+### Labors ###
+
+To get laboes, use `/api/v1/labors/`
+
+    {
+        limit: int,
+        page: int,
+        totalFates: int,
+        labors: [
+            {
+                id: int,
+                quest: {
+                    id: int,
+                    embarkTime: timestamp,
+                    completionTime: timestamp,
+                    creator: string,
+                    description: string,
+                },
+                host: {
+                    id: int,
+                    hostname: string,
+                },
+                creationTime: timestamp,
+                ackTime: timestamp,
+                ackUser: string,
+                completionTime: timestamp,
+                creationEvent: {
+                    id: int,
+                    timestamp: timestamp,
+                    user: string,
+                    note: string,
+                },
+                completionEvent: {
+                    id: int,
+                    timestamp: timestamp,
+                    user: string,
+                    note: string,
+                },
+            },
+            ...
+        ],
+    }
