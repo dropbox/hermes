@@ -299,48 +299,47 @@ To get a particular labor, use `/api/v1/labors/[laborId]`.
 
 To get quests, use `/api/v1/quests/`
 
-```JSON5
-{
-    limit: int,
-    page: int,
-    totalQuests: int,
-    quests: [
-        {
-            id: int,
-            embarkTime: timestamp,
-            completionTime: timestamp,
-            creator: string,
-            description: string,
-            labors: [
-                {
-                    id: int,
-                    host: {
+.. code-block:: json
+    {
+        limit: int,
+        page: int,
+        totalQuests: int,
+        quests: [
+            {
+                id: int,
+                embarkTime: timestamp,
+                completionTime: timestamp,
+                creator: string,
+                description: string,
+                labors: [
+                    {
                         id: int,
-                        hostname: string,
+                        host: {
+                            id: int,
+                            hostname: string,
+                        },
+                        creationTime: timestamp,
+                        ackTime: timestamp,
+                        ackUser: string,
+                        completionTime: timestamp,
+                        creationEvent: {
+                            id: int,
+                            timestamp: timestamp,
+                            user: string,
+                            note: string,
+                        },
+                        completionEvent: {
+                            id: int,
+                            timestamp: timestamp,
+                            user: string,
+                            note: string,
+                        },
                     },
-                    creationTime: timestamp,
-                    ackTime: timestamp,
-                    ackUser: string,
-                    completionTime: timestamp,
-                    creationEvent: {
-                        id: int,
-                        timestamp: timestamp,
-                        user: string,
-                        note: string,
-                    },
-                    completionEvent: {
-                        id: int,
-                        timestamp: timestamp,
-                        user: string,
-                        note: string,
-                    },
-                },
-                ...
-            ],
-        },
-        ...
-    ],
-}
-```
+                    ...
+                ],
+            },
+            ...
+        ],
+    }
 
 To get a particular quest, use `/api/v1/quests/[questId]`.
