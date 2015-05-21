@@ -13,9 +13,8 @@ from sqlalchemy.orm import relationship, object_session, aliased, validates
 from sqlalchemy.orm import synonym, sessionmaker, Session as _Session, backref
 from sqlalchemy.orm import subqueryload
 from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
-from sqlalchemy.sql import func, label, literal, false
-from sqlalchemy.types import Integer, String, Text, Boolean, SmallInteger
-from sqlalchemy.types import Enum, DateTime, VARBINARY
+from sqlalchemy.types import Integer, String, Boolean
+from sqlalchemy.types import DateTime
 
 from .settings import settings
 import exc
@@ -217,6 +216,7 @@ class EventType(Model):
     description = Column(String(length=1024))
     __table_args__ = (
         UniqueConstraint(category, state, name='_category_state_uc'),
+        Index("event_type_idx", id, category, state)
     )
 
     @classmethod
@@ -266,6 +266,21 @@ class EventType(Model):
             )
         ).first()
 
+    def to_dict(self):
+        """Translate this object into a dict for serialization
+
+        Returns:
+            dict representation of this object
+        """
+        out = {
+            "id": self.id,
+            "category": self.category,
+            "state": self.state,
+            "description": self.description,
+        }
+
+        return out
+
 
 class Host(Model):
     """A basic declaration of a host, which should map to unique server (real or virtual)
@@ -284,6 +299,10 @@ class Host(Model):
 
     id = Column(Integer, primary_key=True)
     hostname = Column(String(32), nullable=False, unique=True)
+
+    __table_args__ = (
+        Index("host_idx", id, hostname),
+    )
 
     @classmethod
     def create(cls, session, hostname):
@@ -354,6 +373,19 @@ class Host(Model):
             .from_self().order_by(Labor.creation_time).all()
         )
 
+    def to_dict(self):
+        """Translate this object into a dict for serialization
+
+        Returns:
+            dict representation of this object
+        """
+        out = {
+            "id": self.id,
+            "hostname": self.hostname,
+        }
+
+        return out
+
 
 class Fate(Model):
     """A Fate is a mapping of EventTypes to inform the system what kind of Events
@@ -392,8 +424,10 @@ class Fate(Model):
     description = Column(String(2048), nullable=True)
     __table_args__ = (
         UniqueConstraint(
-            creation_type_id, completion_type_id, name='_creation_completion_uc'
+            creation_type_id, completion_type_id,
+            name='_creation_completion_uc'
         ),
+        Index("fate_idx", id, creation_type_id, completion_type_id),
     )
 
     @classmethod
@@ -476,7 +510,10 @@ class Fate(Model):
             # labor because this is also a creation type event
             if event_type == fate.completion_event_type:
                 for open_labor in host.get_open_labors(limit=None):
-                    if (open_labor.creation_event.event_type == fate.creation_event_type):
+                    if (
+                        open_labor.creation_event.event_type
+                            == fate.creation_event_type
+                    ):
                         labors_to_close.append(open_labor)
                         should_close = True
 
@@ -497,6 +534,22 @@ class Fate(Model):
                     if labor.quest:
                         new_labor.add_to_quest(labor.quest)
                 labor.achieve(event)
+
+    def to_dict(self):
+        """Translate this object into a dict for serialization
+
+        Returns:
+            dict representation of this object
+        """
+        out = {
+            "id": self.id,
+            "intermediate": "true" if self.intermediate else "false",
+            "creationEventTypeId": self.creation_type_id,
+            "completionEventTypeId": self.completion_type_id,
+            "description": self.description,
+        }
+
+        return out
 
 
 class Event(Model):
@@ -532,6 +585,10 @@ class Event(Model):
     )
     event_type = relationship(EventType, lazy="joined", backref="events")
     note = Column(String(length=1024), nullable=True)
+
+    __table_args__ = (
+        Index("event_idx", id, host_id, event_type_id),
+    )
 
     @classmethod
     def create(
@@ -577,6 +634,23 @@ class Event(Model):
 
         return event
 
+    def to_dict(self):
+        """Translate this object into a dict for serialization
+
+        Returns:
+            dict representation of this object
+        """
+        out = {
+            "id": self.id,
+            "hostId": self.host_id,
+            "timestamp": str(self.timestamp),
+            "user": self.user,
+            "eventTypeId": self.event_type_id,
+            "note": self.note if self.note else "",
+        }
+
+        return out
+
 
 class Quest(Model):
     __tablename__ = "quests"
@@ -586,6 +660,10 @@ class Quest(Model):
     completion_time = Column(DateTime, nullable=True)
     creator = Column(String(64), nullable=False)
     description = Column(String(4096), nullable=False)
+
+    __table_args__ = (
+        Index("quest_idx", id, creator),
+    )
 
     @classmethod
     def create(
@@ -716,6 +794,22 @@ class Quest(Model):
             ).all()
         )
 
+    def to_dict(self):
+        """Translate this object into a dict for serialization
+
+        Returns:
+            dict representation of this object
+        """
+        out = {
+            "id": self.id,
+            "embarkTime": self.embark_time,
+            "completionTime": str(self.completion_time),
+            "creator": self.creator,
+            "description": self.description,
+        }
+
+        return out
+
 
 class Labor(Model):
     """An Labor is a task that must be completed to satisfy a Quest.
@@ -763,6 +857,12 @@ class Labor(Model):
     completion_event = relationship(
         Event, lazy="joined", backref="completed_labors",
         foreign_keys=[completion_event_id]
+    )
+
+    __table_args__ = (
+        Index(
+            "labor_idx", id, quest_id, creation_event_id, completion_event_id
+        ),
     )
 
     @classmethod
@@ -856,5 +956,22 @@ class Labor(Model):
             quest: the quest that should own this Labor
         """
         self.update(quest=quest)
+
+    def to_dict(self):
+        """Translate this object into a dict for serialization
+
+        Returns:
+            dict representation of this object
+        """
+        out = {
+            "id": self.id,
+            "questId": self.quest_id,
+            "hostId": self.host_id,
+            "creationTime": str(self.creation_time),
+            "creationEventId": self.creation_event_id,
+            "completionEventId": self.completion_event_id,
+        }
+
+        return out
 
 
