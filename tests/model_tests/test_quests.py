@@ -190,7 +190,7 @@ def test_quest_preservation(sample_data1):
     )
 
     assert len(quests[0].labors) == 4
-    assert len(quests[0].get_open_labors()) == 2
+    assert len(quests[0].get_open_labors().all()) == 2
 
 
 def test_complex_chaining1(sample_data2):
@@ -224,7 +224,7 @@ def test_complex_chaining1(sample_data2):
     )
 
     assert quest
-    assert len(quest.get_open_labors()) == 2
+    assert len(quest.get_open_labors().all()) == 2
 
     # now we fire the system-maintenance needed event
     found_hosts = sample_data2.query(Host).filter(Host.hostname.in_(hosts)).all()
@@ -239,11 +239,11 @@ def test_complex_chaining1(sample_data2):
     )
 
     assert len(quest.labors) == 4
-    assert len(quest.get_open_labors()) == 2
+    assert len(quest.get_open_labors().all()) == 2
     assert quest.completion_time is None
 
-    labor1 = quest.get_open_labors()[0]
-    labor2 = quest.get_open_labors()[1]
+    labor1 = quest.get_open_labors().all()[0]
+    labor2 = quest.get_open_labors().all()[1]
 
     assert labor1.host.hostname == hosts[0]
     assert labor2.host.hostname == hosts[1]
@@ -306,7 +306,7 @@ def test_complex_chaining2(sample_data2):
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-maintenance", "needed")
     )
-    assert bravo_quest.get_open_labors()[0].creation_event == event1
+    assert bravo_quest.get_open_labors().all()[0].creation_event == event1
     print "event 2"
     event2 = Event.create(
         sample_data2, found_hosts[0], "system",
@@ -325,15 +325,15 @@ def test_complex_chaining2(sample_data2):
     assert len(found_hosts[0].events) == 5
 
     assert len(bravo_quest.labors) == 3
-    assert len(bravo_quest.get_open_labors()) == 1
+    assert len(bravo_quest.get_open_labors().all()) == 1
     assert len(charlie_quest.labors) == 2
-    assert len(charlie_quest.get_open_labors()) == 1
+    assert len(charlie_quest.get_open_labors().all()) == 1
 
-    assert bravo_quest.get_open_labors()[0].creation_event == event2
-    assert charlie_quest.get_open_labors()[0].creation_event == event2
+    assert bravo_quest.get_open_labors().all()[0].creation_event == event2
+    assert charlie_quest.get_open_labors().all()[0].creation_event == event2
 
-    assert bravo_quest.get_open_labors()[0].quest == bravo_quest
-    assert charlie_quest.get_open_labors()[0].quest == charlie_quest
+    assert bravo_quest.get_open_labors().all()[0].quest == bravo_quest
+    assert charlie_quest.get_open_labors().all()[0].quest == charlie_quest
 
     # despite event3, we should only have 5 total labors b/c event 2 progressed
     # both bravo and charlie quests

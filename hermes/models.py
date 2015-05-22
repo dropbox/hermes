@@ -266,8 +266,22 @@ class EventType(Model):
             )
         ).first()
 
-    def to_dict(self):
+    def href(self, base_uri):
+        """Create an HREF value for this object
+
+        Args:
+            base_uri: the base URI under which this resource will exist
+
+        Returns:
+            URI for this resource
+        """
+        return "{}/event-types/{}".format(base_uri, self.id)
+
+    def to_dict(self, base_uri=None):
         """Translate this object into a dict for serialization
+
+        Args:
+            base_uri: if included, add an href to this resource
 
         Returns:
             dict representation of this object
@@ -278,6 +292,9 @@ class EventType(Model):
             "state": self.state,
             "description": self.description,
         }
+
+        if base_uri:
+            out['href'] = self.href(base_uri)
 
         return out
 
@@ -339,29 +356,35 @@ class Host(Model):
         """
         return session.query(Host).filter(Host.hostname == hostname).first()
 
-    def get_latest_events(self, limit=20):
+    def get_latest_events(self):
         """Get the latest Events for this Host
 
-        Args:
-            limit: the number of Events to return
-
         Returns:
-            list of Events
+            query for list of Events
         """
         return (
             self.session.query(Event).filter(Event.host == self)
-            .order_by(desc(Event.timestamp)).limit(limit)
+            .order_by(desc(Event.timestamp))
             .from_self().order_by(Event.timestamp)
         )
 
-    def get_open_labors(self, limit=20):
-        """Get the open Labors for this Host
-
-        Args:
-            limit: the number of Labors to return
+    def get_labors(self):
+        """Get all the labors for this Host
 
         Returns:
-            list of Labors
+            quest to the labors of this Host
+        """
+        return (
+            self.session.query(Labor).filter(Labor.host == self)
+            .order_by(desc(Labor.creation_time))
+            .from_self().order_by(Labor.creation_time)
+        )
+
+    def get_open_labors(self):
+        """Get the open Labors for this Host
+
+        Returns:
+            quest for list of Labors
         """
         return (
             self.session.query(Labor).filter(
@@ -369,12 +392,26 @@ class Host(Model):
                     Labor.host == self,
                     Labor.completion_time == None
                 ))
-            .order_by(desc(Labor.creation_time)).limit(limit)
-            .from_self().order_by(Labor.creation_time).all()
+            .order_by(desc(Labor.creation_time))
+            .from_self().order_by(Labor.creation_time)
         )
 
-    def to_dict(self):
+    def href(self, base_uri):
+        """Create an HREF value for this object
+
+        Args:
+            base_uri: the base URI under which this resource will exist
+
+        Returns:
+            URI for this resource
+        """
+        return "{}/hosts/{}".format(base_uri, self.hostname)
+
+    def to_dict(self, base_uri=None):
         """Translate this object into a dict for serialization
+
+        Args:
+            base_uri: if included, add an href to this resource
 
         Returns:
             dict representation of this object
@@ -383,6 +420,9 @@ class Host(Model):
             "id": self.id,
             "hostname": self.hostname,
         }
+
+        if base_uri:
+            out['href'] = self.href(base_uri)
 
         return out
 
@@ -509,7 +549,7 @@ class Fate(Model):
             # for this Host.  Add those to a list in case we need to morph this
             # labor because this is also a creation type event
             if event_type == fate.completion_event_type:
-                for open_labor in host.get_open_labors(limit=None):
+                for open_labor in host.get_open_labors().all():
                     if (
                         open_labor.creation_event.event_type
                             == fate.creation_event_type
@@ -535,8 +575,22 @@ class Fate(Model):
                         new_labor.add_to_quest(labor.quest)
                 labor.achieve(event)
 
-    def to_dict(self):
+    def href(self, base_uri):
+        """Create an HREF value for this object
+
+        Args:
+            base_uri: the base URI under which this resource will exist
+
+        Returns:
+            URI for this resource
+        """
+        return "{}/fates/{}".format(base_uri, self.id)
+
+    def to_dict(self, base_uri=None):
         """Translate this object into a dict for serialization
+
+        Args:
+            base_uri: if included, add an href to this resource
 
         Returns:
             dict representation of this object
@@ -548,6 +602,9 @@ class Fate(Model):
             "completionEventTypeId": self.completion_type_id,
             "description": self.description,
         }
+
+        if base_uri:
+            out['href'] = self.href(base_uri)
 
         return out
 
@@ -634,8 +691,22 @@ class Event(Model):
 
         return event
 
-    def to_dict(self):
+    def href(self, base_uri):
+        """Create an HREF value for this object
+
+        Args:
+            base_uri: the base URI under which this resource will exist
+
+        Returns:
+            URI for this resource
+        """
+        return "{}/events/{}".format(base_uri, self.id)
+
+    def to_dict(self, base_uri=None):
         """Translate this object into a dict for serialization
+
+        Args:
+            base_uri: if included, add an href to this resource
 
         Returns:
             dict representation of this object
@@ -648,6 +719,9 @@ class Event(Model):
             "eventTypeId": self.event_type_id,
             "note": self.note if self.note else "",
         }
+
+        if base_uri:
+            out['href'] = self.href(base_uri)
 
         return out
 
@@ -763,19 +837,18 @@ class Quest(Model):
             )
 
     @classmethod
-    def get_open_quests(cls, session, limit=20):
+    def get_open_quests(cls, session):
         """Get a list of open Quests
 
         Args:
             session: an open database session
-            limit: the number of Quests to display
 
         Returns:
-            list of Quests that are open
+            quest to list of Quests that are open
         """
         return (
             session.query(Quest).filter(Quest.completion_time == None)
-            .order_by(desc(Quest.embark_time)).limit(limit)
+            .order_by(desc(Quest.embark_time))
             .from_self().order_by(Quest.embark_time)
         )
 
@@ -791,22 +864,39 @@ class Quest(Model):
                     Labor.quest == self,
                     Labor.completion_time == None
                 )
-            ).all()
+            )
         )
 
-    def to_dict(self):
+    def href(self, base_uri):
+        """Create an HREF value for this object
+
+        Args:
+            base_uri: the base URI under which this resource will exist
+
+        Returns:
+            URI for this resource
+        """
+        return "{}/quests/{}".format(base_uri, self.id)
+
+    def to_dict(self, base_uri=None):
         """Translate this object into a dict for serialization
+
+        Args:
+            base_uri: if included, add an href to this resource
 
         Returns:
             dict representation of this object
         """
         out = {
             "id": self.id,
-            "embarkTime": self.embark_time,
+            "embarkTime": str(self.embark_time),
             "completionTime": str(self.completion_time),
             "creator": self.creator,
             "description": self.description,
         }
+
+        if base_uri:
+            out['href'] = self.href(base_uri)
 
         return out
 
@@ -906,13 +996,11 @@ class Labor(Model):
         """Get all open Labors, regardless of acknowledgement
 
         Returns:
-            the list of open Labors
+            questo to list of open Labors
         """
-        open_labors = session.query(Labor).filter(
+        return session.query(Labor).filter(
             Labor.completion_event == None
-        ).all()
-
-        return open_labors
+        )
 
     @classmethod
     def get_open_unacknowledged(cls, session):
@@ -957,8 +1045,22 @@ class Labor(Model):
         """
         self.update(quest=quest)
 
-    def to_dict(self):
+    def href(self, base_uri):
+        """Create an HREF value for this object
+
+        Args:
+            base_uri: the base URI under which this resource will exist
+
+        Returns:
+            URI for this resource
+        """
+        return "{}/labors/{}".format(base_uri, self.id)
+
+    def to_dict(self, base_uri=None):
         """Translate this object into a dict for serialization
+
+        Args:
+            base_uri: if included, add an href to this resource
 
         Returns:
             dict representation of this object
@@ -971,6 +1073,9 @@ class Labor(Model):
             "creationEventId": self.creation_event_id,
             "completionEventId": self.completion_event_id,
         }
+
+        if base_uri:
+            out['href'] = self.href(base_uri)
 
         return out
 

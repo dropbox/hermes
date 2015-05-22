@@ -22,19 +22,40 @@ from sqlalchemy.exc import OperationalError
 sa_log = logging.getLogger("sqlalchemy.engine.base.Engine")
 
 
-def main(argv):
-
-    parser = argparse.ArgumentParser(description="Event Management Service ")
+def parse_args():
+    parser = argparse.ArgumentParser(description="Hermes Web Service")
     parser.add_argument("-c", "--config", default="/etc/hermes.yaml",
                         help="Path to config file.")
-    parser.add_argument("-v", "--verbose", action="count", default=0, help="Increase logging verbosity.")
-    parser.add_argument("-q", "--quiet", action="count", default=0, help="Decrease logging verbosity.")
-    parser.add_argument("-V", "--version", action="version",
-                        version="%%(prog)s %s" % hermes.__version__,
-                        help="Display version information.")
-    parser.add_argument("-p", "--port", type=int, default=None, help="Override port in config.")
-    args = parser.parse_args()
+    parser.add_argument(
+        "-v", "--verbose", action="count", default=0,
+        help="Increase logging verbosity."
+    )
+    parser.add_argument(
+        "-q", "--quiet", action="count", default=0,
+        help="Decrease logging verbosity."
+    )
+    parser.add_argument(
+        "-V", "--version", action="version",
+        version="%%(prog)s %s" % hermes.__version__,
+        help="Display version information."
+    )
+    parser.add_argument(
+        "-p", "--port", type=int, default=None, help="Override port in config."
+    )
+    return parser.parse_args()
+
+
+def main():
+
+    args = parse_args()
     settings.update_from_config(args.config)
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG, format=settings.log_format)
+    elif args.quiet:
+        logging.basicConfig(level=logging.ERROR, format=settings.log_format)
+    else:
+        logging.basicConfig(level=logging.INFO, format=settings.log_format)
 
     tornado_settings = {
         "static_path": os.path.join(os.path.dirname(hermes.__file__), "static"),
@@ -72,4 +93,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main()

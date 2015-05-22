@@ -110,7 +110,7 @@ def test_lifecycle_complex(sample_data1):
     assert labors[1].completion_time is None
     assert labors[1].completion_event is None
 
-    labors = Labor.get_open_labors(sample_data1)
+    labors = Labor.get_open_labors(sample_data1).all()
     assert len(labors) == 1
 
     labors = Labor.get_open_unacknowledged(sample_data1)

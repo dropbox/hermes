@@ -162,7 +162,7 @@ def list_host_events(args):
         logging.error("Could not find hostname %s", args.hostname)
         return
 
-    events = host.get_latest_events(args.limit)
+    events = host.get_latest_events().limit(args.limit).all()
 
     print "EVENTS FOR {}:".format(host.hostname)
     for event in events:
@@ -180,7 +180,7 @@ def list_host_labors(args):
         logging.error("Could not find hostname %s", args.hostname)
         return
 
-    labors = host.get_open_labors(args.limit)
+    labors = host.get_open_labors().limit(args.limit).all()
 
     print "OPEN ACHIEVEMENTS FOR {}:".format(host.hostname)
     for labor in labors:
@@ -235,7 +235,7 @@ def list_quests(args):
     logging.debug("list_quests()")
     session = make_session()
 
-    quests = Quest.get_open_quests(session)
+    quests = Quest.get_open_quests(session).all()
 
     print "QUESTS:"
     for quest in quests:
