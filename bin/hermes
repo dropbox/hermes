@@ -162,7 +162,10 @@ def list_host_events(args):
         logging.error("Could not find hostname %s", args.hostname)
         return
 
-    events = host.get_latest_events().limit(args.limit).all()
+    events = (
+        host.get_latest_events().limit(args.limit)
+        .from_self().order_by(Event.timestamp).all()
+    )
 
     print "EVENTS FOR {}:".format(host.hostname)
     for event in events:

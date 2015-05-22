@@ -266,6 +266,33 @@ class EventType(Model):
             )
         ).first()
 
+    def get_latest_events(self):
+        """Get Events associated with this EventType
+
+        Returns:
+            query for getting associated Events
+        """
+        return (
+            self.session.query(Event).filter(
+                Event.event_type == self
+            ).order_by(desc(Event.timestamp))
+        )
+
+    def get_associated_fates(self):
+        """Get Labors associated with this EventType
+
+        Returns:
+            query for the associated Labors
+        """
+        return (
+            self.session.query(Fate).filter(
+                or_(
+                    Fate.creation_event_type == self,
+                    Fate.completion_event_type == self,
+                )
+            )
+        )
+
     def href(self, base_uri):
         """Create an HREF value for this object
 
@@ -275,7 +302,7 @@ class EventType(Model):
         Returns:
             URI for this resource
         """
-        return "{}/event-types/{}".format(base_uri, self.id)
+        return "{}/eventtypes/{}".format(base_uri, self.id)
 
     def to_dict(self, base_uri=None):
         """Translate this object into a dict for serialization
@@ -365,7 +392,6 @@ class Host(Model):
         return (
             self.session.query(Event).filter(Event.host == self)
             .order_by(desc(Event.timestamp))
-            .from_self().order_by(Event.timestamp)
         )
 
     def get_labors(self):
@@ -377,7 +403,6 @@ class Host(Model):
         return (
             self.session.query(Labor).filter(Labor.host == self)
             .order_by(desc(Labor.creation_time))
-            .from_self().order_by(Labor.creation_time)
         )
 
     def get_open_labors(self):
@@ -393,7 +418,6 @@ class Host(Model):
                     Labor.completion_time == None
                 ))
             .order_by(desc(Labor.creation_time))
-            .from_self().order_by(Labor.creation_time)
         )
 
     def href(self, base_uri):
@@ -634,8 +658,7 @@ class Event(Model):
     )
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     host = relationship(
-        Host, lazy="joined", backref="events", order_by=timestamp,
-        cascade="all, delete-orphan", single_parent=True
+        Host, lazy="joined", backref="events", order_by=timestamp
     )
     user = Column(String(length=64), nullable=False)
     event_type_id = Column(

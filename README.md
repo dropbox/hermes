@@ -177,6 +177,18 @@ To get event types, use `/api/v1/eventtypes/`
 }
 ```
 
+To get an individual event_type, use `/api/v1/eventtypes/[id]/`
+
+```
+{
+    id: int,
+    category: string,
+    state: string,
+    description: string,
+    events: [],
+    fates: []
+}
+
 ### Events ###
 
 To get events, use `/api/v1/events/`
