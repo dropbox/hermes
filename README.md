@@ -344,3 +344,10 @@ To get quests, use `/api/v1/quests/`
 ```
 
 To get a particular quest, use `/api/v1/quests/[questId]`.
+
+# TODOS
+
+## Tests
+
+ * Add test for helper methods on models
+ * Add tests for updates and deletes (and cascades of such things)

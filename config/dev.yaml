@@ -21,6 +21,10 @@ bind_address: "127.0.0.1"
 # Type: bool
 debug: true
 
+# Specifies whether to use XSRF headers/cookies for API calls. Default: true
+# Type: bool
+api_xsrf_enabled: false
+
 # Takes a SqlAlchemy URL to the database. More details
 # can be found at the following URL:
 # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls

@@ -118,7 +118,7 @@ class Model(object):
     def after_delete(self):
         """ Hook for extra model cleanup after delete. """
 
-    def delete(self, user_id):
+    def delete(self):
         session = self.session
         try:
             self.before_delete()
@@ -634,7 +634,8 @@ class Event(Model):
     )
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     host = relationship(
-        Host, lazy="joined", backref="events", order_by=timestamp
+        Host, lazy="joined", backref="events", order_by=timestamp,
+        cascade="all, delete-orphan", single_parent=True
     )
     user = Column(String(length=64), nullable=False)
     event_type_id = Column(
@@ -929,7 +930,10 @@ class Labor(Model):
     host_id = Column(
         Integer, ForeignKey("hosts.id"), nullable=False, index=True
     )
-    host = relationship(Host, lazy="joined", backref="labors")
+    host = relationship(
+        Host, lazy="joined", backref="labors", cascade="all, delete-orphan",
+        single_parent=True
+    )
     creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
     ack_time = Column(DateTime, nullable=True)
     ack_user = Column(String(64), nullable=True)

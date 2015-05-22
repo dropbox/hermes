@@ -60,7 +60,7 @@ def main():
     tornado_settings = {
         "static_path": os.path.join(os.path.dirname(hermes.__file__), "static"),
         "debug": settings.debug,
-        "xsrf_cookies": True,
+        "xsrf_cookies": False,
         "cookie_secret": settings.secret_key,
     }
 

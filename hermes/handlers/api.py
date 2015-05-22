@@ -45,7 +45,7 @@ class HostsHandler(ApiHandler):
         """
 
         try:
-            hostname = self.jbody["name"]
+            hostname = self.jbody["hostname"]
         except KeyError as err:
             raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
         except ValueError as err:
@@ -59,6 +59,8 @@ class HostsHandler(ApiHandler):
             raise exc.Conflict(err.orig.message)
         except exc.ValidationError as err:
             raise exc.BadRequest(err.message)
+
+        self.session.commit()
 
         json = host.to_dict("/api/v1")
         json['href'] = "/api/v1/hosts/{}".format(host.hostname)
@@ -233,7 +235,6 @@ class HostHandler(ApiHandler):
 
         try:
             host.update(
-                self.current_user.id,
                 hostname=hostname,
             )
         except IntegrityError as err:
@@ -269,7 +270,7 @@ class HostHandler(ApiHandler):
             raise exc.NotFound("No such Host {} found".format(hostname))
 
         try:
-            host.delete(self.current_user.id)
+            host.delete()
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
 

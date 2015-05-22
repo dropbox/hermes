@@ -42,7 +42,7 @@ class FeHandler(BaseHandler):
     def prepare(self):
         BaseHandler.prepare(self)
         # Need to access token to set Cookie.
-        self.xsrf_token
+        # self.xsrf_token
 
     def render(self, template_name, **kwargs):
         context = {}
