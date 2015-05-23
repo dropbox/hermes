@@ -125,6 +125,9 @@ class ApiHandler(BaseHandler):
     def write_error(self, status_code, **kwargs):
 
         message = "An unknown problem has occured :("
+        if "message" in kwargs:
+            message = kwargs['message']
+
         if "exc_info" in kwargs:
             inst = kwargs["exc_info"][1]
             if isinstance(inst, HTTPError):
@@ -139,6 +142,7 @@ class ApiHandler(BaseHandler):
                 "message": message,
             },
         })
+        self.set_status(status_code, message)
 
     def success(self, data):
         """200 OK"""

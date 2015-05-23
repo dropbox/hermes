@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from .util import ApiHandler
 from .. import exc
-from ..models import Host, EventType, Event, Labor
+from ..models import Host, EventType, Event, Labor, Fate
 from ..util import qp_to_bool as qpbool, parse_set_query
 
 
@@ -34,13 +34,9 @@ class HostsHandler(ApiHandler):
             Location: /api/v1/hosts/example
 
             {
-                "status": "ok",
-                "data": {
-                    "host": {
-                        "id": 1,
-                        "hostname": "example"
-                    }
-                }
+                "status": "create",
+                "id": 1,
+                "hostname": "example"
             }
         """
 
@@ -64,6 +60,7 @@ class HostsHandler(ApiHandler):
 
         json = host.to_dict("/api/v1")
         json['href'] = "/api/v1/hosts/{}".format(host.hostname)
+        json['status'] = 'created'
 
         self.created("/api/v1/hosts/{}".format(host.hostname), json)
 
@@ -312,6 +309,7 @@ class EventTypesHandler(ApiHandler):
 
         json = event_type.to_dict("/api/v1")
         json['href'] = "/api/v1/eventtypes/{}".format(event_type.id)
+        json['status'] = 'created'
 
         self.created("/api/v1/eventtypes/{}".format(event_type.id), json)
 
@@ -539,7 +537,7 @@ class EventsHandler(ApiHandler):
         try:
             hostname = self.jbody['hostname']
             user = self.jbody['user']
-            event_type_id = self.jbody['event_type_id']
+            event_type_id = self.jbody['eventTypeId']
             note = self.jbody['note']
         except KeyError as err:
             raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
@@ -549,10 +547,7 @@ class EventsHandler(ApiHandler):
         event_type = self.session.query(EventType).get(event_type_id)
 
         if event_type is None:
-            self.error({
-                'message':
-                    "No matching EventState {} found".format(event_type_id)
-            })
+            self.write_error(400, message="Bad event type")
             return
 
         host = Host.get_host(self.session, hostname)
@@ -573,6 +568,7 @@ class EventsHandler(ApiHandler):
 
         json = host.to_dict("/api/v1")
         json['href'] = "/api/v1/events/{}".format(event.id)
+        json['status'] = 'created'
 
         self.created("/api/v1/events/{}".format(event.id), json)
 
@@ -675,6 +671,185 @@ class EventHandler(ApiHandler):
 
     def delete(self, id):
         """Delete an Event
+
+        Not supported
+        """
+        self.not_supported()
+
+
+class FatesHandler(ApiHandler):
+
+    def post(self):
+        """ Create a Fate entry
+
+        Example Request:
+
+
+            POST /api/v1/fates HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            {
+                creationEventTypeId: 1,
+                completionEventTypeId: 2,
+                intermediate: false,
+                description: "This is a fate"
+            }
+
+        Example response:
+
+            HTTP/1.1 201 OK
+            Location: /api/v1/hosts/example
+
+            {
+                "status": "created",
+                creationEventTypeId: 1,
+                completionEventTypeId: 2,
+                intermediate: false,
+                description: "This is a fate"
+            }
+        """
+
+        try:
+            creation_event_type_id = self.jbody['creationEventTypeId']
+            completion_event_type_id = self.jbody['completionEventTypeId']
+            intermediate = self.jbody['intermediate']
+            description = self.jbody['description']
+        except KeyError as err:
+            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+        except ValueError as err:
+            raise exc.BadRequest(err.message)
+
+        creation_event_type = (
+            self.session.query(EventType).get(creation_event_type_id)
+        )
+
+        if creation_event_type is None:
+            self.write_error(400, message="Bad creation event type")
+            return
+
+        completion_event_type = (
+            self.session.query(EventType).get(completion_event_type_id)
+        )
+
+        if completion_event_type is None:
+            self.write_error(400, message="Bad event type")
+            return
+
+        try:
+            fate = Fate.create(
+                self.session, creation_event_type, completion_event_type,
+                intermediate=intermediate, description=description
+            )
+        except IntegrityError as err:
+            raise exc.Conflict(err.orig.message)
+        except exc.ValidationError as err:
+            raise exc.BadRequest(err.message)
+
+        self.session.commit()
+
+        json = fate.to_dict("/api/v1")
+        json['href'] = "/api/v1/fates/{}".format(fate.id)
+
+        self.created("/api/v1/fates/{}".format(fate.id), json)
+
+    def get(self):
+        """ Get all Fates
+
+        Example Request:
+
+            GET /api/v1/fates HTTP/1.1
+            Host: localhost
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                limit: int,
+                page: int,
+                totalFates: int,
+                fates: [
+                    {
+                        id: int,
+                        creationEventTypeId: int,
+                        completionEventType: int,
+                        intermediate: true|false,
+                        description: string,
+                    },
+                    ...
+                ],
+            }
+        """
+        fates = self.session.query(Fate)
+
+        offset, limit, expand = self.get_pagination_values()
+        hosts, total = self.paginate_query(fates, offset, limit)
+
+        json = {
+            "limit": limit,
+            "offset": offset,
+            "totalFates": total,
+            "fates": [fate.to_dict("/api/v1") for fate in fates.all()],
+        }
+
+        self.success(json)
+
+
+class FateHandler(ApiHandler):
+    def get(self, id):
+        """Get a specific Fate
+
+        Example Request:
+
+            GET /api/v1/fates/1/ HTTP/1.1
+            Host: localhost
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                id: 1,
+                creationEventTypeId: 1,
+                completionEventTypeId: 2,
+                intermediate: false,
+                description: "This is a fate"
+            }
+
+        Args:
+            id: the id of the fate to get
+        """
+        offset, limit, expand = self.get_pagination_values()
+        fate = self.session.query(Fate).filter_by(id=id).scalar()
+        if not fate:
+            raise exc.NotFound("No such Fate {} found".format(id))
+
+        json = fate.to_dict("/api/v1")
+        json['limit'] = limit
+        json['offset'] = offset
+
+        if "eventtypes" in expand:
+            json['creationEventType'] = (
+                fate.creation_event_type.to_dict('/api/v1')
+            )
+            json['competionEventType'] = (
+                fate.completion_event_type.to_dict('/api/v1')
+            )
+
+        self.success(json)
+
+    def put(self, id):
+        """Update a Fate
+
+        Not supported
+        """
+        self.not_supported()
+
+    def delete(self, id):
+        """Delete a Fate
 
         Not supported
         """
