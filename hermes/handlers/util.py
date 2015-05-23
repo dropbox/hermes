@@ -112,6 +112,16 @@ class ApiHandler(BaseHandler):
 
         logging.debug("Added headers")
 
+    def not_supported(self):
+        self.write({
+            "status": "error",
+            "error": {
+                "code": 405,
+                "message": "Method not supported for this resource."
+            }
+        })
+        self.set_status(405, reason="Method not supported.")
+
     def write_error(self, status_code, **kwargs):
 
         message = "An unknown problem has occured :("

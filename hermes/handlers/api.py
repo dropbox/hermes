@@ -250,36 +250,9 @@ class HostHandler(ApiHandler):
     def delete(self, hostname):
         """Delete a Host
 
-        Example Request:
-
-            DELETE /api/v1/hosts/example HTTP/1.1
-            Host: localhost
-
-        Example response:
-
-            HTTP/1.1 200 OK
-            Content-Type: application/json
-
-            {
-                "status": "ok",
-                "data": {
-                    "message": Site hostname deleted."
-                }
-            }
-
+        Not supported
         """
-        host = self.session.query(Host).filter_by(hostname=hostname).scalar()
-        if not host:
-            raise exc.NotFound("No such Host {} found".format(hostname))
-
-        try:
-            host.delete()
-        except IntegrityError as err:
-            raise exc.Conflict(err.orig.message)
-
-        self.success({
-            "message": "Host {} deleted.".format(hostname),
-        })
+        self.not_supported()
 
 
 class EventTypesHandler(ApiHandler):
@@ -520,11 +493,144 @@ class EventTypeHandler(ApiHandler):
         })
 
     def delete(self, id):
-        """Delete a Host
+        """Delete an EventType
+
+        Not supported
+        """
+        self.not_supported()
+
+
+class EventsHandler(ApiHandler):
+
+    def post(self):
+        """ Create an Event entry
 
         Example Request:
 
-            DELETE /api/v1/eventtype/1/ HTTP/1.1
+            POST /api/v1/events HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            {
+                "hostname": "example",
+                "user": "johnny",
+                "eventTypeId": 3,
+                "note": "Sample description"
+            }
+
+        Example response:
+
+            HTTP/1.1 201 OK
+            Location: /api/v1/events/1
+
+            {
+                "status": "ok",
+                "data": {
+                    "event": {
+                        "id": 1,
+                        "hostname": "example",
+                        "user": "johnny",
+                        "eventTypeId": 3,
+                        "note": "Sample description"
+                    }
+                }
+            }
+        """
+
+        try:
+            hostname = self.jbody['hostname']
+            user = self.jbody['user']
+            event_type_id = self.jbody['event_type_id']
+            note = self.jbody['note']
+        except KeyError as err:
+            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+        except ValueError as err:
+            raise exc.BadRequest(err.message)
+
+        event_type = self.session.query(EventType).get(event_type_id)
+
+        if event_type is None:
+            self.error({
+                'message':
+                    "No matching EventState {} found".format(event_type_id)
+            })
+            return
+
+        host = Host.get_host(self.session, hostname)
+
+        if host is None:
+            host = Host.create(self.session, hostname)
+
+        try:
+            event = Event.create(
+                self.session, host, user, event_type, note=note
+            )
+        except IntegrityError as err:
+            raise exc.Conflict(err.orig.message)
+        except exc.ValidationError as err:
+            raise exc.BadRequest(err.message)
+
+        self.session.commit()
+
+        json = host.to_dict("/api/v1")
+        json['href'] = "/api/v1/events/{}".format(event.id)
+
+        self.created("/api/v1/events/{}".format(event.id), json)
+
+    def get(self):
+        """ Get all Events
+
+        Example Request:
+
+            GET /api/v1/events HTTP/1.1
+            Host: localhost
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                status: ok
+                limit: int,
+                page: int,
+                totalEvents: int,
+                events: [
+                    {
+                        id: int,
+                        hostId: int,
+                        timestamp: timestamp,
+                        user: string,
+                        eventTypeId: int,
+                        note: string,
+                    },
+                    ...
+                ],
+            }
+        """
+        events = self.session.query(Event).order_by(desc(Event.timestamp))
+
+        offset, limit, expand = self.get_pagination_values()
+        events, total = self.paginate_query(events, offset, limit)
+
+        events = events.from_self().order_by(Event.timestamp)
+
+        json = {
+            "limit": limit,
+            "offset": offset,
+            "totalEvents": total,
+            "events": [event.to_dict("/api/v1") for event in events.all()],
+        }
+
+        self.success(json)
+
+
+class EventHandler(ApiHandler):
+    def get(self, id):
+        """Get a specific Event
+
+        Example Request:
+
+            GET /api/v1/events/1/ HTTP/1.1
             Host: localhost
 
         Example response:
@@ -534,279 +640,42 @@ class EventTypeHandler(ApiHandler):
 
             {
                 "status": "ok",
-                "data": {
-                    "message": Not supported"
-                }
+                 id: int,
+                 hostId: int,
+                 timestamp: timestamp,
+                 user: string,
+                 eventTypeId: int,
+                 note: string,
             }
 
+        Args:
+            id: the id of the event to get
         """
-        self.error({
-            "message": "Not supported.",
-        })
+        offset, limit, expand = self.get_pagination_values()
+        event = self.session.query(Event).filter_by(id=id).scalar()
+        if not event:
+            raise exc.NotFound("No such Event {} found".format(id))
 
-# class EventsHandler(ApiHandler):
-#
-#     def post(self):
-#         """ Create an Event entry
-#
-#         Example Request:
-#
-#             POST /api/v1/hosts HTTP/1.1
-#             Host: localhost
-#             Content-Type: application/json
-#             {
-#                 "hostname": "example",
-#                 "user": "johnny",
-#                 "eventTypeId": 3,
-#                 "note": "Sample description"
-#             }
-#
-#         Example response:
-#
-#             HTTP/1.1 201 OK
-#             Location: /api/hosts/example
-#
-#             {
-#                 "status": "ok",
-#                 "data": {
-#                     "host": {
-#                         "id": 1,
-#                         "hostname": "example"
-#                     }
-#                 }
-#             }
-#         """
-#
-#         try:
-#             hostname = self.jbody["hostname"]
-#         except KeyError as err:
-#             raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
-#         except ValueError as err:
-#             raise exc.BadRequest(err.message)
-#
-#         try:
-#             host = Host.create(
-#                 self.session, hostname
-#             )
-#         except IntegrityError as err:
-#             raise exc.Conflict(err.orig.message)
-#         except exc.ValidationError as err:
-#             raise exc.BadRequest(err.message)
-#
-#         self.session.commit()
-#
-#         json = host.to_dict("/api/v1")
-#         json['href'] = "/api/v1/hosts/{}".format(host.hostname)
-#
-#         self.created("/api/v1/hosts/{}".format(host.id), json)
-#
-#     def get(self):
-#         """ Get all Hosts
-#
-#         Example Request:
-#
-#             GET /api/hosts HTTP/1.1
-#             Host: localhost
-#
-#         Example response:
-#
-#             HTTP/1.1 200 OK
-#             Content-Type: application/json
-#
-#             {
-#                 "status": "ok",
-#                 "data": {
-#                     "hosts": [
-#                         {
-#                             "id": 1
-#                             "name": "Site 1",
-#                             "description": ""
-#                         }
-#                     ],
-#                     "limit": null,
-#                     "offset": 0,
-#                     "total": 1,
-#                 }
-#             }
-#         """
-#         hostname = self.get_argument("name", None)
-#
-#         hosts = self.session.query(Host)
-#         if hostname is not None:
-#             hosts = hosts.filter_by(hostname=hostname)
-#
-#         offset, limit, expand = self.get_pagination_values()
-#         hosts, total = self.paginate_query(hosts, offset, limit)
-#
-#         json = {
-#             "limit": limit,
-#             "offset": offset,
-#             "totalHosts": total,
-#             "hosts": [host.to_dict("/api/v1") for host in hosts.all()],
-#         }
-#
-#         self.success(json)
-#
-#
-# class EventHandler(ApiHandler):
-#     def get(self, hostname):
-#         """Get a specific Event
-#
-#         Example Request:
-#
-#             GET /api/hosts/example HTTP/1.1
-#             Host: localhost
-#
-#         Example response:
-#
-#             HTTP/1.1 200 OK
-#             Content-Type: application/json
-#
-#             {
-#                 "status": "ok",
-#                 "data": {
-#                     "host": {
-#                         "id": 1,
-#                         "hostname": "example",
-#                     }
-#                 }
-#             }
-#
-#         Args:
-#             hostname: the name of the host to get
-#         """
-#         offset, limit, expand = self.get_pagination_values()
-#         host = self.session.query(Host).filter_by(hostname=hostname).scalar()
-#         if not host:
-#             raise exc.NotFound("No such Host {} found".format(hostname))
-#
-#         json = host.to_dict("/api/v1")
-#         json['limit'] = limit
-#         json['offset'] = offset
-#
-#
-#         # add the labors and quests
-#         labors = []
-#         quests = []
-#         for labor in host.get_labors().limit(limit).offset(offset).all():
-#             if "labors" in expand:
-#                 labors.append(labor.to_dict("/api/v1"))
-#             else:
-#                 labors.append({"id": labor.id, "href": labor.href("/api/v1")})
-#
-#             if "quests" in expand:
-#                 quests.append(labor.quest.to_dict("/api/v1"))
-#             else:
-#                 quests.append(
-#                     {
-#                         "id": labor.quest.id,
-#                         "href": labor.quest.href("/api/v1")
-#                     }
-#                 )
-#         json['labors'] = labors
-#         json['quests'] = quests
-#
-#         # add the events
-#         events = []
-#         events_query = host.get_latest_events()
-#         last_event = host.get_latest_events().first()
-#         for event in (
-#                 host.get_latest_events().limit(limit).offset(offset).all()
-#         ):
-#             if "events" in expand:
-#                 events.append(event.to_dict("/api/v1"))
-#             else:
-#                 events.append({
-#                     "id": event.id, "href": event.href("/api/v1")
-#                 })
-#         json['lastEvent'] = str(last_event.timestamp)
-#         json['events'] = events
-#
-#
-#         self.success(json)
-#
-#     def put(self, hostname):
-#         """Update a Host
-#
-#         Example Request:
-#
-#             PUT /api/hosts/example HTTP/1.1
-#             Host: localhost
-#             Content-Type: application/json
-#             X-NSoT-Email: user@localhost
-#
-#             {
-#                 "hostname": "newname",
-#             }
-#
-#         Example response:
-#
-#             HTTP/1.1 200 OK
-#             Content-Type: application/json
-#
-#             {
-#                 "status": "ok",
-#                 "data": {
-#                     "site": {
-#                         "id": 1,
-#                         "hostname": "newname",
-#                     }
-#                 }
-#             }
-#
-#         Args:
-#             hostname: the hostname to update
-#         """
-#         host = self.session.query(Host).filter_by(hostname=hostname).scalar()
-#         if not host:
-#             raise exc.NotFound("No such Host {} found".format(hostname))
-#
-#         try:
-#             hostname = self.jbody["hostname"]
-#         except KeyError as err:
-#             raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
-#
-#         try:
-#             host.update(
-#                 hostname=hostname,
-#             )
-#         except IntegrityError as err:
-#             raise exc.Conflict(str(err.orig))
-#
-#         self.success({
-#             "host": host.to_dict("/api/v1"),
-#         })
-#
-#     def delete(self, hostname):
-#         """Delete a Host
-#
-#         Example Request:
-#
-#             DELETE /api/hosts/example HTTP/1.1
-#             Host: localhost
-#
-#         Example response:
-#
-#             HTTP/1.1 200 OK
-#             Content-Type: application/json
-#
-#             {
-#                 "status": "ok",
-#                 "data": {
-#                     "message": Site hostname deleted."
-#                 }
-#             }
-#
-#         """
-#         host = self.session.query(Host).filter_by(hostname=hostname).scalar()
-#         if not host:
-#             raise exc.NotFound("No such Host {} found".format(hostname))
-#
-#         try:
-#             host.delete()
-#         except IntegrityError as err:
-#             raise exc.Conflict(err.orig.message)
-#
-#         self.success({
-#             "message": "Host {} deleted.".format(hostname),
-#         })
+        json = event.to_dict("/api/v1")
+
+        if "hosts" in expand:
+            json['host'] = event.host.to_dict("/api/v1")
+
+        if "eventtypes" in expand:
+            json['eventType'] = event.event_type.to_dict("/api/v1")
+
+        self.success(json)
+
+    def put(self, id):
+        """Update an Event
+
+        Not supported
+        """
+        self.not_supported()
+
+    def delete(self, id):
+        """Delete an Event
+
+        Not supported
+        """
+        self.not_supported()
