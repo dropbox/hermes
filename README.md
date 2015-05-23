@@ -107,11 +107,11 @@ returned.
 
 ## Paging ##
 
-In conjuction with limits, a particular page of data can be requested with
-the page parameter.
+In conjuction with limits, a particular offset of data can be requested with
+the offset parameter.
 
 ```
-/api/v1/host/[hostname]/events/?limit=20&page=2
+/api/v1/host/[hostname]/events/?limit=20&offset=40
 ```
 
 ## Expansion ##
@@ -137,7 +137,7 @@ To get host data, use `/api/v1/hosts/[hostname]/`
     id: int,
     hostname: string,
     limit: int,
-    page: int,
+    offset: int,
     lastEvent: timestamp,
     events: [],
     labors: [],
@@ -145,12 +145,12 @@ To get host data, use `/api/v1/hosts/[hostname]/`
 }
 ```
 
-To get all hosts, use `/api/v1/hosts/` (with an appropriate limit and page)
+To get all hosts, use `/api/v1/hosts/` (with an appropriate limit)
 
 ```
 {
     limit: int,
-    page: int,
+    offset: int,
     totalHosts: int,
     hosts: [],
 }
@@ -163,7 +163,7 @@ To get event types, use `/api/v1/eventtypes/`
 ```
 {
     limit: int,
-    page: int,
+    offset: int,
     totalEventTypes: int,
     eventTypes: [
         {
@@ -196,23 +196,15 @@ To get events, use `/api/v1/events/`
 ```
 {
     limit: int,
-    page: int,
+    offset: int,
     totalEvents: int,
     events: [
         {
             id: int,
-            host: {
-                id: int,
-                hostname: string,
-            },
+            hostId: int,
             timestamp: timestamp,
             user: string,
-            eventType: {
-                id: int,
-                category: string,
-                state: string,
-                description: string,
-            },
+            eventTypeId: int,
             note: string,
         },
         ...
@@ -226,6 +218,17 @@ expansion.
 
 To get a particular event, use `/api/v1/events/[eventId]`.
 
+{
+    limit: int,
+    offset: int,
+    id: int,
+    hostId: int,
+    timestamp: timestamp,
+    user: string,
+    eventTypeId: int,
+    note: string,
+}
+
 ### Fates ###
 
 To get fates, use `/api/v1/fates`
@@ -233,7 +236,7 @@ To get fates, use `/api/v1/fates`
 ```
 {
     limit: int,
-    page: int,
+    offset: int,
     totalFates: int,
     fates: [
         {
@@ -267,7 +270,7 @@ To get labors, use `/api/v1/labors/`
 ```
 {
     limit: int,
-    page: int,
+    offset: int,
     totalFates: int,
     labors: [
         {
@@ -314,7 +317,7 @@ To get quests, use `/api/v1/quests/`
 ```JSON5
 {
     limit: int,
-    page: int,
+    offset: int,
     totalQuests: int,
     quests: [
         {
