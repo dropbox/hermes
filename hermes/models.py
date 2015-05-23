@@ -954,8 +954,7 @@ class Labor(Model):
         Integer, ForeignKey("hosts.id"), nullable=False, index=True
     )
     host = relationship(
-        Host, lazy="joined", backref="labors", cascade="all, delete-orphan",
-        single_parent=True
+        Host, lazy="joined", backref="labors"
     )
     creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
     ack_time = Column(DateTime, nullable=True)
