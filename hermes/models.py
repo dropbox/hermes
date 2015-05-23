@@ -621,7 +621,7 @@ class Fate(Model):
         """
         out = {
             "id": self.id,
-            "intermediate": "true" if self.intermediate else "false",
+            "intermediate": True if self.intermediate else False,
             "creationEventTypeId": self.creation_type_id,
             "completionEventTypeId": self.completion_type_id,
             "description": self.description,

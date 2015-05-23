@@ -156,7 +156,7 @@ class ApiHandler(BaseHandler):
         self.set_status(201)
         if data is None:
             data = {}
-        date['status'] = 'created'
+        data['status'] = 'created'
         if location is not None:
             self.set_header(
                 "Location",
