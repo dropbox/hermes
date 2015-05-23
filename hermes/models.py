@@ -279,10 +279,10 @@ class EventType(Model):
         )
 
     def get_associated_fates(self):
-        """Get Labors associated with this EventType
+        """Get Fates associated with this EventType
 
         Returns:
-            query for the associated Labors
+            query for the associated Fates
         """
         return (
             self.session.query(Fate).filter(
