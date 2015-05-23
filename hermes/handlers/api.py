@@ -60,7 +60,6 @@ class HostsHandler(ApiHandler):
 
         json = host.to_dict("/api/v1")
         json['href'] = "/api/v1/hosts/{}".format(host.hostname)
-        json['status'] = 'created'
 
         self.created("/api/v1/hosts/{}".format(host.hostname), json)
 
@@ -240,9 +239,9 @@ class HostHandler(ApiHandler):
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))
 
-        self.success({
-            "host": host.to_dict("/api/v1"),
-        })
+        json = host.to_dict('/api/v1')
+
+        self.success(json)
 
     def delete(self, hostname):
         """Delete a Host
@@ -309,7 +308,6 @@ class EventTypesHandler(ApiHandler):
 
         json = event_type.to_dict("/api/v1")
         json['href'] = "/api/v1/eventtypes/{}".format(event_type.id)
-        json['status'] = 'created'
 
         self.created("/api/v1/eventtypes/{}".format(event_type.id), json)
 
@@ -486,9 +484,9 @@ class EventTypeHandler(ApiHandler):
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))
 
-        self.success({
-            "eventType": event_type.to_dict("/api/v1"),
-        })
+        json = event_type.to_dict('/api/v1')
+
+        self.success(json)
 
     def delete(self, id):
         """Delete an EventType
@@ -568,7 +566,6 @@ class EventsHandler(ApiHandler):
 
         json = host.to_dict("/api/v1")
         json['href'] = "/api/v1/events/{}".format(event.id)
-        json['status'] = 'created'
 
         self.created("/api/v1/events/{}".format(event.id), json)
 
