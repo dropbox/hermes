@@ -314,7 +314,7 @@ To get a particular labor, use `/api/v1/labors/[laborId]`.
 
 To get quests, use `/api/v1/quests/`
 
-```JSON5
+```
 {
     limit: int,
     offset: int,
