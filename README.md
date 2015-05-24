@@ -188,6 +188,7 @@ To get an individual event_type, use `/api/v1/eventtypes/[id]/`
     events: [],
     fates: []
 }
+```
 
 ### Events ###
 
