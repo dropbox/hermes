@@ -930,6 +930,7 @@ class Labor(Model):
 
     Attributes:
         id: the unique database id
+        quest: the Quest to this this Labor belongs
         host: the Host to which this Labor pertains
         creation_time: when this Labor was created
         ack_time: when this Labor was acknowledged
@@ -1098,6 +1099,8 @@ class Labor(Model):
             "creationTime": str(self.creation_time),
             "creationEventId": self.creation_event_id,
             "completionEventId": self.completion_event_id,
+            "ackUser": self.ack_user,
+            "ackTime": str(self.ack_time)
         }
 
         if base_uri:

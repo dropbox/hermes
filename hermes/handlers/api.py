@@ -6,9 +6,10 @@ from sqlalchemy.exc import IntegrityError
 
 from .util import ApiHandler
 from .. import exc
-from ..models import Host, EventType, Event, Labor, Fate
+from ..models import Host, EventType, Event, Labor, Fate, Quest
 from ..util import qp_to_bool as qpbool, parse_set_query
 
+from datetime import datetime
 
 log = logging.getLogger(__name__)
 
@@ -34,16 +35,18 @@ class HostsHandler(ApiHandler):
             Location: /api/v1/hosts/example
 
             {
-                "status": "create",
+                "status": "created",
                 "id": 1,
                 "hostname": "example"
             }
         """
 
         try:
-            hostname = self.jbody["hostname"]
+            hostname = self.jbody['hostname']
         except KeyError as err:
-            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+            raise exc.BadRequest(
+                'Missing Required Argument: {}'.format(err.message)
+            )
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
@@ -58,10 +61,10 @@ class HostsHandler(ApiHandler):
 
         self.session.commit()
 
-        json = host.to_dict("/api/v1")
-        json['href'] = "/api/v1/hosts/{}".format(host.hostname)
+        json = host.to_dict('/api/v1')
+        json['href'] = '/api/v1/hosts/{}'.format(host.hostname)
 
-        self.created("/api/v1/hosts/{}".format(host.hostname), json)
+        self.created('/api/v1/hosts/{}'.format(host.hostname), json)
 
     def get(self):
         """ Get all Hosts
@@ -78,21 +81,20 @@ class HostsHandler(ApiHandler):
 
             {
                 "status": "ok",
-                "data": {
-                    "hosts": [
-                        {
-                            "id": 1
-                            "name": "Site 1",
-                            "description": ""
-                        }
-                    ],
-                    "limit": null,
-                    "offset": 0,
-                    "total": 1,
-                }
+                "hosts": [
+                    {
+                        "id": 1
+                        "name": "Site 1",
+                        "description": ""
+                    },
+                    ...
+                ],
+                "limit": 10,
+                "offset": 0,
+                "totalHosts": 1,
             }
         """
-        hostname = self.get_argument("hostname", None)
+        hostname = self.get_argument('hostname', None)
 
         hosts = self.session.query(Host)
         if hostname is not None:
@@ -102,10 +104,10 @@ class HostsHandler(ApiHandler):
         hosts, total = self.paginate_query(hosts, offset, limit)
 
         json = {
-            "limit": limit,
-            "offset": offset,
-            "totalHosts": total,
-            "hosts": [host.to_dict("/api/v1") for host in hosts.all()],
+            'limit': limit,
+            'offset': offset,
+            'totalHosts': total,
+            'hosts': [host.to_dict('/api/v1') for host in hosts.all()],
         }
 
         self.success(json)
@@ -127,12 +129,11 @@ class HostHandler(ApiHandler):
 
             {
                 "status": "ok",
-                "data": {
-                    "host": {
-                        "id": 1,
-                        "hostname": "example",
-                    }
-                }
+                "id": 1,
+                "hostname": "example",
+                "labors": [],
+                "quests": [],
+                "events": [],
             }
 
         Args:
@@ -212,12 +213,8 @@ class HostHandler(ApiHandler):
 
             {
                 "status": "ok",
-                "data": {
-                    "site": {
-                        "id": 1,
-                        "hostname": "newname",
-                    }
-                }
+                "id": 1,
+                "hostname": "newname",
             }
 
         Args:
@@ -274,15 +271,11 @@ class EventTypesHandler(ApiHandler):
             Location: /api/v1/eventtypes/1
 
             {
-                "status": "ok",
-                "data": {
-                    "eventType": {
-                        "id": 1,
-                        "category": "system-reboot",
-                        "state": "required",
-                        "description": "System requires a reboot.",
-                    }
-                }
+                "status": "created",
+                "id": 1,
+                "category": "system-reboot",
+                "state": "required",
+                "description": "System requires a reboot.",
             }
         """
 
@@ -326,20 +319,18 @@ class EventTypesHandler(ApiHandler):
 
             {
                 "status": "ok",
-                "data": {
-                    "eventTypes": [
-                        {
-                            "eventType": {
-                            "id": 1,
-                            "category": "system-reboot",
-                            "state": "required",
-                            "description": "System requires a reboot.",
-                        }
-                    ],
-                    "limit": 10,
-                    "offset": 0,
-                    "totalEventTypes": 1,
-                }
+                limit: int,
+                offset: int,
+                totalEventTypes: int,
+                eventTypes: [
+                    {
+                        id: int,
+                        category: string,
+                        state: string,
+                        description: string,
+                    },
+                    ...
+                ],
             }
         """
         category = self.get_argument("category", None)
@@ -383,10 +374,12 @@ class EventTypeHandler(ApiHandler):
 
             {
                 "status": "ok",
-                id: 1,
-                category: "system-reboot",
-                state: "required",
-                description: "This system requires a reboot",
+                "id": 1,
+                "category": "system-reboot",
+                "state": "required",
+                "description": "This system requires a reboot",
+                "events": [],
+                "fates": [],
             }
 
         Args:
@@ -453,14 +446,10 @@ class EventTypeHandler(ApiHandler):
 
             {
                 "status": "ok",
-                "data": {
-                    "eventType": {
-                        "id": 1,
-                        category: "system-reboot",
-                        state: "required",
-                        description: "New description",
-                    }
-                }
+                "id": 1,
+                "category": "system-reboot",
+                "state": "required",
+                "description": "New description",
             }
 
         Args:
@@ -851,3 +840,392 @@ class FateHandler(ApiHandler):
         Not supported
         """
         self.not_supported()
+
+
+class LaborsHandler(ApiHandler):
+
+    def post(self):
+        """ Create a Labor entry
+
+        Not supported.  Labors are only created by Fates.
+        """
+        self.not_supported()
+
+    def get(self):
+        """ Get all Labors
+
+        Example Request:
+
+            GET /api/v1/labors HTTP/1.1
+            Host: localhost
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                "limit": int,
+                "offset": int,
+                "totalFates": int,
+                "labors": [
+                    {
+                        "id": 23,
+                        "questId": 5,
+                        "hostId": 26,
+                        "creationTime": timestamp,
+                        "ackTime": timestamp,
+                        "ackUser": string,
+                        "completionTime": timestamp,
+                        "creationEventId": 127,
+                        "completionEventId": 212,
+                    },
+                    ...
+                ],
+            }
+        """
+        hostname = self.get_argument('hostname', None)
+
+        labors = self.session.query(Labor)
+        if hostname is not None:
+            labors = (
+                labors.filter_by(hostname=hostname)
+                .order_by(desc(Labor.creation_time))
+            )
+
+        offset, limit, expand = self.get_pagination_values()
+        labors, total = self.paginate_query(labors, offset, limit)
+
+        labors = labors.from_self().order_by(Labor.creation_time)
+
+        json = {
+            'limit': limit,
+            'offset': offset,
+            'totalLabors': total,
+            'labors': [labor.to_dict('/api/v1') for labor in labors.all()],
+        }
+
+        self.success(json)
+
+
+class LaborHandler(ApiHandler):
+    def get(self, id):
+        """Get a specific Labor
+
+        Example Request:
+
+            GET /api/v1/labors/1 HTTP/1.1
+            Host: localhost
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                "id": 23,
+                "questId": 5,
+                "hostId": 26,
+                "creationTime": timestamp,
+                "ackTime": timestamp,
+                "ackUser": string,
+                "completionTime": timestamp,
+                "creationEventId": 127,
+                "completionEventId": 212,
+            }
+
+        Args:
+            hostname: the name of the host to get
+        """
+        offset, limit, expand = self.get_pagination_values()
+        labor = self.session.query(Labor).filter_by(id=id).scalar()
+        if not labor:
+            raise exc.NotFound("No such Labor {} found".format(id))
+
+        json = labor.to_dict("/api/v1")
+
+        if "hosts" in expand:
+            json['host'] = labor.host.to_dict('/api/v1')
+
+        if "eventtypes" in expand:
+            json['creationEvent'] = labor.creation_event.to_dict('/api/v1')
+            if labor.completion_event:
+                json['competionEvent'] = (
+                    labor.completion_event.to_dict('/api/v1')
+                )
+
+        self.success(json)
+
+    def put(self, id):
+        """Update a Host
+
+        Example Request:
+
+            PUT /api/v1/labors/23 HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            X-NSoT-Email: user@localhost
+
+            {
+                "questId": 1,
+            }
+
+            or
+
+            {
+                "ackUser": "johnny"
+            }
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                "id": 23,
+                "questId": 1,
+                "hostId": 26,
+                "creationTime": timestamp,
+                "ackTime": timestamp,
+                "ackUser": "johnny",
+                "completionTime": timestamp,
+                "creationEventId": 127,
+                "completionEventId": 212,
+            }
+
+        Args:
+            id: the id of the Labor to update
+        """
+        labor = self.session.query(Labor).filter_by(id=id).scalar()
+        if not labor:
+            raise exc.NotFound("No such Labor {} found".format(id))
+
+        quest_id = None
+        ack_user = None
+        try:
+            if 'questId' in self.jbody:
+                quest_id = self.jbody['questId']
+
+            if 'ackUser' in self.jbody:
+                ack_user = self.jbody['ackUser']
+
+            if not quest_id and not ack_user:
+                raise exc.BadRequest("Must update either questId or ackUser")
+        except KeyError as err:
+            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+
+        try:
+            if quest_id:
+                labor.update(quest_id=quest_id)
+            if ack_user:
+                labor.acknowledge(ack_user)
+        except IntegrityError as err:
+            raise exc.Conflict(str(err.orig))
+
+        json = labor.to_dict('/api/v1')
+
+        self.success(json)
+
+    def delete(self, id):
+        """Delete a Labor
+
+        Not supported
+        """
+        self.not_supported()
+
+
+class QuestsHandler(ApiHandler):
+    def post(self):
+        """ Create a Quest entry
+
+        Example Request:
+
+            POST /api/v1/quests HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            {
+                "eventTypeId": 1,
+                "creator": "johnny",
+                "description": "This is a quest almighty",
+                "hostnames": [],
+            }
+
+        Example response:
+
+            HTTP/1.1 201 OK
+            Location: /api/v1/hosts/example
+
+            {
+                "status": "created",
+                "id": 1,
+                "creator": "johnny",
+                "embarkTime": timestamp,
+                "completionTime": timestamp,
+                "labors": [],
+            }
+
+        """
+        try:
+            event_type_id = self.jbody['eventTypeId']
+            user = self.jbody['user']
+            description = self.jbody['description']
+            hostnames = self.jbody['hostnames']
+        except KeyError as err:
+            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+        except ValueError as err:
+            raise exc.BadRequest(err.message)
+
+        event_type = (
+            self.session.query(EventType).get(event_type_id)
+        )
+
+        if event_type is None:
+            self.write_error(400, message="Bad creation event type")
+            return
+
+        hosts = []
+        for hostname in hostnames:
+            if not hostname:
+                continue
+            host = Host.get_host(self.session, hostname)
+            if host is None:
+                Host.create(self.session, hostname)
+            hosts.append(hostname)
+
+        if len(hosts) == 0:
+            raise exc.BadRequest("No hosts found with given list")
+
+        try:
+            quest = Quest.create(
+                self.session, user, hosts, event_type, description=description
+            )
+        except IntegrityError as err:
+            raise exc.Conflict(err.orig.message)
+        except exc.ValidationError as err:
+            raise exc.BadRequest(err.message)
+
+        self.session.commit()
+
+        json = quest.to_dict("/api/v1")
+
+        json['labors'] = (
+            [labor.to_dict('/api/v1')
+             for labor in quest.get_open_labors()]
+        )
+
+        self.created("/api/v1/quests/{}".format(quest.id), json)
+
+    def get(self):
+        """ Get all Quests
+
+        Example Request:
+
+            GET /api/v1/quests HTTP/1.1
+            Host: localhost
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                "limit": int,
+                "offset": int,
+                "totalQuests": int,
+                "quests": [
+                    {
+                        "id": 1,
+                        "creator": "johnny",
+                        "embarkTime": timestamp,
+                        "completionTime": timestamp,
+                        "labors": [],
+                    },
+                    ...
+                ],
+            }
+        """
+        quests = self.session.query(Quest).order_by(desc(Quest.embark_time))
+
+        offset, limit, expand = self.get_pagination_values()
+        quests, total = self.paginate_query(quests, offset, limit)
+
+        quests = quests.from_self().order_by(Quest.embark_time)
+
+        json = {
+            'limit': limit,
+            'offset': offset,
+            'totalQuests': total,
+            'quests': [quest.to_dict('/api/v1') for quest in quests.all()],
+        }
+
+        self.success(json)
+
+
+class QuestHandler(ApiHandler):
+    def get(self, id):
+        """Get a specific Quest
+
+        Example Request:
+
+            GET /api/v1/quests/1 HTTP/1.1
+            Host: localhost
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                "id": 1,
+                "creator": "johnny",
+                "embarkTime": timestamp,
+                "completionTime": timestamp,
+                "labors": [],
+            }
+
+        Args:
+            id: the id of the quest to get
+        """
+        offset, limit, expand = self.get_pagination_values()
+
+        quest = self.session.query(Quest).filter_by(id=id).scalar()
+
+        if not quest:
+            raise exc.NotFound("No such Quest {} found".format(id))
+
+        json = quest.to_dict('/api/v1')
+
+        if "labors" in expand:
+            json['labors'] = (
+                [labor.to_dict('/api/v1') for labor in quest.labors]
+            )
+        else:
+            json['labors'] = []
+            for labor in quest.labors:
+                json['labors'].append({
+                    "id": labor.id,
+                    "href": labor.href('/api/v1')
+                })
+
+        self.success(json)
+
+    def put(self, id):
+        """Update a Host
+
+        Not supported
+        """
+        self.not_supported()
+
+    def delete(self, id):
+        """Delete a Labor
+
+        Not supported
+        """
+        self.not_supported()
+
+
