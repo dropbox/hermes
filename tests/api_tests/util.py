@@ -16,16 +16,32 @@ def _deep_sort(obj):
     return obj
 
 
+def _stripper(obj, strip):
+    if isinstance(obj, dict):
+        json = {}
+        for key, value in obj.iteritems():
+            if key not in strip:
+                json[key] = _stripper(value, strip)
+
+        return json
+    elif isinstance(obj, list):
+        return [_stripper(elem, strip) for elem in obj]
+    return obj
+
+
 def assert_error(response, code):
     output = response.json()
     assert output["status"] == "error"
     assert output["error"]["code"] == code
 
 
-def assert_success(response, data=None, ignore_order=True):
+def assert_success(response, data=None, ignore_order=True, strip=[]):
     output = response.json()
+    if len(strip) > 0:
+        output = _stripper(output, strip)
     assert response.status_code == 200
     assert output["status"] == "ok"
+
     data["status"] = "ok"
     if ignore_order:
         assert _deep_sort(output) == _deep_sort(data)

@@ -1,0 +1,40 @@
+{
+  "eventTypes": [
+    {
+      "category": "system-reboot",
+      "state": "required",
+      "description": "This system requires a reboot."
+    },
+    {
+      "category": "system-reboot",
+      "state": "completed",
+      "description": "This system rebooted."
+    },
+    {
+      "category": "system-maintenance",
+      "state": "required",
+      "description": "This system requires maintenance."
+    },
+    {
+      "category": "system-maintenance",
+      "state": "ready",
+      "description": "This system is ready for maintenance."
+    },
+    {
+      "category": "system-maintenance",
+      "state": "completed",
+      "description": "System maintenance completed."
+    },
+    {
+      "category": "system-shutdown",
+      "state": "required",
+      "description": "System shutdown required."
+    },
+    {
+      "category": "system-shutdown",
+      "state": "completed",
+      "description": "System shutdown completed."
+    }
+  ]
+}
+

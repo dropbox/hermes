@@ -24,7 +24,7 @@ VALUES
 
 INSERT INTO event_types
 VALUES
-	(7,'system-shutdown','complete','System shutdown complete.');
+	(7,'system-shutdown','completed','System shutdown completed.');
 
 INSERT INTO fates
 VALUES

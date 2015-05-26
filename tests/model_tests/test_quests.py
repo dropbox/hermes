@@ -277,19 +277,16 @@ def test_complex_chaining2(sample_data2):
 
     hosts = ['example.dropbox.com']
 
-    print "creating bravo"
     bravo_quest = Quest.create(
         sample_data2, "testman", hosts,
         EventType.get_event_type(sample_data2, "system-maintenance", "audit"),
         description="System maintenance is needed"
     )
-    print "creating charlie"
     charlie_quest = Quest.create(
         sample_data2, "testman", hosts,
         EventType.get_event_type(sample_data2, "system-reboot", "needed"),
         description="Systems need a reboot"
     )
-    print "finished with quest creation"
     assert bravo_quest
     assert charlie_quest
     assert len(bravo_quest.labors) == 1
@@ -301,13 +298,11 @@ def test_complex_chaining2(sample_data2):
     assert len(found_hosts) == 1
     assert len(found_hosts[0].events) == 2
 
-    print "event 1"
     event1 = Event.create(
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-maintenance", "needed")
     )
     assert bravo_quest.get_open_labors().all()[0].creation_event == event1
-    print "event 2"
     event2 = Event.create(
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")
@@ -315,7 +310,6 @@ def test_complex_chaining2(sample_data2):
     # since the previous event progressed the workflow, this one below
     # shouldn't create a labor since system-reboot-completed labors are
     # intermediates
-    print "event 3"
     event3 = Event.create(
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")

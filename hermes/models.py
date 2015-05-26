@@ -548,8 +548,6 @@ class Fate(Model):
         host = event.host
         event_type = event.event_type
 
-        print "********* {}  {}".format(host.hostname, event_type.description)
-
         fates = session.query(Fate).all()
 
         # we need to track created labors in case we need to tie to a
@@ -805,7 +803,6 @@ class Quest(Model):
             session.flush()
 
         except Exception:
-            print session
             session.rollback()
             raise
 

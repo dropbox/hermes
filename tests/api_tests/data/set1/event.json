@@ -1,0 +1,14 @@
+{
+  "event1": {
+    "hostname": "example",
+    "user": "system",
+    "eventTypeId": 1,
+    "note": "example needs a reboot"
+  },
+  "event2": {
+    "hostname": "example",
+    "user": "system",
+    "eventTypeId": 2,
+    "note": "example needs a rebooted"
+  }
+}

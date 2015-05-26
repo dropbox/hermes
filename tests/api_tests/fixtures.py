@@ -16,6 +16,7 @@ from hermes import models
 from hermes.models import Model, Session, Host, EventType, Event, Fate, Labor, Quest
 from hermes.settings import settings
 from hermes.app import Application
+from .util import load_json, Client
 
 
 sa_log = logging.getLogger("sqlalchemy.engine.base.Engine")
@@ -94,3 +95,18 @@ def session(request, tmpdir):
     request.addfinalizer(fin)
 
     return session
+
+@pytest.fixture
+def sample_data1_server(tornado_server):
+    client = Client(tornado_server)
+    hosts_data = load_json("set1/hosts.json")
+    client.create("/hosts/", hosts=hosts_data["hosts"])
+
+    event_types_data = load_json("set1/eventtypes.json")
+    client.create("/eventtypes/", eventTypes=event_types_data["eventTypes"])
+
+    events = load_json("set1/event.json")
+    client.post("/events/", json=events["event1"])
+    client.post("/events/", json=events['event2'])
+
+    return client

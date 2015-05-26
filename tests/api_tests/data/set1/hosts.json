@@ -1,0 +1,13 @@
+{
+  "hosts": [
+    {
+      "hostname": "example"
+    },
+    {
+      "hostname": "sample"
+    },
+    {
+      "hostname": "test"
+    }
+  ]
+}

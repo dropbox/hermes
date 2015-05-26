@@ -70,7 +70,6 @@ class ApiHandler(BaseHandler):
 
     @property
     def jbody(self):
-        print self.request.body
         if self._jbody is None:
             if self.request.body:
                 self._jbody = json.loads(self.request.body)
