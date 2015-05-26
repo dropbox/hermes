@@ -148,7 +148,8 @@ class ApiHandler(BaseHandler):
     def success(self, data):
         """200 OK"""
         data['status'] = "ok"
-        data['href'] = self.request.uri
+        if 'href' not in data:
+            data['href'] = self.request.uri
         self.write(data)
         self.finish()
 
@@ -163,8 +164,5 @@ class ApiHandler(BaseHandler):
                 "Location",
                 urlparse.urljoin(utf8(self.request.uri), utf8(location))
             )
-        self.write({
-            "status": "ok",
-            "data": data,
-        })
+        self.write(data)
         self.finish()

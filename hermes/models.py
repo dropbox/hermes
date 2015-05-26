@@ -108,6 +108,8 @@ class Model(object):
             session.rollback()
             raise
 
+        return self
+
     def add(self, session):
         session._add(self)
         return self

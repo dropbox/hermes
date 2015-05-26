@@ -161,9 +161,9 @@ class HostHandler(ApiHandler):
             else:
                 labors.append({"id": labor.id, "href": labor.href("/api/v1")})
 
-            if "quests" in expand:
+            if labor.quest and "quests" in expand:
                 quests.append(labor.quest.to_dict("/api/v1"))
-            else:
+            elif labor.quest:
                 quests.append(
                     {
                         "id": labor.quest.id,
@@ -187,7 +187,11 @@ class HostHandler(ApiHandler):
                 events.append({
                     "id": event.id, "href": event.href("/api/v1")
                 })
-        json['lastEvent'] = str(last_event.timestamp)
+
+        if last_event:
+            json['lastEvent'] = str(last_event.timestamp)
+        else:
+            json['lastEvent'] = None
         json['events'] = events
 
         self.success(json)
@@ -225,13 +229,13 @@ class HostHandler(ApiHandler):
             raise exc.NotFound("No such Host {} found".format(hostname))
 
         try:
-            hostname = self.jbody["hostname"]
+            new_hostname = self.jbody["hostname"]
         except KeyError as err:
             raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
 
         try:
-            host.update(
-                hostname=hostname,
+            host = host.update(
+                hostname=new_hostname,
             )
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))
@@ -1070,7 +1074,7 @@ class QuestsHandler(ApiHandler):
         """
         try:
             event_type_id = self.jbody['eventTypeId']
-            user = self.jbody['user']
+            creator = self.jbody['creator']
             description = self.jbody['description']
             hostnames = self.jbody['hostnames']
         except KeyError as err:
@@ -1100,7 +1104,7 @@ class QuestsHandler(ApiHandler):
 
         try:
             quest = Quest.create(
-                self.session, user, hosts, event_type, description=description
+                self.session, creator, hosts, event_type, description=description
             )
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
