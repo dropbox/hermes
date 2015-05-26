@@ -42,7 +42,10 @@ class HostsHandler(ApiHandler):
         """
 
         try:
-            hostname = self.jbody['hostname']
+            if "hosts" in self.jbody:
+                hostnames = self.jbody['hosts']
+            else:
+                hostnames = [self.jbody['hostname']]
         except KeyError as err:
             raise exc.BadRequest(
                 'Missing Required Argument: {}'.format(err.message)
@@ -51,9 +54,10 @@ class HostsHandler(ApiHandler):
             raise exc.BadRequest(err.message)
 
         try:
-            host = Host.create(
-                self.session, hostname
-            )
+            hosts = []
+            for hostname in hostnames:
+                host = Host.create(self.session, hostname)
+                hosts.append(host.to_dict('/api/v1'))
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
         except exc.ValidationError as err:
@@ -61,10 +65,11 @@ class HostsHandler(ApiHandler):
 
         self.session.commit()
 
-        json = host.to_dict('/api/v1')
-        json['href'] = '/api/v1/hosts/{}'.format(host.hostname)
-
-        self.created('/api/v1/hosts/{}'.format(host.hostname), json)
+        if len(hosts) == 1:
+            json = hosts[0]
+            self.created('/api/v1/hosts/{}'.format(hosts[0]['hostname']), json)
+        else:
+            self.created(data={"hosts": hosts, "totalHosts": len(hosts)})
 
     def get(self):
         """ Get all Hosts
@@ -425,7 +430,7 @@ class EventTypeHandler(ApiHandler):
                 fates.append({
                     "id": fate.id, "href": fate.href("/api/v1")
                 })
-        json['fate'] = fates
+        json['fates'] = fates
 
         self.success(json)
 
