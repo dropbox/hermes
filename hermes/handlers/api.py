@@ -29,6 +29,20 @@ class HostsHandler(ApiHandler):
                 "hostname": "example"
             }
 
+            or:
+
+            {
+                "hosts": [
+                    {
+                        "hostname": "server1"
+                    },
+                    {
+                        "hostname": "server2"
+                    },
+                    ...
+                ]
+            }
+
         Example response:
 
             HTTP/1.1 201 OK
@@ -36,8 +50,34 @@ class HostsHandler(ApiHandler):
 
             {
                 "status": "created",
+                "href": "/api/v1/hosts/example",
                 "id": 1,
                 "hostname": "example"
+            }
+
+            or:
+
+            {
+                "status": "created",
+                "hosts":
+                [
+                    {
+                        "href": "/api/v1/hosts/testserver1",
+                        "hostname": "testserver1",
+                        "id": 42
+                    },
+                    {
+                        "href": "/api/v1/hosts/testserver2",
+                        "hostname": "testserver2",
+                        "id": 43
+                    },
+                    {
+                        "href": "/api/v1/hosts/testserver3",
+                        "hostname": "testserver3",
+                        "id": 44
+                    }
+                ],
+                "totalHosts": 3
             }
         """
 
@@ -274,6 +314,28 @@ class EventTypesHandler(ApiHandler):
                 "description": "System requires a reboot.",
             }
 
+            or:
+
+            {
+                "eventTypes": [
+                    {
+                        "category": "foo",
+                        "state": "bar",
+                        "description": "Some description"
+                    },
+                    {
+                        "category": "foo",
+                        "state": "baz",
+                        "description": "Some description"
+                    },
+                    {
+                        "category": "tango",
+                        "state": "foxtrot",
+                        "description": "Some description"
+                    }
+                ]
+            }
+
         Example response:
 
             HTTP/1.1 201 OK
@@ -286,21 +348,65 @@ class EventTypesHandler(ApiHandler):
                 "state": "required",
                 "description": "System requires a reboot.",
             }
+
+            or:
+
+            {
+                "status": "created",
+                "eventTypes":
+                [
+                    {
+                        "category": "foo",
+                        "state": "bar",
+                        "href": "/api/v1/eventtypes/7",
+                        "id": 7,
+                        "description": "Some description"
+                    },
+                    {
+                        "category": "foo",
+                        "state": "baz",
+                        "href": "/api/v1/eventtypes/8",
+                        "id": 8,
+                        "description": "Some description"
+                    },
+                    {
+                        "category": "tango",
+                        "state": "foxtrot",
+                        "href": "/api/v1/eventtypes/9",
+                        "id": 9,
+                        "description": "Some description"
+                    }
+                ],
+                "totalEventTypes": 3
+            }
+
         """
 
         try:
-            category = self.jbody['category']
-            state = self.jbody['state']
-            description = self.jbody['description']
+            if "eventTypes" in self.jbody:
+                event_types = self.jbody["eventTypes"]
+            else:
+                event_types = [
+                    {
+                        "category": self.jbody["category"],
+                        "state": self.jbody["state"],
+                        "description": self.jbody["description"]
+                    }
+                ]
+
         except KeyError as err:
             raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
         try:
-            event_type = EventType.create(
-                self.session, category, state, description=description
-            )
+            created_types = []
+            for event_type in event_types:
+                created_type = EventType.create(
+                    self.session, event_type['category'], event_type["state"],
+                    description=event_type["description"]
+                )
+                created_types.append(created_type.to_dict('/api/v1'))
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
         except exc.ValidationError as err:
@@ -308,10 +414,18 @@ class EventTypesHandler(ApiHandler):
 
         self.session.commit()
 
-        json = event_type.to_dict("/api/v1")
-        json['href'] = "/api/v1/eventtypes/{}".format(event_type.id)
-
-        self.created("/api/v1/eventtypes/{}".format(event_type.id), json)
+        if len(created_types) == 1:
+            json = created_types[0]
+            self.created(
+                '/api/v1/eventtypes/{}'.format(created_types[0]['id']), json
+            )
+        else:
+            self.created(
+                data={
+                    "eventTypes": created_types,
+                    "totalEventTypes": len(event_types)
+                }
+            )
 
     def get(self):
         """ Get all EventTypes
