@@ -59,7 +59,7 @@ def request_post(path, json):
 def list_event_types(args):
     logging.debug("list_event_types()")
 
-    response = request_get("/api/v1/eventtypes")
+    response = request_get("/api/v1/eventtypes?limit=all")
 
     event_types = response.json()
 
@@ -102,7 +102,7 @@ def create_event_type(args):
 def list_fates(args):
     logging.debug("list_fates()")
 
-    response = request_get("/api/v1/fates")
+    response = request_get("/api/v1/fates?limit=all")
     fates = response.json()["fates"]
 
     response = request_get("/api/v1/eventtypes")
@@ -309,42 +309,50 @@ def create_event(args):
 def list_quests(args):
     logging.debug("list_quests()")
 
-    print "QUESTS:"
+    response = request_get(
+        "/api/v1/quests?filterClosed=true&limit=all&expand=labors"
+    )
+    quests = response.json()["quests"]
+
+    print "OPEN QUESTS:"
     for quest in quests:
         print "[{}] {} by {}.  Embarked on {}".format(
-            quest.id, quest.description, quest.creator, quest.embark_time
+            quest["id"], quest["description"], quest["creator"],
+            quest["embarkTime"]
         )
 
         labors_remaining = 0
-        for labor in quest.labors:
-            if labor.completion_time is None:
+        for labor in quest["labors"]:
+            if labor["completionTime"] is None:
                 labors_remaining += 1
 
-        total_labors = len(quest.labors)
+        total_labors = len(quest["labors"])
         print "{:.2%} complete.  {} total labors.  {} remain open.\n".format(
             (total_labors - labors_remaining)/total_labors,
             total_labors,
             labors_remaining
         )
 
-    session.close()
-
 
 def show_quest(args):
     logging.debug("show_quest(%d)", args.quest_id)
-    session = make_session()
-
-    quest = session.query(Quest).get(args.quest_id)
+    url = (
+        "/api/v1/quests/{}?filterClosed=true&limit=all"
+        "&expand=labors&expand=hosts&expand=events&expand=eventtypes".format(
+            args.quest_id
+        )
+    )
+    response = request_get(url)
+    quest = response.json()
 
     max_width = 0
-    for labor in quest.labors:
-        if len(labor.host.hostname) > max_width:
-            max_width = len(labor.host.hostname)
-
     remaining = []
     completed = []
-    for labor in quest.labors:
-        if labor.completion_time is None:
+    for labor in quest["labors"]:
+        if len(labor["host"]["hostname"]) > max_width:
+            max_width = len(labor["host"]["hostname"])
+
+        if labor["completionTime"] is None:
             remaining.append(labor)
         else:
             completed.append(labor)
@@ -352,26 +360,26 @@ def show_quest(args):
     if not args.list_only:
         print "QUEST {}:".format(args.quest_id)
         print "{} by {}.  Embarked on {}".format(
-            quest.description, quest.creator, quest.embark_time
+            quest["description"], quest["creator"], quest["embarkTime"]
         )
 
         if args.all or args.completed_only:
             for labor in completed:
                 print "{} achieved {} {} on {}".format(
-                    labor.host.hostname.rjust(max_width + 4),
-                    labor.creation_event.event_type.category,
-                    labor.creation_event.event_type.state,
-                    labor.completion_time
+                    labor["host"]["hostname"].rjust(max_width + 4),
+                    labor["creationEvent"]["eventType"]["category"],
+                    labor["creationEvent"]["eventType"]["state"],
+                    labor["completionTime"]
                 )
         if not args.completed_only:
             for labor in remaining:
                 print "{} must achieve {} {}".format(
-                    labor.host.hostname.rjust(max_width + 4),
-                    labor.creation_event.event_type.category,
-                    labor.creation_event.event_type.state
+                    labor["host"]["hostname"].rjust(max_width + 4),
+                    labor["creationEvent"]["eventType"]["category"],
+                    labor["creationEvent"]["eventType"]["state"]
                 )
 
-        total_labors = len(quest.labors)
+        total_labors = len(quest["labors"])
         labors_remaining = len(remaining)
         labors_completed = len(completed)
         print "{:.2%} complete.  {} total labors.  {} remain open.\n".format(
@@ -382,12 +390,10 @@ def show_quest(args):
     else:
         if args.completed_only or args.all:
             for labor in completed:
-                print labor.host.hostname
+                print labor["host"]["hostname"]
         if not args.completed_only:
             for labor in remaining:
-                print labor.host.hostname
-
-    session.close()
+                print labor["host"]["hostname"]
 
 
 def create_quest(args):

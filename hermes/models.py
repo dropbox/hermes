@@ -1099,6 +1099,10 @@ class Labor(Model):
             "hostId": self.host_id,
             "creationTime": str(self.creation_time),
             "creationEventId": self.creation_event_id,
+            "completionTime": (
+                str(self.completion_time)
+                if self.completion_time else None
+            ),
             "completionEventId": self.completion_event_id,
             "ackUser": self.ack_user,
             "ackTime": (

@@ -78,10 +78,11 @@ class ApiHandler(BaseHandler):
         return self._jbody
 
     def get_pagination_values(self, max_limit=None):
-        if self.get_arguments("limit")[0] == "all":
-            limit = None
-        elif self.get_arguments("limit")[0]:
-            limit = int(self.get_arguments("limit")[0])
+        if self.get_arguments("limit"):
+            if self.get_arguments("limit")[0] == "all":
+                limit = None
+            else:
+                limit = int(self.get_arguments("limit")[0])
         else:
             limit = 10
         offset = int((self.get_arguments("offset") or [0])[0])

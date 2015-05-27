@@ -1345,19 +1345,35 @@ class QuestsHandler(ApiHandler):
                 ],
             }
         """
+        filter_closed = self.get_argument("filterClosed", None)
+
         quests = self.session.query(Quest).order_by(desc(Quest.embark_time))
+
+        if filter_closed:
+            quests = quests.filter(Quest.completion_time == None)
 
         offset, limit, expand = self.get_pagination_values()
         quests, total = self.paginate_query(quests, offset, limit)
 
         quests = quests.from_self().order_by(Quest.embark_time)
 
+        quests_json = []
+        for quest in quests.all():
+            quest_json = quest.to_dict("/api/v1")
+            if "labors" in expand:
+                quest_json["labors"] = [
+                    labor.to_dict("/api/v1")
+                    for labor in quest.labors
+                ]
+            quests_json.append(quest_json)
+
         json = {
             "limit": limit,
             "offset": offset,
             "totalQuests": total,
-            "quests": [quest.to_dict("/api/v1") for quest in quests.all()],
         }
+
+        json["quests"] = quests_json
 
         self.success(json)
 
@@ -1399,9 +1415,30 @@ class QuestHandler(ApiHandler):
         json = quest.to_dict("/api/v1")
 
         if "labors" in expand:
-            json["labors"] = (
-                [labor.to_dict("/api/v1") for labor in quest.labors]
-            )
+            json["labors"] = []
+            for labor in quest.labors:
+                labor_json = labor.to_dict("/api/v1")
+                if "hosts" in expand:
+                    labor_json["host"] = labor.host.to_dict("/api/v1")
+                if "events" in expand:
+                    labor_json["creationEvent"] = (
+                        labor.creation_event.to_dict("/api/v1")
+                    )
+                    if "eventtypes" in expand:
+                        labor_json["creationEvent"]["eventType"] = (
+                            labor.creation_event.event_type.to_dict("/api/v1")
+                        )
+                        if labor.completion_event:
+                            labor_json["completionEvent"] = (
+                                labor.completion_event.to_dict("/api/v1")
+                            )
+                            labor_json["completionEvent"]["eventType"] = (
+                                labor.completion_event
+                                .event_type.to_dict("/api/v1")
+                            )
+                        else:
+                            labor_json["completionEvent"] = None
+                json["labors"].append(labor_json)
         else:
             json["labors"] = []
             for labor in quest.labors:

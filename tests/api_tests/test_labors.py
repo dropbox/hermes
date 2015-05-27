@@ -91,7 +91,7 @@ def test_creation(sample_data1_server):
                         "id": 3,
                         "questId": 1}],
         },
-        strip=["creationTime"]
+        strip=["creationTime", "completionTime"]
     )
 
 
@@ -138,6 +138,7 @@ def test_update(sample_data1_server):
             "ackTime": None,
             "ackUser": None,
             "completionEventId": None,
+            "completionTime": None,
             "creationEventId": 6,
             "hostId": 1,
             "id": 4,
@@ -158,6 +159,7 @@ def test_update(sample_data1_server):
             "href": "/api/v1/labors/4",
             "ackUser": "johnny",
             "completionEventId": None,
+            "completionTime": None,
             "creationEventId": 6,
             "hostId": 1,
             "id": 4,
