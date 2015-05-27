@@ -202,7 +202,16 @@ class HostHandler(ApiHandler):
                 .from_self().order_by(Labor.creation_time).all()
         ):
             if "labors" in expand:
-                labors.append(labor.to_dict("/api/v1"))
+                labor_json = labor.to_dict("/api/v1")
+                if "events" in expand:
+                    labor_json["creationEvent"] = (
+                        labor.creation_event.to_dict("/api/v1")
+                    )
+                    if "eventtypes" in expand:
+                        labor_json["creationEvent"]["eventType"] = (
+                            labor.creation_event.event_type.to_dict("/api/v1")
+                        )
+                labors.append(labor_json)
             else:
                 labors.append({"id": labor.id, "href": labor.href("/api/v1")})
 

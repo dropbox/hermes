@@ -227,7 +227,6 @@ def list_host_events(args):
     )
 
     host = response.json()
-
     events = host["events"]
 
     print "EVENTS FOR {}:".format(host["hostname"])
@@ -240,21 +239,24 @@ def list_host_events(args):
 
 def list_host_labors(args):
     logging.debug("list_host_labors(%s)", args.hostname)
-    session = make_session()
-    host = Host.get_host(session, args.hostname)
-    if host is None:
-        logging.error("Could not find hostname %s", args.hostname)
-        return
 
-    labors = host.get_open_labors().limit(args.limit).all()
+    response = request_get(
+        "/api/v1/hosts/{}?expand=labors&expand=events&expand=eventtypes".format(
+            args.hostname
+        )
+    )
 
-    print "OPEN ACHIEVEMENTS FOR {}:".format(host.hostname)
+    host = response.json()
+    labors = host["labors"]
+
+    print "OPEN LABORS FOR {}:".format(host["hostname"])
     for labor in labors:
-        print "{} created by event {} {}  {}".format(
-            labor.creation_time,
-            labor.creation_event.event_type.category,
-            labor.creation_event.event_type.state,
-            labor.creation_event.note or ""
+        print "[{}] created {} by event {} {}  {}".format(
+            labor["id"],
+            labor["creationTime"],
+            labor["creationEvent"]["eventType"]["category"],
+            labor["creationEvent"]["eventType"]["state"],
+            labor["creationEvent"]["note"] or ""
         )
 
 
