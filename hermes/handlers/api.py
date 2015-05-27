@@ -1137,7 +1137,7 @@ class LaborHandler(ApiHandler):
         self.success(json)
 
     def put(self, id):
-        """Update a Host
+        """Update a Labor
 
         Example Request:
 
@@ -1242,6 +1242,7 @@ class QuestsHandler(ApiHandler):
                 "creator": "johnny",
                 "embarkTime": timestamp,
                 "completionTime": timestamp,
+                "description": "This is a quest almighty",
                 "labors": [],
             }
 
@@ -1321,6 +1322,7 @@ class QuestsHandler(ApiHandler):
                         "embarkTime": timestamp,
                         "completionTime": timestamp,
                         "labors": [],
+                        "description": "Some description"
                     },
                     ...
                 ],
@@ -1363,6 +1365,7 @@ class QuestHandler(ApiHandler):
                 "creator": "johnny",
                 "embarkTime": timestamp,
                 "completionTime": timestamp,
+                "description": "This is a quest almighty",
                 "labors": [],
             }
 
@@ -1393,17 +1396,74 @@ class QuestHandler(ApiHandler):
         self.success(json)
 
     def put(self, id):
-        """Update a Host
+        """Update a Quest
 
-        Not supported
-        """
-        self.not_supported()
+         Example Request:
+
+             PUT /api/v1/quest/1 HTTP/1.1
+             Host: localhost
+             Content-Type: application/json
+             X-NSoT-Email: user@localhost
+
+             {
+                 "description": "New desc",
+                 "creator": "tammy"
+             }
+
+         Example response:
+
+             HTTP/1.1 200 OK
+             Content-Type: application/json
+
+             {
+                 "status": "ok",
+                 "id": 1,
+                 "creator": "johnny",
+                 "embarkTime": timestamp,
+                 "completionTime": timestamp,
+                 "description": "New desc",
+                 "labors": [],
+             }
+
+         Args:
+             id: the id of the fate to update
+         """
+        quest = self.session.query(Quest).filter_by(id=id).scalar()
+
+        if not quest:
+            raise exc.NotFound("No such Quest {} found".format(id))
+
+        new_desc = None
+        new_creator = None
+        try:
+            if "description" in self.jbody:
+                new_desc = self.jbody["description"]
+            if "creator" in self.jbody:
+                new_creator = self.jbody['creator']
+        except KeyError as err:
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message))
+
+        try:
+            if new_desc:
+                quest = quest.update(
+                    description=new_desc
+                )
+            if new_creator is not None:
+                quest = quest.update(
+                    creator=new_creator
+                )
+
+        except IntegrityError as err:
+            raise exc.Conflict(str(err.orig))
+
+        json = quest.to_dict("/api/v1")
+
+        self.success(json)
 
     def delete(self, id):
-        """Delete a Labor
+        """Delete a Quest
 
         Not supported
         """
         self.not_supported()
-
-

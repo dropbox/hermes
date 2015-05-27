@@ -913,7 +913,9 @@ class Quest(Model):
         out = {
             "id": self.id,
             "embarkTime": str(self.embark_time),
-            "completionTime": str(self.completion_time),
+            "completionTime": (
+                str(self.completion_time) if self.completion_time else None
+            ),
             "creator": self.creator,
             "description": self.description,
         }
