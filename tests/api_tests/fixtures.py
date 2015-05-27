@@ -109,4 +109,9 @@ def sample_data1_server(tornado_server):
     client.post("/events/", json=events["event1"])
     client.post("/events/", json=events['event2'])
 
+    fates = load_json("set1/fates.json")
+    client.post("/fates/", json=fates["fate1"])
+    client.post("/fates/", json=fates["fate2"])
+    client.post("/fates/", json=fates["fate3"])
+
     return client

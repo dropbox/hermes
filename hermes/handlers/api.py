@@ -938,8 +938,6 @@ class FateHandler(ApiHandler):
             raise exc.NotFound("No such Fate {} found".format(id))
 
         json = fate.to_dict("/api/v1")
-        json["limit"] = limit
-        json["offset"] = offset
 
         if "eventtypes" in expand:
             json["creationEventType"] = (
@@ -954,9 +952,65 @@ class FateHandler(ApiHandler):
     def put(self, id):
         """Update a Fate
 
-        Not supported
+        Example Request:
+
+            PUT /api/v1/fates/1 HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            X-NSoT-Email: user@localhost
+
+            {
+                "description": "New desc",
+                "intermediate: true
+            }
+
+        Example response:
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                id: 1,
+                creationEventTypeId: 1,
+                completionEventTypeId: 2,
+                intermediate: true,
+                description: "New desc"
+            }
+
+        Args:
+            id: the id of the fate to update
         """
-        self.not_supported()
+        fate = self.session.query(Fate).filter_by(id=id).scalar()
+        if not fate:
+            raise exc.NotFound("No such Fate {} found".format(id))
+
+        new_desc = None
+        new_intermediate = None
+        try:
+            if "description" in self.jbody:
+                new_desc = self.jbody["description"]
+            if "intermediate" in self.jbody:
+                new_intermediate = self.jbody['intermediate']
+        except KeyError as err:
+            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+
+        try:
+            if new_desc:
+                fate = fate.update(
+                    description=new_desc
+                )
+            if new_intermediate is not None:
+                fate = fate.update(
+                    intermediate=new_intermediate
+                )
+
+        except IntegrityError as err:
+            raise exc.Conflict(str(err.orig))
+
+        json = fate.to_dict("/api/v1")
+
+        self.success(json)
 
     def delete(self, id):
         """Delete a Fate
