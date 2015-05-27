@@ -188,7 +188,7 @@ def create_fate(args):
 
 def list_hosts(args):
     logging.debug("list_hosts()")
-    response = request_get("/api/v1/hosts")
+    response = request_get("/api/v1/hosts?limit=all")
     hosts = response.json()["hosts"]
     print "HOSTS:"
     for host in hosts:
@@ -213,7 +213,7 @@ def add_host(args):
         print "Created host {}".format(response.json()["hostname"])
     else:
         sys.exit(
-            "Received unexpected status {}".format(response.json()["status"])
+            "Received unexpected status adding host {}".format(response.json()["status"])
         )
 
 
@@ -221,15 +221,16 @@ def list_host_events(args):
     logging.debug("list_host_events(%s)", args.hostname)
 
     response = request_get(
-        "/api/v1/hosts/{}?expand=events&expand=eventtypes".format(
-            args.hostname
+        "/api/v1/hosts/{}?expand=events&expand=eventtypes&limit={}".format(
+            args.hostname,
+            args.limit
         )
     )
 
     host = response.json()
     events = host["events"]
 
-    print "EVENTS FOR {}:".format(host["hostname"])
+    print "EVENTS FOR {} (up to {}):".format(host["hostname"], args.limit)
     for event in events:
         print "{}  {} {}  {}".format(
             event["timestamp"], event["eventType"]["category"],
@@ -241,15 +242,16 @@ def list_host_labors(args):
     logging.debug("list_host_labors(%s)", args.hostname)
 
     response = request_get(
-        "/api/v1/hosts/{}?expand=labors&expand=events&expand=eventtypes".format(
-            args.hostname
+        "/api/v1/hosts/{}?expand=labors&expand=events&expand=eventtypes&limit={}".format(
+            args.hostname,
+            args.limit
         )
     )
 
     host = response.json()
     labors = host["labors"]
 
-    print "OPEN LABORS FOR {}:".format(host["hostname"])
+    print "OPEN LABORS FOR {} (up to {}):".format(host["hostname"], args.limit)
     for labor in labors:
         print "[{}] created {} by event {} {}  {}".format(
             labor["id"],
@@ -267,43 +269,45 @@ def create_event(args):
         args.hostname, args.category, args.state, args.note
     )
 
-    session = make_session()
+    response = request_get("/api/v1/eventtypes")
+    event_types = response.json()["eventTypes"]
 
-    event_type = EventType.get_event_type(session, args.category, args.state)
+    found_event_type = None
+    for event_type in event_types:
+        if (
+            event_type["category"] == args.category
+                and event_type["state"] == args.state
+        ):
+            found_event_type = event_type
 
-    if event_type is None:
-        logging.error(
-            "No matching event state found for %s %s", args.category, args.state
+    if found_event_type is None:
+        sys.exit(
+            "No matching event type found for %s %s".format(
+                args.category, args.state
+            )
         )
-        session.close()
-        return
-
-    host = Host.get_host(session, args.hostname)
-
-    if host is None:
-        host = Host.create(session, args.hostname)
 
     user = getpass.getuser()
 
-    event = Event.create(session, host, user, event_type, args.note)
+    json = {
+        "hostname": args.hostname,
+        "user": user,
+        "eventTypeId": event_type["id"],
+        "note": args.note
+    }
 
-    if event:
-        print "Event created: {} => {} {}".format(
-            host.hostname, event_type.category, event_type.state
-        )
-        session.commit()
+    response = request_post("/api/v1/events", json)
+
+    if response.json()["status"] == "created":
+        print "Created event {}".format(response.json()["id"])
     else:
-        print "Event creation failed."
-        session.rollback()
-
-    session.close()
+        sys.exit(
+            "Received unexpected status {}".format(response.json()["status"])
+        )
 
 
 def list_quests(args):
     logging.debug("list_quests()")
-    session = make_session()
-
-    quests = Quest.get_open_quests(session).all()
 
     print "QUESTS:"
     for quest in quests:
