@@ -1101,7 +1101,10 @@ class Labor(Model):
             "creationEventId": self.creation_event_id,
             "completionEventId": self.completion_event_id,
             "ackUser": self.ack_user,
-            "ackTime": str(self.ack_time)
+            "ackTime": (
+                str(self.ack_time)
+                if self.ack_time else None
+            )
         }
 
         if base_uri:
