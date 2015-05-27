@@ -227,7 +227,12 @@ class HostHandler(ApiHandler):
                 .from_self().order_by(Event.timestamp).all()
         ):
             if "events" in expand:
-                events.append(event.to_dict("/api/v1"))
+                event_json = event.to_dict("/api/v1")
+                if "eventtypes" in expand:
+                    event_json["eventType"] = (
+                        event.event_type.to_dict("/api/v1")
+                    )
+                events.append(event_json)
             else:
                 events.append({
                     "id": event.id, "href": event.href("/api/v1")

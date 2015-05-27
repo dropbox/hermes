@@ -219,22 +219,22 @@ def add_host(args):
 
 def list_host_events(args):
     logging.debug("list_host_events(%s)", args.hostname)
-    session = make_session()
-    host = Host.get_host(session, args.hostname)
-    if host is None:
-        logging.error("Could not find hostname %s", args.hostname)
-        return
 
-    events = (
-        host.get_latest_events().limit(args.limit)
-        .from_self().order_by(Event.timestamp).all()
+    response = request_get(
+        "/api/v1/hosts/{}?expand=events&expand=eventtypes".format(
+            args.hostname
+        )
     )
 
-    print "EVENTS FOR {}:".format(host.hostname)
+    host = response.json()
+
+    events = host["events"]
+
+    print "EVENTS FOR {}:".format(host["hostname"])
     for event in events:
         print "{}  {} {}  {}".format(
-            event.timestamp, event.event_type.category,
-            event.event_type.state, event.note
+            event["timestamp"], event["eventType"]["category"],
+            event["eventType"]["state"], event["note"]
         )
 
 
