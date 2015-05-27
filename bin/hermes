@@ -186,28 +186,35 @@ def create_fate(args):
         )
 
 
-
 def list_hosts(args):
     logging.debug("list_hosts()")
-    session = make_session()
-    hosts = Host.query().all()
+    response = request_get("/api/v1/hosts")
+    hosts = response.json()["hosts"]
     print "HOSTS:"
     for host in hosts:
-        print "{}".format(host.hostname)
-    session.close()
+        print "{}".format(host["hostname"])
 
 
 def add_host(args):
     logging.debug("add_host(%s)", args.hostname)
-    session = make_session()
-    host = Host.get_host(session, args.hostname)
-    if host is None:
-        Host.create(session, args.hostname)
-        print "Created host {}".format(args.hostname)
-        session.commit()
+    response = request_get("/api/v1/hosts?hostname={}".format(args.hostname))
+    hosts = response.json()
+
+    if hosts["totalHosts"] > 0:
+        sys.exit("Host {} already exists".format(args.hostname))
+
+    json = {
+        "hostname": args.hostname
+    }
+
+    response = request_post("/api/v1/hosts", json)
+
+    if response.json()["status"] == "created":
+        print "Created host {}".format(response.json()["hostname"])
     else:
-        print "Host {} already exists".format(args.hostname)
-    session.close()
+        sys.exit(
+            "Received unexpected status {}".format(response.json()["status"])
+        )
 
 
 def list_host_events(args):
