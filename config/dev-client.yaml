@@ -1,0 +1,12 @@
+# Format for logging output.
+# See https://docs.python.org/2/library/logging.html#logrecord-attributes
+# Type: str
+log_format: "%(asctime)-15s\t%(levelname)s\t%(message)s"
+
+# Passing debug option down tornado. Useful for development to
+# automatically reload code.
+# Type: bool
+debug: true
+
+# The location of the Hermes server
+hermes_server: "http://localhost:10901"

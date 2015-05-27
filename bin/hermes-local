@@ -8,123 +8,74 @@ import argparse
 import getpass
 import logging
 import sys
-import requests
 
 from sqlalchemy import desc
 
 import hermes
 from hermes import models
 from hermes.models import Event, EventType, Host, Fate, Labor, Quest
-from hermes.settings_client import settings
+from hermes.settings import settings
 
 sa_log = logging.getLogger("sqlalchemy.engine.base.Engine")
-logging.getLogger("requests").setLevel(logging.WARNING)
 
 
-def request_get(path):
-    """Make an HTTP GET request for the given path
-
-    Args:
-        path: the full path to the resource
-    Returns:
-        the http response
-    """
-    response = requests.get(settings.hermes_server + path)
-
-    if response.status_code != requests.codes.ok:
-        sys.exit("Error: {}".format(response.json()["error"]["message"]))
-
-    return response
-
-
-def request_post(path, json):
-    """Make an HTTP POST request for the given path
-
-    If a non-OK status is returned, display the error message and exit
-
-    Args:
-        path: the full path to the resource
-        json: the json to send in the body
-    Returns:
-        the http response
-    """
-    response = requests.post(settings.hermes_server + path, json=json)
-
-    if response.status_code != requests.codes.created:
-        sys.exit("Error: {}".format(response.json()["error"]["message"]))
-
-    return response
+def make_session():
+    db_engine = models.get_db_engine(settings["database"], echo=False)
+    models.Session.configure(bind=db_engine)
+    return models.Session()
 
 
 def list_event_types(args):
     logging.debug("list_event_types()")
-
-    response = request_get("/api/v1/eventtypes/23")
-
-    event_types = response.json()
-
-    max_length = 0
-    for event_type in event_types["eventTypes"]:
-        if len(str(event_type["id"])) > max_length:
-            max_length = len(str(event_type["id"]))
+    session = make_session()
+    event_types = EventType.query().all()
+    last_event_type = EventType.query().order_by(desc(EventType.id)).first()
+    max_length = len(str(last_event_type.id))
 
     print"{}{}{}".format(
         str.ljust("ID", max_length + 3),
         str.ljust("CATEGORY", 20), str.ljust("STATE", 20)
     )
-    for event_type in event_types["eventTypes"]:
+    for event_type in event_types:
         print "{}{}{}".format(
-            str.ljust("[" + str(event_type["id"]) + "]", max_length + 3),
-            str.ljust(str(event_type["category"]), 20),
-            str.ljust(str(event_type["state"]), 20)
+            str.ljust("[" + str(event_type.id) + "]", max_length + 3),
+            str.ljust(event_type.category, 20), str.ljust(event_type.state, 20)
         )
+
+    session.close()
 
 
 def create_event_type(args):
     logging.debug("create_event_type({},{})", args.category, args.state)
-
-    json = {
-        "category": args.category,
-        "state": args.state,
-        "description": args.description
-    }
-
-    response = request_post("/api/v1/eventtypes", json)
-
-    if response.json()["status"] == "created":
-        print "Created event type {}".format(response.json()["id"])
+    session = make_session()
+    event_type = EventType.create(
+        session, args.category, args.state, args.description
+    )
+    if event_type:
+        print "Created event type {}".format(event_type.id)
+        session.commit()
     else:
-        sys.exit(
-            "Received unexpected status {}".format(response.json()["status"])
-        )
+        print "Error creating event type."
+
+    session.close()
 
 
 def list_fates(args):
     logging.debug("list_fates()")
-
-    response = request_get("/api/v1/fates")
-    fates = response.json()["fates"]
-
-    response = request_get("/api/v1/eventtypes")
-    event_types = response.json()["eventTypes"]
-
+    session = make_session()
+    fates = Fate.query().all()
     print "FATES  ([id] created by => completed by)\n "
     for fate in fates:
-        creation_event = None
-        completion_event = None
-        for event_type in event_types:
-            if event_type["id"] == fate['creationEventTypeId']:
-                creation_event = event_type
-            if event_type["id"] == fate['completionEventTypeId']:
-                completion_event = event_type
-
+        creation_event = fate.creation_event_type
+        completion_event = fate.completion_event_type
         print "[{}] {} => {}".format(
-            fate["id"],
-            creation_event["category"] + "-" + creation_event["state"],
-            completion_event["category"] + "-" + completion_event["state"]
+            fate.id,
+            creation_event.category + "-" + creation_event.state,
+            completion_event.category + "-" + completion_event.state
         )
-        print fate["description"]
+        print fate.description
         print ""
+    session.close()
 
 
 def create_fate(args):
@@ -432,17 +383,8 @@ def parse_cli_args():
 
     parser.add_argument("-c", "--config", default="/etc/hermes.yaml",
                         help="Path to config file.")
-    parser.add_argument(
-        "-s", "--server", dest="hermes_server"
-    )
-    parser.add_argument(
-        "-v", "--verbose", action="count", default=0,
-        help="Increase logging verbosity."
-    )
-    parser.add_argument(
-        "-q", "--quiet", action="count", default=0,
-        help="Decrease logging verbosity."
-    )
+    parser.add_argument("-v", "--verbose", action="count", default=0, help="Increase logging verbosity.")
+    parser.add_argument("-q", "--quiet", action="count", default=0, help="Decrease logging verbosity.")
     parser.add_argument("-V", "--version", action="version",
                         version="%%(prog)s %s" % hermes.__version__,
                         help="Display version information.")
@@ -593,7 +535,7 @@ def parse_cli_args():
         help="Note to attach to the Quest"
     )
     quest_create_parser.add_argument(
-        "--hosts", type=str,
+        "-s", "--hosts", type=str,
         help="Comma separated Hosts involved in this Quest"
     )
     quest_create_parser.set_defaults(func=create_quest)
@@ -604,9 +546,6 @@ def parse_cli_args():
 def main():
     args = parse_cli_args()
     settings.update_from_config(args.config)
-
-    if args.hermes_server:
-        settings.hermes_server = args.hermes_server
 
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG, format=settings.log_format)

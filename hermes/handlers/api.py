@@ -409,7 +409,10 @@ class EventTypesHandler(ApiHandler):
                 )
                 created_types.append(created_type.to_dict("/api/v1"))
         except IntegrityError as err:
-            raise exc.Conflict(err.orig.message)
+            if "Duplicate" in err.message:
+                raise exc.Conflict("Cannot create duplicate event type")
+            else:
+                raise exc.Conflict(err.message)
         except exc.ValidationError as err:
             raise exc.BadRequest(err.message)
 

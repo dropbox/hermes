@@ -1,0 +1,1 @@
+cat example/servers.list | bin/hermes-local -c config/dev.yaml -v quest create system-reboot required -n "The quest of ritual healing."
