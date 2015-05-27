@@ -59,7 +59,7 @@ def request_post(path, json):
 def list_event_types(args):
     logging.debug("list_event_types()")
 
-    response = request_get("/api/v1/eventtypes/23")
+    response = request_get("/api/v1/eventtypes")
 
     event_types = response.json()
 
@@ -142,42 +142,49 @@ def create_fate(args):
         )
         return
 
-    session = make_session()
-    if args.cc and args.cs:
-        creation_event_type = EventType.get_event_type(
-            session, args.cc, args.cs
-        )
-    else:
-        creation_event_type = session.query(EventType).get(args.ct)
+    response = request_get("/api/v1/eventtypes")
+    event_types = response.json()["eventTypes"]
+
+    creation_event_type = None
+    completion_event_type = None
+    for event_type in event_types:
+
+        if args.cc == event_type["category"] \
+                and args.cs == event_type["state"]:
+            creation_event_type = event_type
+        elif args.ct == event_type["id"]:
+            creation_event_type = event_type
+
+        if args.xc == event_type["category"] \
+                and args.xs == event_type["state"]:
+            completion_event_type = event_type
+        elif args.xt == event_type["id"]:
+            completion_event_type = event_type
 
     if not creation_event_type:
         print "Creation event type not found."
         return
 
-    if args.xc and args.xs:
-        completion_event_type = EventType.get_event_type(
-            session, args.xc, args.xs
-        )
-    else:
-        completion_event_type = session.query(EventType).get(args.xt)
-
     if not completion_event_type:
         print "Completion event type not found."
         return
 
-    fate = Fate.create(
-        session, creation_event_type, completion_event_type,
-        intermediate=args.intermediate,
-        description=args.description
-    )
+    json = {
+        "creationEventTypeId": creation_event_type["id"],
+        "completionEventTypeId": completion_event_type["id"],
+        "intermediate": args.intermediate,
+        "description": args.description
+    }
 
-    if fate:
-        print "Create fate {}".format(fate.id)
-        session.commit()
+    response = request_post("/api/v1/fates", json)
+
+    if response.json()["status"] == "created":
+        print "Created fate {}".format(response.json()["id"])
     else:
-        print "Error creating fate."
+        sys.exit(
+            "Received unexpected status {}".format(response.json()["status"])
+        )
 
-    session.close()
 
 
 def list_hosts(args):
@@ -496,7 +503,7 @@ def parse_cli_args():
         dest="ct", type=str
     )
     fate_create_subparser.add_argument(
-        "-cx", "--completion-category",
+        "-xc", "--completion-category",
         help="The category of the completion event type",
         dest="xc", type=str
     )
