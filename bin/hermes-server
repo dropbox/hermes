@@ -24,7 +24,7 @@ sa_log = logging.getLogger("sqlalchemy.engine.base.Engine")
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Hermes Web Service")
-    parser.add_argument("-c", "--config", default="/etc/hermes.yaml",
+    parser.add_argument("-c", "--config", default="/etc/hermes/server.yaml",
                         help="Path to config file.")
     parser.add_argument(
         "-v", "--verbose", action="count", default=0,

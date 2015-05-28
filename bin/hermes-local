@@ -381,7 +381,7 @@ def parse_cli_args():
     description_msg = "Hermes CLI"
     parser = argparse.ArgumentParser(description=description_msg)
 
-    parser.add_argument("-c", "--config", default="/etc/hermes.yaml",
+    parser.add_argument("-c", "--config", default="/etc/hermes/server.yaml",
                         help="Path to config file.")
     parser.add_argument("-v", "--verbose", action="count", default=0, help="Increase logging verbosity.")
     parser.add_argument("-q", "--quiet", action="count", default=0, help="Decrease logging verbosity.")

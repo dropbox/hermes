@@ -30,7 +30,7 @@ api_xsrf_enabled: false
 # http://docs.sqlalchemy.org/en/rel_0_9/core/engines.html#database-urls
 #
 # Type: str
-database: "mysql+pymysql://localhost:3306/emsdb?user=emsdb&password=testpw"
+database: "mysql://localhost:3306/emsdb?user=emsdb&passwd=testpw"
 
 # This is the expiration (in seconds) of auth_tokens used for API calls
 # Type: int
