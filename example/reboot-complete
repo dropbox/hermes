@@ -1,1 +1,1 @@
-for host in $( cat example/servers.list | tail -n 20 ); do bin/hermes-local -c config/dev.yaml event create $host system-reboot completed; done
+for host in $( cat example/servers.list | tail -n 20 ); do bin/hermes -c config/dev-client.yaml event create $host system-reboot completed; done

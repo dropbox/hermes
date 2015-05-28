@@ -105,7 +105,7 @@ def list_fates(args):
     response = request_get("/api/v1/fates?limit=all")
     fates = response.json()["fates"]
 
-    response = request_get("/api/v1/eventtypes")
+    response = request_get("/api/v1/eventtypes?limit=all")
     event_types = response.json()["eventTypes"]
 
     print "FATES  ([id] created by => completed by)\n "
@@ -142,7 +142,7 @@ def create_fate(args):
         )
         return
 
-    response = request_get("/api/v1/eventtypes")
+    response = request_get("/api/v1/eventtypes?limit=all")
     event_types = response.json()["eventTypes"]
 
     creation_event_type = None
@@ -269,7 +269,7 @@ def create_event(args):
         args.hostname, args.category, args.state, args.note
     )
 
-    response = request_get("/api/v1/eventtypes")
+    response = request_get("/api/v1/eventtypes?limit=all")
     event_types = response.json()["eventTypes"]
 
     found_event_type = None
@@ -292,7 +292,7 @@ def create_event(args):
     json = {
         "hostname": args.hostname,
         "user": user,
-        "eventTypeId": event_type["id"],
+        "eventTypeId": found_event_type["id"],
         "note": args.note
     }
 
@@ -400,10 +400,8 @@ def create_quest(args):
     logging.debug("create_quest()")
     logging.debug(
         "category: %s    state: %s    note: %s",
-        args.category, args.state, args.note
+        args.category, args.state, args.description
     )
-
-    session = make_session()
 
     print "Creating quest... (could take some time)"
 
@@ -413,43 +411,56 @@ def create_quest(args):
         for hostname in args.hosts.split(","):
             if not hostname:
                 continue
-            logging.debug("Specified host: %s", hostname)
-            host = Host.get_host(session, hostname)
-            if host is None:
-                Host.create(session, hostname)
             hosts.append(hostname)
     else:
         for hostname in sys.stdin.read().split("\n"):
             if not hostname:
                 continue
             logging.debug("Entered host: %s", hostname)
-            host = Host.get_host(session, hostname)
-            if host is None:
-                Host.create(session, hostname)
             hosts.append(hostname)
 
     if len(hosts) == 0:
         logging.error("No hosts specified")
         return
 
-    event_type = EventType.get_event_type(session, args.category, args.state)
-    if event_type is None:
-        logging.error(
-            "No matching event state found for %s %s", args.category, args.state
+    response = request_get("/api/v1/eventtypes?limit=all")
+    event_types = response.json()["eventTypes"]
+
+    found_event_type = None
+    for event_type in event_types:
+        if (
+            event_type["category"] == args.category
+                and event_type["state"] == args.state
+        ):
+            found_event_type = event_type
+
+    if found_event_type is None:
+        sys.exit(
+            "No matching event type found for %s %s".format(
+                args.category, args.state
+            )
         )
-        session.close()
-        return
 
     user = getpass.getuser()
 
-    quest = Quest.create(session, user, hosts, event_type, description=args.note)
+    json = {
+        "eventTypeId": found_event_type["id"],
+        "creator": user,
+        "description": args.description,
+        "hostnames": hosts
+    }
 
-    print "Quest {} created with {} labors".format(
-        quest.id, len(quest.labors)
-    )
 
-    session.commit()
-    session.close()
+    response = request_post("/api/v1/quests", json)
+    if response.json()["status"] == "created":
+        print "Created quest {} with {} labors".format(
+            response.json()["id"],
+            len(response.json()["labors"])
+        )
+    else:
+        sys.exit(
+            "Received unexpected status {}".format(response.json()["status"])
+        )
 
 
 def parse_cli_args():
@@ -615,8 +626,8 @@ def parse_cli_args():
     quest_create_parser.add_argument("category")
     quest_create_parser.add_argument("state")
     quest_create_parser.add_argument(
-        "-n", "--note", type=str, required=True,
-        help="Note to attach to the Quest"
+        "-d", "--description", type=str, required=True,
+        help="Description to attach to the Quest"
     )
     quest_create_parser.add_argument(
         "--hosts", type=str,

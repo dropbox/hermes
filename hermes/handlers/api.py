@@ -694,7 +694,7 @@ class EventsHandler(ApiHandler):
 
         self.session.commit()
 
-        json = host.to_dict("/api/v1")
+        json = event.to_dict("/api/v1")
         json["href"] = "/api/v1/events/{}".format(event.id)
 
         self.created("/api/v1/events/{}".format(event.id), json)
