@@ -32,6 +32,9 @@ api_xsrf_enabled: false
 # Type: str
 database: "mysql://localhost:3306/emsdb?user=emsdb&passwd=testpw"
 
+# The server to use to host queries
+query_server: "http://localhost:5353/api/query"
+
 # This is the expiration (in seconds) of auth_tokens used for API calls
 # Type: int
 auth_token_expiry: 600

@@ -1,5 +1,7 @@
 import json
 import logging
+import requests
+import sys
 from tornado.web import RequestHandler, urlparse, HTTPError
 from tornado.escape import utf8
 from werkzeug.http import parse_options_header
@@ -11,6 +13,21 @@ from ..settings import settings
 
 # Logging object
 log = logging.getLogger(__name__)
+
+
+class PluginHelper(object):
+    @classmethod
+    def request_get(cls, path="", params={}):
+        """Make an HTTP GET request for the given path
+
+        Args:
+            path: the full path to the resource
+        Returns:
+            the http response
+        """
+        response = requests.get(settings.query_server + path, params=params)
+
+        return response
 
 
 class BaseHandler(RequestHandler):

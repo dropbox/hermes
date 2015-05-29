@@ -4,12 +4,13 @@ from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 
 
-from .util import ApiHandler
+from .util import ApiHandler, PluginHelper
 from .. import exc
 from ..models import Host, EventType, Event, Labor, Fate, Quest
 from ..util import qp_to_bool as qpbool, parse_set_query
 
 from datetime import datetime
+
 
 log = logging.getLogger(__name__)
 
@@ -1246,6 +1247,7 @@ class QuestsHandler(ApiHandler):
                 "creator": "johnny",
                 "description": "This is a quest almighty",
                 "hostnames": [],
+                "hostQuery": "tag=value"
             }
 
         Example response:
@@ -1281,6 +1283,13 @@ class QuestsHandler(ApiHandler):
         if event_type is None:
             self.write_error(400, message="Bad creation event type")
             return
+
+        if "hostQuery" in self.jbody:
+            query = self.jbody["hostQuery"]
+            response = PluginHelper.request_get(params={"query": query})
+            if response.json()["status"] == "ok":
+                for hostname in response.json()["results"]:
+                    hostnames.append(hostname)
 
         hosts = []
         for hostname in hostnames:

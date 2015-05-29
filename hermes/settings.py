@@ -46,6 +46,7 @@ settings = Settings({
     "log_format": "%(asctime)-15s\t%(levelname)s\t%(message)s",
     "num_processes": 1,
     "database": None,
+    "query_server": "http://localhost:5353/api/query",
     "debug": False,
     "port": 8990,
     "user_auth_header": "X-Hermes-Email",

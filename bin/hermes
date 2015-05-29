@@ -406,20 +406,19 @@ def create_quest(args):
     print "Creating quest... (could take some time)"
 
     hosts = []
-
     if args.hosts:
         for hostname in args.hosts.split(","):
             if not hostname:
                 continue
             hosts.append(hostname)
-    else:
+    elif not args.query:
         for hostname in sys.stdin.read().split("\n"):
             if not hostname:
                 continue
             logging.debug("Entered host: %s", hostname)
             hosts.append(hostname)
 
-    if len(hosts) == 0:
+    if len(hosts) and not args.query == 0:
         logging.error("No hosts specified")
         return
 
@@ -450,6 +449,8 @@ def create_quest(args):
         "hostnames": hosts
     }
 
+    if args.query:
+        json["hostQuery"] = args.query
 
     response = request_post("/api/v1/quests", json)
     if response.json()["status"] == "created":
@@ -632,6 +633,10 @@ def parse_cli_args():
     quest_create_parser.add_argument(
         "--hosts", type=str,
         help="Comma separated Hosts involved in this Quest"
+    )
+    quest_create_parser.add_argument(
+        "--query", type=str,
+        help="Host query"
     )
     quest_create_parser.set_defaults(func=create_quest)
 
