@@ -755,7 +755,7 @@ class Quest(Model):
 
     id = Column(Integer, primary_key=True)
     embark_time = Column(DateTime, default=datetime.utcnow, nullable=False)
-    target_time = Column(DateTime, nullable=False)
+    target_time = Column(DateTime, nullable=True)
     completion_time = Column(DateTime, nullable=True)
     creator = Column(String(64), nullable=False)
     description = Column(String(4096), nullable=False)
@@ -766,7 +766,7 @@ class Quest(Model):
 
     @classmethod
     def create(
-            cls, session, creator, hosts, creation_event_type, target_time,
+            cls, session, creator, hosts, creation_event_type, target_time=None,
             create=True, description=None
     ):
         """Create a new Quest.
@@ -786,15 +786,13 @@ class Quest(Model):
             creator: the person or system creating the Quest
             hosts: a list of hosts for which to create Events (and Labors)
             creation_event_type: the EventType of which to create Events
-            target_time: the targeted date and time of Quest completion
+            target_time: the optional targeted date and time of Quest completion
             create: if True, Events will be created; if False, reclaim existing Labors
             description: a required human readable text to describe this Quest
         """
         if creator is None:
             raise exc.ValidationError("Quest must have a creator")
-        if target_time is None:
-            raise exc.ValidationError("Quest must have a target date")
-        if target_time <= datetime.utcnow():
+        if target_time and target_time <= datetime.utcnow():
             raise exc.ValidationError("Quest target date must be in future")
         if hosts is None:
             raise exc.ValidationError("Quest must have a list of hosts")

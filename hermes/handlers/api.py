@@ -1273,6 +1273,7 @@ class QuestsHandler(ApiHandler):
             creator = self.jbody["creator"]
             description = self.jbody["description"]
             hostnames = self.jbody["hostnames"]
+
             target_time = datetime.strptime(
                 self.jbody["targetTime"], '%Y-%m-%d %H:%M:%S.%f'
             )

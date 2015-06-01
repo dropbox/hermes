@@ -91,6 +91,35 @@ def test_creation(sample_data1):
     assert quests[0].creator == "testman"
     assert len(quests[0].labors) == 2
 
+def test_creation_without_target(sample_data1):
+    hosts = ['example.dropbox.com', 'test.dropbox.com']
+
+    labors = sample_data1.query(Labor).all()
+    assert len(labors) == 0
+
+    creation_event_type = (
+        sample_data1.query(EventType)
+        .filter(EventType.id == 1).first()
+    )
+
+    Quest.create(
+        sample_data1, "testman", hosts, creation_event_type,
+        description="Embark on the long road of maintenance"
+    )
+
+    quests = sample_data1.query(Quest).all()
+
+    assert len(quests) == 1
+    assert quests[0].embark_time is not None
+    assert quests[0].completion_time is None
+    assert quests[0].description == "Embark on the long road of maintenance"
+    assert quests[0].creator == "testman"
+    assert quests[0].target_time == None
+    assert len(quests[0].labors) == 2
+
+    labors = Labor.get_open_unacknowledged(sample_data1)
+    assert len(labors) == 2
+
 
 def test_mass_creation(sample_data1):
     hosts = ['example.dropbox.com', 'test.dropbox.com']
