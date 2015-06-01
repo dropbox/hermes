@@ -2,6 +2,8 @@ import json
 import pytest
 import requests
 
+from datetime import datetime, timedelta
+
 from .fixtures import tornado_server, tornado_app, sample_data1_server
 from .util import (
     assert_error, assert_success, assert_created, assert_deleted, Client
@@ -48,11 +50,14 @@ def test_creation(sample_data1_server):
         }
     )
 
+    target_time = datetime.utcnow() + timedelta(days=7)
+
     assert_created(
         client.create(
             "/quests",
             creator="johnny",
             eventTypeId=1,
+            targetTime=str(target_time),
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
         ),
@@ -70,6 +75,7 @@ def test_creation(sample_data1_server):
                         "ackUser": None,
                         "completionEventId": None,
                         "creationEventId": 3,
+                        "targetTime": str(target_time),
                         "hostId": 1,
                         "href": "/api/v1/labors/1",
                         "id": 1,
@@ -78,6 +84,7 @@ def test_creation(sample_data1_server):
                         "ackUser": None,
                         "completionEventId": None,
                         "creationEventId": 4,
+                        "targetTime": str(target_time),
                         "hostId": 2,
                         "href": "/api/v1/labors/2",
                         "id": 2,
@@ -86,6 +93,7 @@ def test_creation(sample_data1_server):
                         "ackUser": None,
                         "completionEventId": None,
                         "creationEventId": 5,
+                        "targetTime": str(target_time),
                         "hostId": 3,
                         "href": "/api/v1/labors/3",
                         "id": 3,
@@ -98,17 +106,22 @@ def test_creation(sample_data1_server):
 def test_update(sample_data1_server):
     client = sample_data1_server
 
+    target_time = datetime.utcnow() + timedelta(days=7)
+
+    # create a quest
     assert_created(
         client.create(
             "/quests",
             creator="johnny",
             eventTypeId=1,
+            targetTime=str(target_time),
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
         ),
         "/api/v1/quests/1"
     )
 
+    # make sure a labor was created for this quest
     assert_success(
         client.get("/labors"),
         {
@@ -120,6 +133,7 @@ def test_update(sample_data1_server):
         strip=["creationTime", "labors"]
     )
 
+    # create a new event that would create another labor
     assert_created(
         client.create(
             "/events",
@@ -131,6 +145,7 @@ def test_update(sample_data1_server):
         "/api/v1/events/6"
     )
 
+    # make sure the labor is not attached to a quest
     assert_success(
         client.get("/labors/4"),
         {
@@ -147,12 +162,14 @@ def test_update(sample_data1_server):
         strip=["creationTime"]
     )
 
+    # attach the labor to a quest
     response = client.update(
         "/labors/4",
         ackUser="johnny",
         questId=1
     )
 
+    # make sure the labor is attached to the quest
     assert_success(
         response,
         {
@@ -160,6 +177,7 @@ def test_update(sample_data1_server):
             "ackUser": "johnny",
             "completionEventId": None,
             "completionTime": None,
+            "targetTime": str(target_time),
             "creationEventId": 6,
             "hostId": 1,
             "id": 4,

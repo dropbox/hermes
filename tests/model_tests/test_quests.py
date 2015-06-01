@@ -4,7 +4,29 @@ from sqlalchemy.exc import IntegrityError
 from hermes import exc
 from hermes.models import EventType, Host, Quest, Labor, Event, Fate
 
+from datetime import datetime, timedelta
+
 from .fixtures import db_engine, session, sample_data1, sample_data2
+
+
+def test_date_constraint(sample_data1):
+    hosts = ['example.dropbox.com', 'test.dropbox.com']
+
+    labors = sample_data1.query(Labor).all()
+    assert len(labors) == 0
+
+    creation_event_type = (
+        sample_data1.query(EventType)
+        .filter(EventType.id == 1).first()
+    )
+
+    target_time = datetime.now() - timedelta(days=2)
+
+    with pytest.raises(exc.ValidationError):
+        Quest.create(
+            sample_data1, "testman", hosts, creation_event_type, target_time,
+            description="Embark on the long road of maintenance"
+        )
 
 
 def test_creation(sample_data1):
@@ -18,8 +40,10 @@ def test_creation(sample_data1):
         .filter(EventType.id == 1).first()
     )
 
+    target_time = datetime.now() + timedelta(days=2)
+
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type,
+        sample_data1, "testman", hosts, creation_event_type, target_time,
         description="Embark on the long road of maintenance"
     )
 
@@ -30,6 +54,7 @@ def test_creation(sample_data1):
     assert quests[0].completion_time is None
     assert quests[0].description == "Embark on the long road of maintenance"
     assert quests[0].creator == "testman"
+    assert quests[0].target_time == target_time
     assert len(quests[0].labors) == 2
 
     labors = Labor.get_open_unacknowledged(sample_data1)
@@ -78,16 +103,20 @@ def test_mass_creation(sample_data1):
         .filter(EventType.id == 1).first()
     )
 
+    target_time1 = datetime.now() + timedelta(days=7)
+    target_time2 = datetime.now() + timedelta(days=10)
+    target_time3 = datetime.now() + timedelta(days=14)
+
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type1,
+        sample_data1, "testman", hosts, creation_event_type1, target_time1,
         description="Embark on the long road of maintenance"
     )
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type1,
+        sample_data1, "testman", hosts, creation_event_type1, target_time2,
         description="Embark on the longer road of maintenance"
     )
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type1,
+        sample_data1, "testman", hosts, creation_event_type1, target_time3,
         description="WHEN WILL IT END!!"
     )
 
@@ -159,8 +188,10 @@ def test_quest_preservation(sample_data1):
         .filter(EventType.id == 3).first()
     )
 
+    target_time = datetime.now() + timedelta(days=2)
+
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type,
+        sample_data1, "testman", hosts, creation_event_type, target_time,
         description="Embark on the long road of maintenance"
     )
 
@@ -217,9 +248,12 @@ def test_complex_chaining1(sample_data2):
 
     hosts = ['example.dropbox.com', 'test.dropbox.com']
 
+    target_time = datetime.now() + timedelta(days=2)
+
     quest = Quest.create(
         sample_data2, "testman", hosts,
         EventType.get_event_type(sample_data2, "system-maintenance", "audit"),
+        target_time,
         description="Servers need audit"
     )
 
@@ -277,14 +311,19 @@ def test_complex_chaining2(sample_data2):
 
     hosts = ['example.dropbox.com']
 
+    target_time1 = datetime.now() + timedelta(days=2)
+    target_time2 = datetime.now() + timedelta(days=7)
+
     bravo_quest = Quest.create(
         sample_data2, "testman", hosts,
         EventType.get_event_type(sample_data2, "system-maintenance", "audit"),
+        target_time1,
         description="System maintenance is needed"
     )
     charlie_quest = Quest.create(
         sample_data2, "testman", hosts,
         EventType.get_event_type(sample_data2, "system-reboot", "needed"),
+        target_time2,
         description="Systems need a reboot"
     )
     assert bravo_quest

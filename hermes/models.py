@@ -755,6 +755,7 @@ class Quest(Model):
 
     id = Column(Integer, primary_key=True)
     embark_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    target_time = Column(DateTime, nullable=False)
     completion_time = Column(DateTime, nullable=True)
     creator = Column(String(64), nullable=False)
     description = Column(String(4096), nullable=False)
@@ -765,7 +766,7 @@ class Quest(Model):
 
     @classmethod
     def create(
-            cls, session, creator, hosts, creation_event_type,
+            cls, session, creator, hosts, creation_event_type, target_time,
             create=True, description=None
     ):
         """Create a new Quest.
@@ -785,11 +786,16 @@ class Quest(Model):
             creator: the person or system creating the Quest
             hosts: a list of hosts for which to create Events (and Labors)
             creation_event_type: the EventType of which to create Events
+            target_time: the targeted date and time of Quest completion
             create: if True, Events will be created; if False, reclaim existing Labors
             description: a required human readable text to describe this Quest
         """
         if creator is None:
             raise exc.ValidationError("Quest must have a creator")
+        if target_time is None:
+            raise exc.ValidationError("Quest must have a target date")
+        if target_time <= datetime.utcnow():
+            raise exc.ValidationError("Quest target date must be in future")
         if hosts is None:
             raise exc.ValidationError("Quest must have a list of hosts")
         if creation_event_type is None:
@@ -797,7 +803,8 @@ class Quest(Model):
 
         try:
             quest = cls(
-                creator=creator, description=description
+                creator=creator, description=description,
+                target_time=target_time
             )
             quest.add(session)
             session.flush()
@@ -856,7 +863,7 @@ class Quest(Model):
 
         if complete:
             self.update(
-                completion_time=datetime.now()
+                completion_time=datetime.utcnow()
             )
 
     @classmethod
@@ -917,6 +924,7 @@ class Quest(Model):
                 str(self.completion_time) if self.completion_time else None
             ),
             "creator": self.creator,
+            "targetTime": str(self.target_time),
             "description": self.description,
         }
 
@@ -1050,7 +1058,7 @@ class Labor(Model):
         Args:
             user: the arbitrary user name acknowledging this Labor
         """
-        self.update(ack_time=datetime.now(), ack_user=user)
+        self.update(ack_time=datetime.utcnow(), ack_user=user)
 
     def achieve(self, event):
         """Mark an labor as completed.
@@ -1059,7 +1067,7 @@ class Labor(Model):
             event: the event that closed this labor
         """
         self.update(
-            completion_event=event, completion_time=datetime.now()
+            completion_event=event, completion_time=datetime.utcnow()
         )
 
         if self.quest:
@@ -1110,6 +1118,9 @@ class Labor(Model):
                 if self.ack_time else None
             )
         }
+
+        if self.quest:
+            out['targetTime'] = str(self.quest.target_time)
 
         if base_uri:
             out['href'] = self.href(base_uri)

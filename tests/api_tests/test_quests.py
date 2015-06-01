@@ -3,6 +3,9 @@ import pytest
 import requests
 
 from .fixtures import tornado_server, tornado_app, sample_data1_server
+
+from datetime import datetime, timedelta
+
 from .util import (
     assert_error, assert_success, assert_created, assert_deleted, Client
 )
@@ -49,11 +52,14 @@ def test_creation(sample_data1_server):
         }
     )
 
+    target_time = datetime.utcnow() + timedelta(days=7)
+
     assert_created(
         client.create(
             "/quests",
             creator="johnny",
             eventTypeId=1,
+            targetTime=str(target_time),
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
         ),
@@ -77,6 +83,7 @@ def test_creation(sample_data1_server):
             "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "johnny",
+            "targetTime": str(target_time),
             "description": "This is a quest almighty",
             "completionTime": None
         },
@@ -98,11 +105,14 @@ def test_creation(sample_data1_server):
 def test_update(sample_data1_server):
     client = sample_data1_server
 
+    target_time = datetime.utcnow() + timedelta(days=7)
+
     assert_created(
         client.create(
             "/quests",
             creator="johnny",
             eventTypeId=1,
+            targetTime=str(target_time),
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
         ),
@@ -118,6 +128,7 @@ def test_update(sample_data1_server):
             "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "betsy",
+            "targetTime": str(target_time),
             "description": "This is a quest almighty",
             "completionTime": None
         },
@@ -130,6 +141,7 @@ def test_update(sample_data1_server):
             "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "betsy",
+            "targetTime": str(target_time),
             "description": "This is a quest almighty",
             "completionTime": None
         },
@@ -145,6 +157,7 @@ def test_update(sample_data1_server):
             "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "betsy",
+            "targetTime": str(target_time),
             "description": "New desc",
             "completionTime": None
         },
@@ -157,6 +170,7 @@ def test_update(sample_data1_server):
             "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "betsy",
+            "targetTime": str(target_time),
             "description": "New desc",
             "completionTime": None
         },
@@ -173,6 +187,7 @@ def test_update(sample_data1_server):
             "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "tommy",
+            "targetTime": str(target_time),
             "description": "Newer desc",
             "completionTime": None
         },
@@ -185,6 +200,7 @@ def test_update(sample_data1_server):
             "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "tommy",
+            "targetTime": str(target_time),
             "description": "Newer desc",
             "completionTime": None
         },

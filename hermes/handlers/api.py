@@ -1245,6 +1245,7 @@ class QuestsHandler(ApiHandler):
             {
                 "eventTypeId": 1,
                 "creator": "johnny",
+                "targetTime": timestamp,
                 "description": "This is a quest almighty",
                 "hostnames": [],
                 "hostQuery": "tag=value"
@@ -1260,6 +1261,7 @@ class QuestsHandler(ApiHandler):
                 "id": 1,
                 "creator": "johnny",
                 "embarkTime": timestamp,
+                "targetTime": timestamp,
                 "completionTime": timestamp,
                 "description": "This is a quest almighty",
                 "labors": [],
@@ -1271,6 +1273,9 @@ class QuestsHandler(ApiHandler):
             creator = self.jbody["creator"]
             description = self.jbody["description"]
             hostnames = self.jbody["hostnames"]
+            target_time = datetime.strptime(
+                self.jbody["targetTime"], '%Y-%m-%d %H:%M:%S.%f'
+            )
         except KeyError as err:
             raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
         except ValueError as err:
@@ -1305,7 +1310,8 @@ class QuestsHandler(ApiHandler):
 
         try:
             quest = Quest.create(
-                self.session, creator, hosts, event_type, description=description
+                self.session, creator, hosts, event_type, target_time,
+                description=description
             )
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
