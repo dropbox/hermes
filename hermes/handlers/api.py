@@ -1274,9 +1274,12 @@ class QuestsHandler(ApiHandler):
             description = self.jbody["description"]
             hostnames = self.jbody["hostnames"]
 
-            target_time = datetime.strptime(
-                self.jbody["targetTime"], '%Y-%m-%d %H:%M:%S.%f'
-            )
+            if "targetTime" in self.jbody:
+                target_time = datetime.strptime(
+                    self.jbody["targetTime"], '%Y-%m-%d %H:%M:%S.%f'
+                )
+            else:
+                target_time = None
         except KeyError as err:
             raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
         except ValueError as err:

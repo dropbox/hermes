@@ -106,15 +106,12 @@ def test_creation(sample_data1_server):
 def test_update(sample_data1_server):
     client = sample_data1_server
 
-    target_time = datetime.utcnow() + timedelta(days=7)
-
-    # create a quest
+    # create a quest without a target_time
     assert_created(
         client.create(
             "/quests",
             creator="johnny",
             eventTypeId=1,
-            targetTime=str(target_time),
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
         ),
@@ -177,8 +174,8 @@ def test_update(sample_data1_server):
             "ackUser": "johnny",
             "completionEventId": None,
             "completionTime": None,
-            "targetTime": str(target_time),
             "creationEventId": 6,
+            "targetTime": None,
             "hostId": 1,
             "id": 4,
             "questId": 1

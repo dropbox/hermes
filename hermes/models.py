@@ -922,7 +922,7 @@ class Quest(Model):
                 str(self.completion_time) if self.completion_time else None
             ),
             "creator": self.creator,
-            "targetTime": str(self.target_time),
+            "targetTime": str(self.target_time) if self.target_time else None,
             "description": self.description,
         }
 
@@ -1118,7 +1118,10 @@ class Labor(Model):
         }
 
         if self.quest:
-            out['targetTime'] = str(self.quest.target_time)
+            out['targetTime'] = (
+                str(self.quest.target_time)
+                if self.quest.target_time else None
+            )
 
         if base_uri:
             out['href'] = self.href(base_uri)
