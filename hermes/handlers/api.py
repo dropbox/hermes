@@ -10,6 +10,7 @@ from ..models import Host, EventType, Event, Labor, Fate, Quest
 from ..util import qp_to_bool as qpbool, parse_set_query
 
 from datetime import datetime
+from dateutil import parser
 
 
 log = logging.getLogger(__name__)
@@ -1275,8 +1276,8 @@ class QuestsHandler(ApiHandler):
             hostnames = self.jbody["hostnames"]
 
             if "targetTime" in self.jbody:
-                target_time = datetime.strptime(
-                    self.jbody["targetTime"], '%Y-%m-%d %H:%M:%S.%f'
+                target_time = parser.parse(
+                    self.jbody["targetTime"]
                 )
             else:
                 target_time = None

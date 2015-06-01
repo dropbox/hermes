@@ -344,7 +344,7 @@ class Host(Model):
     __tablename__ = "hosts"
 
     id = Column(Integer, primary_key=True)
-    hostname = Column(String(32), nullable=False, unique=True)
+    hostname = Column(String(128), nullable=False, unique=True)
 
     __table_args__ = (
         Index("host_idx", id, hostname),

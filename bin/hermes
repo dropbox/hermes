@@ -10,6 +10,8 @@ import logging
 import sys
 import requests
 
+from datetime import datetime
+from dateutil import parser
 from sqlalchemy import desc
 
 import hermes
@@ -242,7 +244,8 @@ def list_host_labors(args):
     logging.debug("list_host_labors(%s)", args.hostname)
 
     response = request_get(
-        "/api/v1/hosts/{}?expand=labors&expand=events&expand=eventtypes&limit={}".format(
+        "/api/v1/hosts/{}"
+        "?expand=labors&expand=events&expand=eventtypes&limit={}".format(
             args.hostname,
             args.limit
         )
@@ -253,9 +256,10 @@ def list_host_labors(args):
 
     print "OPEN LABORS FOR {} (up to {}):".format(host["hostname"], args.limit)
     for labor in labors:
-        print "[{}] created {} by event {} {}  {}".format(
+        print "[{}] created on {} (due by {}) by event {} {}  {}".format(
             labor["id"],
             labor["creationTime"],
+            labor["targetTime"] or "whenever",
             labor["creationEvent"]["eventType"]["category"],
             labor["creationEvent"]["eventType"]["state"],
             labor["creationEvent"]["note"] or ""
@@ -316,10 +320,14 @@ def list_quests(args):
 
     print "OPEN QUESTS:"
     for quest in quests:
-        print "[{}] {} by {}.  Embarked on {}".format(
+        print "[{}] {} by {}.\n\tEmbarked on {}".format(
             quest["id"], quest["description"], quest["creator"],
             quest["embarkTime"]
         )
+        if quest["targetTime"]:
+            print"\tTarget Completion: {}".format(
+                quest["targetTime"]
+            )
 
         labors_remaining = 0
         for labor in quest["labors"]:
@@ -359,9 +367,13 @@ def show_quest(args):
 
     if not args.list_only:
         print "QUEST {}:".format(args.quest_id)
-        print "{} by {}.  Embarked on {}".format(
+        print "{} by {}.\n\tEmbarked on {}".format(
             quest["description"], quest["creator"], quest["embarkTime"]
         )
+        if quest["targetTime"]:
+            print"\tTarget Completion: {}".format(
+                quest["targetTime"]
+            )
 
         if args.all or args.completed_only:
             for labor in completed:
@@ -451,6 +463,16 @@ def create_quest(args):
 
     if args.query:
         json["hostQuery"] = args.query
+
+    if args.due:
+        try:
+            json["targetTime"] = str(parser.parse(args.due, yearfirst=True))
+        except ValueError:
+            sys.exit(
+                "Invalid target date: {}"
+                " -- must be in the form of YYYY-MM-DD HH:MM, "
+                "with hours and minutes optional".format(args.due)
+            )
 
     response = request_post("/api/v1/quests", json)
     if response.json()["status"] == "created":
@@ -626,6 +648,10 @@ def parse_cli_args():
     quest_create_parser = quest_subparser.add_parser("create")
     quest_create_parser.add_argument("category")
     quest_create_parser.add_argument("state")
+    quest_create_parser.add_argument(
+        "--due", type=str,
+        help="Target date as YYYY-MM-DD HH:MM, with hours and minutes optional"
+    )
     quest_create_parser.add_argument(
         "-d", "--description", type=str, required=True,
         help="Description to attach to the Quest"
