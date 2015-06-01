@@ -363,7 +363,11 @@ To get a particular quest, use `/api/v1/quests/[questId]`.
 
 # TODOS
 
-## Tests
+## Deletion Support
 
- * Add test for helper methods on models
- * Add tests for updates and deletes (and cascades of such things)
+Currently, nothing can be deleted through the API or client.  It would be nice to be able to delete event-types and
+fates.
+
+## Quest End Date
+
+Quests need an end date so they can properly trigger notifications down the line.

@@ -65,7 +65,7 @@ class FeHandler(BaseHandler):
         context = {}
         context.update(self.get_template_namespace())
         context.update(kwargs)
-        self.write("hello")
+        self.write("Nothing to see here.")
 
     def write_error(self, status_code, **kwargs):
         message = "An unknown problem has occured :("
