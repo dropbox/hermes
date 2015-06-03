@@ -164,7 +164,7 @@ class HostsHandler(ApiHandler):
                 "totalHosts": 1,
             }
 
-        :query string hostname: (*optional*) Filter to hosts with hostname.
+        :query string hostname: (*optional*) Filter Hosts by hostname.
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -224,9 +224,12 @@ class HostHandler(ApiHandler):
         :param hostname: hostname of the Host to retrieve
         :type hostname: string
 
+        :query int limit: (*optional*) Limit result of child resources.
+        :query int offset: (*optional*) Skip the first N child resources.
+
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
-        :statuscode 404: The Site at site_id was not found.
+        :statuscode 404: The Host was not found.
         """
         offset, limit, expand = self.get_pagination_values()
         host = self.session.query(Host).filter_by(hostname=hostname).scalar()
@@ -371,10 +374,11 @@ class HostHandler(ApiHandler):
 class EventTypesHandler(ApiHandler):
 
     def post(self):
-        """ Create a EventType entry
+        """ **Create a EventType entry**
 
-        Example Request:
+        **Example Request:**
 
+        .. sourcecode:: http
 
             POST /api/v1/eventtypes HTTP/1.1
             Host: localhost
@@ -385,7 +389,9 @@ class EventTypesHandler(ApiHandler):
                 "description": "System requires a reboot.",
             }
 
-            or:
+        or:
+
+        .. sourcecode:: http
 
             {
                 "eventTypes": [
@@ -408,7 +414,9 @@ class EventTypesHandler(ApiHandler):
                 ]
             }
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 201 OK
             Location: /api/v1/eventtypes/1
@@ -421,7 +429,9 @@ class EventTypesHandler(ApiHandler):
                 "description": "System requires a reboot.",
             }
 
-            or:
+        or:
+
+        .. sourcecode:: http
 
             {
                 "status": "created",
@@ -452,6 +462,19 @@ class EventTypesHandler(ApiHandler):
                 "totalEventTypes": 3
             }
 
+        :reqjson string category: The category value of the EventType
+        :regjson string state: The state value of the EventType
+        :regjson string description: The human readable description of the EventType
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :resheader Location: URL to the created resource.
+
+        :statuscode 201: The site was successfully created.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 409: There was a conflict with another resource.
         """
 
         try:
@@ -504,14 +527,18 @@ class EventTypesHandler(ApiHandler):
             )
 
     def get(self):
-        """ Get all EventTypes
+        """ **Get all EventTypes**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             GET /api/v1/eventtypes HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -532,6 +559,14 @@ class EventTypesHandler(ApiHandler):
                     ...
                 ],
             }
+
+        :query string category: (*optional*) Filter EventTypes by category.
+        :query string state: (*optional*) Filter EventTypes by state.
+        :query int limit: (*optional*) Limit result to N resources.
+        :query int offset: (*optional*) Skip the first N resources.
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
         """
         category = self.get_argument("category", None)
         state = self.get_argument("state", None)
@@ -551,7 +586,10 @@ class EventTypesHandler(ApiHandler):
             "offset": offset,
             "totalEventTypes": total,
             "eventTypes": (
-                [event_type.to_dict("/api/v1") for event_type in event_types.all()]
+                [
+                    event_type.to_dict("/api/v1")
+                    for event_type in event_types.all()
+                ]
             ),
         }
 
@@ -560,14 +598,18 @@ class EventTypesHandler(ApiHandler):
 
 class EventTypeHandler(ApiHandler):
     def get(self, id):
-        """Get a specific EventType
+        """**Get a specific EventType**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             GET /api/v1/eventtypes/1/ HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -584,8 +626,15 @@ class EventTypeHandler(ApiHandler):
                 "offset": 0
             }
 
-        Args:
-            id: the id of the EventType
+        :param id: id of the EventType to retrieve
+        :type id: int
+
+        :query int limit: (*optional*) Limit result of child resources.
+        :query int offset: (*optional*) Skip the first N child resources.
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 404: The EventType was not found.
         """
         offset, limit, expand = self.get_pagination_values()
         event_type = (
@@ -628,9 +677,11 @@ class EventTypeHandler(ApiHandler):
         self.success(json)
 
     def put(self, id):
-        """Update an EventType
+        """**Update an EventType**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             PUT /api/v1/eventtypes/1/ HTTP/1.1
             Host: localhost
@@ -641,7 +692,9 @@ class EventTypeHandler(ApiHandler):
                 "description": "New description",
             }
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -655,8 +708,18 @@ class EventTypeHandler(ApiHandler):
                 "description": "New description",
             }
 
-        Args:
-            id: the id of the Event Type
+        :param id: id of the EventType that should be updated.
+        :type id: string
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :statuscode 200: The request was successful.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 403: The request was made with insufficient permissions.
+        :statuscode 404: The EventType was not found.
+        :statuscode 409: There was a conflict with another resource.
         """
         event_type = (
             self.session.query(EventType).filter_by(id=id).scalar()
