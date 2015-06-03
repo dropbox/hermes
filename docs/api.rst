@@ -1,48 +1,13 @@
 API Documentation
 *****************
 
-NSoT is designed as an API first so anything possible in the Web UI
+Hermes is designed as an API first so anything possible in the Web UI
 or command line tools would be available here.
 
 Authentication
 --------------
 
-Two methods of authentication are currently supported.
-
-User Authentication Header
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This is referred to internally as **auth_header** authentication.
-
-In normal operation NSoT is expected to be run behind an authenticating proxy
-that passes back a specific header. By default we expect ``X-NSoT-Email``,
-though it is configurable using the ``user_auth_header`` setting.
-
-The value of this header must be the user's ``email`` and is formatted like so::
-
-    X-NSoT-Email: {email}
-
-AuthToken
-~~~~~~~~~
-
-This is referred to internally as **auth_token** authentication.
-
-API authentication requires the ``email`` and ``secret_key``
-of a user. When a user is first created, a ``secret_key`` is automatically
-generated. The user may obtain their ``secret_key`` from the web interface.
-
-Users make a POST request to ``/api/authenticate`` to passing ``email`` and
-``secret_key`` in JSON payload. They are returned an ``auth_token`` that can
-then be used to make API calls. The ``auth_token`` is short-lived (default is
-10 minutes and can be change using the ``auth_token_expiry`` setting). Once the
-token expires a new one must be obtained.
-
-The ``auth_token`` must be sent to the API using an ``Authorization`` header
-that is formatted like so::
-
-    Authorization: AuthToken {email}:{secret_key}
-
-Please see the :ref:`api-ref` for examples.
+Authentication is still in the works.  Right now, Hermes API is expected to sit behing some kind of authenticating proxy.
 
 Requests
 --------
@@ -50,7 +15,6 @@ Requests
 In addition to the authentication header above all ``POST``/``PUT`` requests
 will be sent as json rather than form data and should include the header ``Content-Type: application/json``
 
-``PUT`` requests are of note as they are expected to set the state of all mutable fields on a resource. This means if you don't specificy all optional fields they will revert to their default values.
 
 Responses
 ---------
@@ -58,16 +22,15 @@ All responses will be in ``JSON`` format along with the header
 ``Content-Type: application/json`` set.
 
 The ``JSON`` payload will be in one of two potential structures and will always contain a ``status`` field to distinguish between them. If the ``status`` field
-has a value of ``"ok"``, then the request was successful and the response will
-be available in the ``data`` field.
+has a value of ``"ok"`` or ``"created"``, then the request (or creation, respectively) was successful and the response will
+be available the remaining fields.
 
 .. sourcecode:: javascript
 
     {
         "status": "ok",
-        "data": {
-            ...
-        }
+        "id": 1,
+        ...
     }
 
 If the ``status`` field has a value of ``"error"`` then the response failed
@@ -98,17 +61,15 @@ An example response for querying the ``sites`` endpoint might look like:
 
     {
         "status": "ok",
-        "data": {
-            "sites": [
-                {
-                    "id": 1
-                    "name": "Site 1",
-                    "description": ""
-                }
-            ],
-            "limit": null,
-            "offset": 0,
-            "total": 1
-        }
+        "hosts": [
+            {
+                "id": 1
+                "hostname": "example",
+                "href": "/api/v1/hostname/example",
+            }
+        ],
+        "limit": 10,
+        "offset": 0,
+        "total": 1
     }
 
