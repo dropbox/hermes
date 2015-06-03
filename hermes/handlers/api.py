@@ -466,15 +466,16 @@ class EventTypesHandler(ApiHandler):
 
             {
                 "status": "ok",
-                limit: int,
-                offset: int,
-                totalEventTypes: int,
-                eventTypes: [
+                "limit": 10,
+                "offset": 0,
+                "totalEventTypes": 3,
+                "eventTypes": [
                     {
-                        id: int,
-                        category: string,
-                        state: string,
-                        description: string,
+                        "id": 1,
+                        "category": "foo",
+                        "state": "bar",
+                        "description": "Foo bar all the way",
+                        "href": "/api/v1/eventtypes/1"
                     },
                     ...
                 ],
@@ -527,6 +528,8 @@ class EventTypeHandler(ApiHandler):
                 "description": "This system requires a reboot",
                 "events": [],
                 "fates": [],
+                "limit": 10,
+                "offset": 0
             }
 
         Args:
@@ -594,6 +597,7 @@ class EventTypeHandler(ApiHandler):
             {
                 "status": "ok",
                 "id": 1,
+                "href": "/api/v1/eventtypes/1",
                 "category": "system-reboot",
                 "state": "required",
                 "description": "New description",
@@ -655,10 +659,11 @@ class EventsHandler(ApiHandler):
             Location: /api/v1/events/1
 
             {
-                "status": "ok",
+                "status": "created",
                 "data": {
                     "event": {
                         "id": 1,
+                        "href": "/api/v1/events/1",
                         "hostname": "example",
                         "user": "johnny",
                         "eventTypeId": 3,
@@ -719,18 +724,18 @@ class EventsHandler(ApiHandler):
             Content-Type: application/json
 
             {
-                status: ok
-                limit: int,
-                page: int,
-                totalEvents: int,
-                events: [
+                "status": "ok",
+                "limit": 10,
+                "offset": 0,
+                "totalEvents": 10,
+                "events": [
                     {
-                        id: int,
-                        hostId: int,
-                        timestamp: timestamp,
-                        user: string,
-                        eventTypeId: int,
-                        note: string,
+                        "id": 1,
+                        "hostId": 1,
+                        "timestamp": "2015-06-01 12:11:01",
+                        "user": "jonny",
+                        "eventTypeId": 1,
+                        "note": "Event note",
                     },
                     ...
                 ],
@@ -769,12 +774,12 @@ class EventHandler(ApiHandler):
 
             {
                 "status": "ok",
-                 id: int,
-                 hostId: int,
-                 timestamp: timestamp,
-                 user: string,
-                 eventTypeId: int,
-                 note: string,
+                "id": 1,
+                "hostId": 1,
+                "timestamp": "2015-06-01 12:11:01",
+                "user": "jonny",
+                "eventTypeId": 1,
+                "note": "Event note",
             }
 
         Args:
@@ -822,23 +827,24 @@ class FatesHandler(ApiHandler):
             Host: localhost
             Content-Type: application/json
             {
-                creationEventTypeId: 1,
-                completionEventTypeId: 2,
-                intermediate: false,
-                description: "This is a fate"
+                "creationEventTypeId": 1,
+                "completionEventTypeId": 2,
+                "intermediate": false,
+                "description": "This is a fate"
             }
 
         Example response:
 
             HTTP/1.1 201 OK
-            Location: /api/v1/hosts/example
+            Location: /api/v1/fates/1
 
             {
                 "status": "created",
-                creationEventTypeId: 1,
-                completionEventTypeId: 2,
-                intermediate: false,
-                description: "This is a fate"
+                "href": "/api/v1/fates/1",
+                "creationEventTypeId": 1,
+                "completionEventTypeId": 2,
+                "intermediate": false,
+                "description": "This is a fate"
             }
         """
 
@@ -899,16 +905,17 @@ class FatesHandler(ApiHandler):
             Content-Type: application/json
 
             {
-                limit: int,
-                page: int,
-                totalFates: int,
-                fates: [
+                "limit": 10,
+                "offset": 0,
+                "totalFates": 3,
+                "fates": [
                     {
-                        id: int,
-                        creationEventTypeId: int,
-                        completionEventType: int,
-                        intermediate: true|false,
-                        description: string,
+                        "id": 1,
+                        "href": "/api/v1/fates/1",
+                        "creationEventTypeId": 1,
+                        "completionEventType": 2,
+                        "intermediate": true|false,
+                        "description": "This is a fate",
                     },
                     ...
                 ],
@@ -945,11 +952,12 @@ class FateHandler(ApiHandler):
 
             {
                 "status": "ok",
-                id: 1,
-                creationEventTypeId: 1,
-                completionEventTypeId: 2,
-                intermediate: false,
-                description: "This is a fate"
+                "id": 1,
+                "href": "/api/v1/fates/1",
+                "creationEventTypeId": 1,
+                "completionEventType": 2,
+                "intermediate": true|false,
+                "description": string,
             }
 
         Args:
@@ -994,11 +1002,12 @@ class FateHandler(ApiHandler):
 
             {
                 "status": "ok",
-                id: 1,
-                creationEventTypeId: 1,
-                completionEventTypeId: 2,
-                intermediate: true,
-                description: "New desc"
+                "id": 1,
+                "href": "/api/v1/fates/1",
+                "creationEventTypeId": 1,
+                "completionEventType": 2,
+                "intermediate": true,
+                "description": "New desc"
             }
 
         Args:
@@ -1073,10 +1082,12 @@ class LaborsHandler(ApiHandler):
                 "labors": [
                     {
                         "id": 23,
+                        "href": "/api/v1/labors/23",
                         "questId": 5,
                         "hostId": 26,
                         "creationTime": timestamp,
                         "ackTime": timestamp,
+                        "targetTime": timestamp
                         "ackUser": string,
                         "completionTime": timestamp,
                         "creationEventId": 127,
@@ -1130,6 +1141,7 @@ class LaborHandler(ApiHandler):
                 "questId": 5,
                 "hostId": 26,
                 "creationTime": timestamp,
+                "targetTime": timestamp,
                 "ackTime": timestamp,
                 "ackUser": string,
                 "completionTime": timestamp,
@@ -1190,6 +1202,7 @@ class LaborHandler(ApiHandler):
                 "questId": 1,
                 "hostId": 26,
                 "creationTime": timestamp,
+                "targetTime": timestamp,
                 "ackTime": timestamp,
                 "ackUser": "johnny",
                 "completionTime": timestamp,
@@ -1264,6 +1277,7 @@ class QuestsHandler(ApiHandler):
             {
                 "status": "created",
                 "id": 1,
+                "href": "/api/v1/quests/1",
                 "creator": "johnny",
                 "embarkTime": timestamp,
                 "targetTime": timestamp,
@@ -1359,11 +1373,13 @@ class QuestsHandler(ApiHandler):
                 "quests": [
                     {
                         "id": 1,
+                        "href": "/api/v1/quests/1",
                         "creator": "johnny",
                         "embarkTime": timestamp,
+                        "targetTime": timestamp,
                         "completionTime": timestamp,
+                        "description": "This is a quest almighty",
                         "labors": [],
-                        "description": "Some description"
                     },
                     ...
                 ],
@@ -1419,8 +1435,10 @@ class QuestHandler(ApiHandler):
             {
                 "status": "ok",
                 "id": 1,
+                "href": "/api/v1/quests/1",
                 "creator": "johnny",
                 "embarkTime": timestamp,
+                "targetTime": timestamp,
                 "completionTime": timestamp,
                 "description": "This is a quest almighty",
                 "labors": [],
@@ -1496,8 +1514,10 @@ class QuestHandler(ApiHandler):
              {
                  "status": "ok",
                  "id": 1,
-                 "creator": "johnny",
+                 "href": "/api/v1/quests/1",
+                 "creator": "tammy",
                  "embarkTime": timestamp,
+                 "targetTime": timestamp,
                  "completionTime": timestamp,
                  "description": "New desc",
                  "labors": [],
