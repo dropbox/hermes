@@ -18,7 +18,7 @@ As journal entries, events provide an audit trail and can potentially be used to
 Each event must be of a predefined event type.  An event type consists of a category and state, the combination of which provides meaningful grouping and definition:
 
 
-::
+.. ::
     ID  CATEGORY            STATE
     [1] system-reboot       required
     [2] system-reboot       completed
@@ -44,7 +44,7 @@ Basics
 ``````
 The fates define how labors are created and completed.  A typical fate will specify which event type will result in the creation of a labor for the host, and which event type will close labors for a host.
 
-::
+.. ::
     [1] system-reboot-required => system-reboot-completed
 
 
@@ -53,14 +53,15 @@ Chained Fates
 An ``intermediate`` flag in the definition of a fate indicates if the fate only applies to existing labors.  This allows fates to be chained together to essentially create a workflow engine.
 
 For example:
-::
+
+.. ::
     [1] system-maintenance-required => system-maintenance-ready
     [2] system-maintenance-ready => system-maintenance-completed
 
 
 (with the second fate being flagged as an intermediate) would essentially mean:
 
-::
+.. ::
     system-maintenance-required => system-maintenance-ready => system-maintenance-completed
 
 In this example, an event of type ``system-maintenance-ready`` only creates a labor if an existing labor created by an event of type ``system-maintenance-required`` was present.
@@ -70,7 +71,7 @@ Choose Your Own Adventure
 
 Fates can allow multiple ways to resolve a labor.
 
-::
+.. ::
     [1] puppet-restart-required => puppet-restart-completed
     [2] puppet-restart-required => system-restart-completed
 
