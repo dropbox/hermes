@@ -133,18 +133,18 @@ class HostsHandler(ApiHandler):
             self.created(data={"hosts": hosts, "totalHosts": len(hosts)})
 
     def get(self):
-        """**Get all Hosts**
+        """ **Get all Hosts**
 
         **Example Request:**
 
-        .. sourcecode: http
+        .. sourcecode:: http
 
             GET /api/v1/hosts HTTP/1.1
             Host: localhost
 
         **Example response:**
 
-        .. sourcecode: http
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -192,14 +192,18 @@ class HostsHandler(ApiHandler):
 
 class HostHandler(ApiHandler):
     def get(self, hostname):
-        """Get a specific Host
+        """**Get a specific Host**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             GET /api/v1/hosts/example HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -217,8 +221,12 @@ class HostHandler(ApiHandler):
                 "lastEvent": "2015-05-05 22:13:11"
             }
 
-        Args:
-            hostname: the name of the host to get
+        :param hostname: hostname of the Host to retrieve
+        :type hostname: string
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 404: The Site at site_id was not found.
         """
         offset, limit, expand = self.get_pagination_values()
         host = self.session.query(Host).filter_by(hostname=hostname).scalar()
@@ -290,9 +298,11 @@ class HostHandler(ApiHandler):
         self.success(json)
 
     def put(self, hostname):
-        """Update a Host
+        """**Update a Host**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             PUT /api/v1/hosts/example HTTP/1.1
             Host: localhost
@@ -303,7 +313,9 @@ class HostHandler(ApiHandler):
                 "hostname": "newname",
             }
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -315,8 +327,18 @@ class HostHandler(ApiHandler):
                 "hostname": "newname",
             }
 
-        Args:
-            hostname: the hostname to update
+        :param hostname: hostname of the Host that should be updated.
+        :type hostname: string
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :statuscode 200: The request was successful.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 403: The request was made with insufficient permissions.
+        :statuscode 404: The Host at hostname was not found.
+        :statuscode 409: There was a conflict with another resource.
         """
         host = self.session.query(Host).filter_by(hostname=hostname).scalar()
         if not host:
