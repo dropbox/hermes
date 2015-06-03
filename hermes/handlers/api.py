@@ -19,10 +19,11 @@ log = logging.getLogger(__name__)
 class HostsHandler(ApiHandler):
 
     def post(self):
-        """ Create a Host entry
+        """ **Create a Host entry**
 
-        Example Request:
+        **Example Request:**
 
+        .. sourcecode:: http
 
             POST /api/v1/hosts HTTP/1.1
             Host: localhost
@@ -31,7 +32,9 @@ class HostsHandler(ApiHandler):
                 "hostname": "example"
             }
 
-            or:
+        or:
+
+        .. sourcecode:: http
 
             {
                 "hosts": [
@@ -45,7 +48,9 @@ class HostsHandler(ApiHandler):
                 ]
             }
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 201 OK
             Location: /api/v1/hosts/example
@@ -57,7 +62,9 @@ class HostsHandler(ApiHandler):
                 "hostname": "example"
             }
 
-            or:
+        or:
+
+        .. sourcecode: http
 
             {
                 "status": "created",
@@ -81,6 +88,18 @@ class HostsHandler(ApiHandler):
                 ],
                 "totalHosts": 3
             }
+
+        :reqjson string hostname: The hostname of the server
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :resheader Location: URL to the created resource.
+
+        :statuscode 201: The site was successfully created.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 409: There was a conflict with another resource.
         """
 
         try:
@@ -114,14 +133,18 @@ class HostsHandler(ApiHandler):
             self.created(data={"hosts": hosts, "totalHosts": len(hosts)})
 
     def get(self):
-        """ Get all Hosts
+        """**Get all Hosts**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode: http
 
             GET /api/v1/hosts HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -140,6 +163,13 @@ class HostsHandler(ApiHandler):
                 "offset": 0,
                 "totalHosts": 1,
             }
+
+        :query string hostname: (*optional*) Filter to hosts with hostname.
+        :query int limit: (*optional*) Limit result to N resources.
+        :query int offset: (*optional*) Skip the first N resources.
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
         """
         hostname = self.get_argument("hostname", None)
 
