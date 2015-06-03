@@ -130,9 +130,9 @@ class HostsHandler(ApiHandler):
                 "status": "ok",
                 "hosts": [
                     {
-                        "id": 1
-                        "name": "Site 1",
-                        "description": ""
+                        "id": 1,
+                        "href": "/api/v1/hosts/server1",
+                        "hostname": "server1",
                     },
                     ...
                 ],
@@ -181,6 +181,10 @@ class HostHandler(ApiHandler):
                 "labors": [],
                 "quests": [],
                 "events": [],
+                "href": "/api/v1/hosts/example",
+                "limit": 10,
+                "offset": 0,
+                "lastEvent": "2015-05-05 22:13:11"
             }
 
         Args:
@@ -194,7 +198,6 @@ class HostHandler(ApiHandler):
         json = host.to_dict("/api/v1")
         json["limit"] = limit
         json["offset"] = offset
-
 
         # add the labors and quests
         labors = []
@@ -231,7 +234,6 @@ class HostHandler(ApiHandler):
 
         # add the events
         events = []
-        events_query = host.get_latest_events()
         last_event = host.get_latest_events().first()
         for event in (
                 host.get_latest_events().limit(limit).offset(offset)
@@ -279,6 +281,7 @@ class HostHandler(ApiHandler):
             {
                 "status": "ok",
                 "id": 1,
+                "href": "/api/v1/hosts/example",
                 "hostname": "newname",
             }
 
@@ -338,6 +341,7 @@ class EventTypesHandler(ApiHandler):
                         "category": "foo",
                         "state": "bar",
                         "description": "Some description"
+
                     },
                     {
                         "category": "foo",

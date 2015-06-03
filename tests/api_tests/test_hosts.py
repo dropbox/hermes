@@ -74,6 +74,32 @@ def test_creation(tornado_server):
         }
     )
 
+def test_create_multiple(tornado_server):
+    client = Client(tornado_server)
+    assert_success(client.get("/hosts"), {
+        "hosts": [],
+        "href": "/api/v1/hosts",
+        "limit": 10,
+        "offset": 0,
+        "totalHosts": 0,
+    })
+
+    client.create(
+        "/hosts",
+        hosts=[
+            {"hostname":"example"},
+            {"hostname":"sample"},
+            {"hostname":"test"}
+        ]
+    )
+
+    assert_success(client.get("/hosts"), {
+        "href": "/api/v1/hosts",
+        "limit": 10,
+        "offset": 0,
+        "totalHosts": 3,
+    }, strip="hosts")
+
 
 def test_update(tornado_server):
     client = Client(tornado_server)
