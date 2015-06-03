@@ -16,8 +16,6 @@ Events double as journal entries, logging system activities like server restarts
 As journal entries, events provide an audit trail and can potentially be used to track a range of activities.  As request entries, events can initialize labors and subsequent events would close these labors.
 
 Each event must be of a predefined event type.  An event type consists of a category and state, the combination of which provides meaningful grouping and definition:
-
-
 ::
     ID  CATEGORY            STATE
     [1] system-reboot       required
@@ -43,7 +41,6 @@ Fates
 Basics
 ``````
 The fates define how labors are created and completed.  A typical fate will specify which event type will result in the creation of a labor for the host, and which event type will close labors for a host.
-
 ::
     [1] system-reboot-required => system-reboot-completed
 
@@ -59,7 +56,6 @@ For example:
 
 
 (with the second fate being flagged as an intermediate) would essentially mean:
-
 ::
     system-maintenance-required => system-maintenance-ready => system-maintenance-completed
 
@@ -69,7 +65,6 @@ Choose Your Own Adventure
 `````````````````````````
 
 Fates can allow multiple ways to resolve a labor.
-
 ::
     [1] puppet-restart-required => puppet-restart-completed
     [2] puppet-restart-required => system-restart-completed
