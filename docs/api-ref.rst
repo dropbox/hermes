@@ -4,5 +4,5 @@
 API Reference
 =============
 
-.. autotornado:: nsot.app:Application()
+.. autotornado:: hermes.app:Application()
     :endpoints:

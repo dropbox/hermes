@@ -1,7 +1,5 @@
-Network Source of Truth
+Hermes
 ===================================================
-
-NSoT is a Network Source of Truth API and Frontend for managing Network Assets.
 
 Contents:
 
