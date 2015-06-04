@@ -1447,6 +1447,8 @@ class QuestsHandler(ApiHandler):
             }
 
         """
+        logging.info("Creating a new quest")
+
         try:
             event_type_id = self.jbody["eventTypeId"]
             creator = self.jbody["creator"]
@@ -1479,6 +1481,9 @@ class QuestsHandler(ApiHandler):
                 for hostname in response.json()["results"]:
                     hostnames.append(hostname)
 
+        logging.info(
+            "Attempt to lookup or create {} hosts".format(str(len(hostnames)))
+        )
         hosts = []
         for hostname in hostnames:
             if not hostname:
@@ -1510,6 +1515,10 @@ class QuestsHandler(ApiHandler):
         json["labors"] = (
             [labor.to_dict("/api/v1")
              for labor in quest.get_open_labors()]
+        )
+
+        logging.info(
+            "Quest creation complete.  Created quest {}".format(quest.id)
         )
 
         self.created("/api/v1/quests/{}".format(quest.id), json)
