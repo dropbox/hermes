@@ -171,7 +171,7 @@ def get_db_session(db_engine=None, database=None):
         if database is None:
             return None
     if db_engine is None:
-        db_engine = get_db_engine(database)
+        db_engine = get_db_engine(database, echo=True)
     Session.configure(bind=db_engine)
     return Session()
 
@@ -241,7 +241,7 @@ class EventType(Model):
         try:
             obj = cls(category=category, state=state, description=description)
             obj.add(session)
-            # session.flush()
+            session.flush()
 
         except Exception:
             session.rollback()
@@ -367,7 +367,7 @@ class Host(Model):
         try:
             obj = cls(hostname=hostname)
             obj.add(session)
-            # session.flush()
+            session.flush()
 
         except Exception:
             session.rollback()
@@ -528,7 +528,7 @@ class Fate(Model):
                 description=description
             )
             obj.add(session)
-            # session.flush()
+            session.flush()
 
         except Exception:
             session.rollback()
@@ -707,7 +707,7 @@ class Event(Model):
                 host=host, user=user, event_type=event_type, note=note
             )
             event.add(session)
-            # session.flush()
+            session.flush()
 
         except Exception:
             session.rollback()
@@ -807,7 +807,7 @@ class Quest(Model):
                 target_time=target_time
             )
             quest.add(session)
-            # session.flush()
+            session.flush()
 
         except Exception:
             session.rollback()
@@ -1014,7 +1014,7 @@ class Labor(Model):
                 host=host, creation_event=creation_event, quest=quest
             )
             obj.add(session)
-            # session.flush()
+            session.flush()
 
         except Exception:
             session.rollback()

@@ -1485,13 +1485,23 @@ class QuestsHandler(ApiHandler):
             "Attempt to lookup or create {} hosts".format(str(len(hostnames)))
         )
         hosts = []
+        new_hosts_needed = []
         for hostname in hostnames:
             if not hostname:
                 continue
             host = Host.get_host(self.session, hostname)
             if host is None:
-                Host.create(self.session, hostname)
-            hosts.append(hostname)
+                new_hosts_needed.append({"hostname": hostname})
+            else:
+                hosts.append(hostname)
+
+        # if we need to create hosts, do them all at once
+        if new_hosts_needed:
+            self.session.execute(Host.__table__.insert(), new_hosts_needed)
+            for new_host in new_hosts_needed:
+                host = Host.get_host(self.session, new_host["hostname"])
+                if host:
+                    hosts.append(hostname)
 
         self.session.commit()
 
