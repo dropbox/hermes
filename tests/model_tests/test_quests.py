@@ -10,7 +10,14 @@ from .fixtures import db_engine, session, sample_data1, sample_data2
 
 
 def test_date_constraint(sample_data1):
-    hosts = ['example.dropbox.com', 'test.dropbox.com']
+    hosts = [
+        sample_data1.query(Host).filter(
+            Host.hostname == 'example.dropbox.com'
+        ).one(),
+        sample_data1.query(Host).filter(
+            Host.hostname == 'test.dropbox.com'
+        ).one(),
+    ]
 
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
@@ -30,7 +37,14 @@ def test_date_constraint(sample_data1):
 
 
 def test_creation(sample_data1):
-    hosts = ['example.dropbox.com', 'test.dropbox.com']
+    hosts = [
+        sample_data1.query(Host).filter(
+            Host.hostname == 'example.dropbox.com'
+        ).one(),
+        sample_data1.query(Host).filter(
+            Host.hostname == 'test.dropbox.com'
+        ).one(),
+    ]
 
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
@@ -63,7 +77,9 @@ def test_creation(sample_data1):
     # now we want to test the closing of the quest by throwing events
     # that fulfill the labors
 
-    found_hosts = sample_data1.query(Host).filter(Host.hostname.in_(hosts)).all()
+    found_hosts = sample_data1.query(Host).filter(
+        Host.hostname.in_(["example.dropbox.com", "test.dropbox.com"])
+    ).all()
 
     assert len(found_hosts) == 2
 
@@ -91,8 +107,16 @@ def test_creation(sample_data1):
     assert quests[0].creator == "testman"
     assert len(quests[0].labors) == 2
 
+
 def test_creation_without_target(sample_data1):
-    hosts = ['example.dropbox.com', 'test.dropbox.com']
+    hosts = [
+        sample_data1.query(Host).filter(
+            Host.hostname == 'example.dropbox.com'
+        ).one(),
+        sample_data1.query(Host).filter(
+            Host.hostname == 'test.dropbox.com'
+        ).one(),
+    ]
 
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
@@ -122,7 +146,14 @@ def test_creation_without_target(sample_data1):
 
 
 def test_mass_creation(sample_data1):
-    hosts = ['example.dropbox.com', 'test.dropbox.com']
+    hosts = [
+        sample_data1.query(Host).filter(
+            Host.hostname == 'example.dropbox.com'
+        ).one(),
+        sample_data1.query(Host).filter(
+            Host.hostname == 'test.dropbox.com'
+        ).one(),
+    ]
 
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
@@ -170,7 +201,9 @@ def test_mass_creation(sample_data1):
     # now we want to test the closing of the quest by throwing events
     # that fulfill the labors
 
-    found_hosts = sample_data1.query(Host).filter(Host.hostname.in_(hosts)).all()
+    found_hosts = sample_data1.query(Host).filter(
+        Host.hostname.in_(["example.dropbox.com", "test.dropbox.com"])
+    ).all()
 
     assert len(found_hosts) == 2
 
@@ -207,7 +240,14 @@ def test_quest_preservation(sample_data1):
     """When a quest has labors that chain together, make sure they stay
     attached to the quest.
     """
-    hosts = ['example.dropbox.com', 'test.dropbox.com']
+    hosts = [
+        sample_data1.query(Host).filter(
+            Host.hostname == 'example.dropbox.com'
+        ).one(),
+        sample_data1.query(Host).filter(
+            Host.hostname == 'test.dropbox.com'
+        ).one(),
+    ]
 
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
@@ -237,7 +277,9 @@ def test_quest_preservation(sample_data1):
     assert len(labors) == 2
 
     # now we want to throw events that create the subsequent labors
-    found_hosts = sample_data1.query(Host).filter(Host.hostname.in_(hosts)).all()
+    found_hosts = sample_data1.query(Host).filter(
+        Host.hostname.in_(["example.dropbox.com", "test.dropbox.com"])
+    ).all()
     assert len(found_hosts) == 2
 
     completion_event_type1 = sample_data1.query(EventType).get(4)
@@ -275,7 +317,14 @@ def test_complex_chaining1(sample_data2):
     fates = sample_data2.query(Fate).all()
     assert len(fates) == 6
 
-    hosts = ['example.dropbox.com', 'test.dropbox.com']
+    hosts = [
+        sample_data2.query(Host).filter(
+            Host.hostname == 'example.dropbox.com'
+        ).one(),
+        sample_data2.query(Host).filter(
+            Host.hostname == 'test.dropbox.com'
+        ).one(),
+    ]
 
     target_time = datetime.now() + timedelta(days=2)
 
@@ -290,7 +339,9 @@ def test_complex_chaining1(sample_data2):
     assert len(quest.get_open_labors().all()) == 2
 
     # now we fire the system-maintenance needed event
-    found_hosts = sample_data2.query(Host).filter(Host.hostname.in_(hosts)).all()
+    found_hosts = sample_data2.query(Host).filter(
+        Host.hostname.in_(["example.dropbox.com", "test.dropbox.com"])
+    ).all()
     assert len(found_hosts) == 2
     event1 = Event.create(
         sample_data2, found_hosts[0], "system",
@@ -308,8 +359,8 @@ def test_complex_chaining1(sample_data2):
     labor1 = quest.get_open_labors().all()[0]
     labor2 = quest.get_open_labors().all()[1]
 
-    assert labor1.host.hostname == hosts[0]
-    assert labor2.host.hostname == hosts[1]
+    assert labor1.host == hosts[0]
+    assert labor2.host == hosts[1]
     assert labor1.creation_event == event1
     assert labor2.creation_event == event2
 
@@ -338,7 +389,11 @@ def test_complex_chaining2(sample_data2):
     fates = sample_data2.query(Fate).all()
     assert len(fates) == 6
 
-    hosts = ['example.dropbox.com']
+    hosts = [
+        sample_data2.query(Host).filter(
+            Host.hostname == 'example.dropbox.com'
+        ).one()
+    ]
 
     target_time1 = datetime.now() + timedelta(days=2)
     target_time2 = datetime.now() + timedelta(days=7)
@@ -362,7 +417,9 @@ def test_complex_chaining2(sample_data2):
 
     # now we create the reboot-complete events and ensure new labors
     # are created for both events
-    found_hosts = sample_data2.query(Host).filter(Host.hostname.in_(hosts)).all()
+    found_hosts = sample_data2.query(Host).filter(
+        Host.hostname == "example.dropbox.com"
+    ).all()
     assert len(found_hosts) == 1
     assert len(found_hosts[0].events) == 2
 

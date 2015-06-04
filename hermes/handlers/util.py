@@ -33,6 +33,7 @@ class PluginHelper(object):
 class BaseHandler(RequestHandler):
     def initialize(self):
         self.session = self.application.my_settings.get("db_session")()
+        self.engine = self.application.my_settings.get("db_engine")
 
     def on_finish(self):
         self.session.close()

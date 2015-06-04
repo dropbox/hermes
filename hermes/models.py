@@ -786,7 +786,7 @@ class Quest(Model):
         Args:
             session: an active database session
             creator: the person or system creating the Quest
-            hosts: a list of hosts for which to create Events (and Labors)
+            hosts: a list of Hosts for which to create Events (and Labors)
             creation_event_type: the EventType of which to create Events
             target_time: the optional targeted date and time of Quest completion
             create: if True, Events will be created; if False, reclaim existing Labors
@@ -813,18 +813,8 @@ class Quest(Model):
             session.rollback()
             raise
 
-        found_hosts = []
-        for host in hosts:
-            found_host = (
-                session.query(Host).filter(Host.hostname == host).first()
-            )
-            if found_host is None:
-                logging.error("Could not find host %s", host)
-            else:
-                found_hosts.append(found_host)
-
         if create:
-            for host in found_hosts:
+            for host in hosts:
                 created_event = Event.create(
                     session, host, creator, creation_event_type, quest=quest
                 )
@@ -839,7 +829,7 @@ class Quest(Model):
                 if (
                     open_labor.creation_event.event_type
                         == creation_event_type
-                        and open_labor.host in found_hosts
+                        and open_labor.host in hosts
                 ):
                     open_labor.add_to_quest(quest)
 
