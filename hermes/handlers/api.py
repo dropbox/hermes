@@ -1515,6 +1515,7 @@ class QuestsHandler(ApiHandler):
         except exc.ValidationError as err:
             raise exc.BadRequest(err.message)
 
+        self.session.flush()
         self.session.commit()
 
         json = quest.to_dict("/api/v1")

@@ -537,7 +537,7 @@ class Fate(Model):
         return obj
 
     @classmethod
-    def question_the_fates(cls, session, event, quest=None):
+    def question_the_fates(cls, session, event, quest=None, flush=True):
         """Look through the Fates and see if we need to create or close
         Labors based on this event.
 
@@ -545,6 +545,7 @@ class Fate(Model):
             session: active database session
             event: the Event for which we need to question the Fates
             quest: the optional quest if event was result of quest creation
+            flush: should we flush now or is that done elsewhere?
         """
         host = event.host
         event_type = event.event_type
@@ -585,7 +586,9 @@ class Fate(Model):
         # If we need to create a labor because of a non-intermediate fate,
         # create that now
         if should_create:
-            new_labor = Labor.create(session, host, event, quest=quest)
+            new_labor = Labor.create(
+                session, host, event, quest=quest, flush=flush
+            )
 
         # If we need to close some labors, lets do that now
         if should_close:
@@ -595,9 +598,9 @@ class Fate(Model):
             # labor we are closing, if it exists
             for labor in labors_to_close:
                 if should_create_if_intermediate:
-                    new_labor = Labor.create(session, host, event)
-                    if labor.quest:
-                        new_labor.add_to_quest(labor.quest)
+                    new_labor = Labor.create(
+                        session, host, event, quest=labor.quest, flush=flush
+                    )
                 labor.achieve(event)
 
     def href(self, base_uri):
@@ -715,7 +718,7 @@ class Event(Model):
             session.rollback()
             raise
 
-        Fate.question_the_fates(session, event, quest=quest)
+        Fate.question_the_fates(session, event, quest=quest, flush=flush)
 
         return event
 
@@ -982,7 +985,7 @@ class Labor(Model):
     @classmethod
     def create(
             cls, session,
-            host, creation_event, quest=None
+            host, creation_event, quest=None, flush=True
     ):
         """Create an Labor
 
@@ -990,6 +993,7 @@ class Labor(Model):
             host: the Host to which this event pertains
             creation_event: the Event that lead to the creation of this labor
             quest: optional Quest if labor is part of a Quest creation
+            flush: should we flush now?
 
         Returns:
             a newly created Labor
@@ -1008,7 +1012,8 @@ class Labor(Model):
                 host=host, creation_event=creation_event, quest=quest
             )
             obj.add(session)
-            session.flush()
+            if flush:
+                session.flush()
 
         except Exception:
             session.rollback()
