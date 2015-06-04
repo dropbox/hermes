@@ -675,7 +675,7 @@ class Event(Model):
     @classmethod
     def create(
             cls, session,
-            host, user, event_type, note=None, quest=None
+            host, user, event_type, note=None, quest=None, flush=True
     ):
         """Log an Event
 
@@ -685,6 +685,7 @@ class Event(Model):
             event_type: the EventType of this event
             note: the optional note to be made about this event
             quest: the optional quest if event is result of quest creation
+            flush: specify if we should flush on completion
 
         Returns:
             a newly created Event
@@ -707,7 +708,8 @@ class Event(Model):
                 host=host, user=user, event_type=event_type, note=note
             )
             event.add(session)
-            session.flush()
+            if flush:
+                session.flush()
 
         except Exception:
             session.rollback()
@@ -816,7 +818,8 @@ class Quest(Model):
         if create:
             for host in hosts:
                 created_event = Event.create(
-                    session, host, creator, creation_event_type, quest=quest
+                    session, host, creator, creation_event_type, quest=quest,
+                    flush=False
                 )
         else:
             open_labors = (
@@ -833,6 +836,7 @@ class Quest(Model):
                 ):
                     open_labor.add_to_quest(quest)
 
+        session.flush()
         return quest
 
     def check_for_victory(self):
