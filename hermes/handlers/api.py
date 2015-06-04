@@ -1488,6 +1488,8 @@ class QuestsHandler(ApiHandler):
                 Host.create(self.session, hostname)
             hosts.append(hostname)
 
+        self.session.commit()
+
         if len(hosts) == 0:
             raise exc.BadRequest("No hosts found with given list")
 

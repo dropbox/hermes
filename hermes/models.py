@@ -373,6 +373,8 @@ class Host(Model):
             session.rollback()
             raise
 
+        logging.info("Created host {}".format(obj.hostname))
+
         return obj
 
     @classmethod
@@ -537,13 +539,14 @@ class Fate(Model):
         return obj
 
     @classmethod
-    def question_the_fates(cls, session, event):
+    def question_the_fates(cls, session, event, quest=None):
         """Look through the Fates and see if we need to create or close
         Labors based on this event.
 
         Args:
             session: active database session
             event: the Event for which we need to question the Fates
+            quest: the optional quest if event was result of quest creation
         """
         host = event.host
         event_type = event.event_type
@@ -584,7 +587,7 @@ class Fate(Model):
         # If we need to create a labor because of a non-intermediate fate,
         # create that now
         if should_create:
-            new_labor = Labor.create(session, host, event)
+            new_labor = Labor.create(session, host, event, quest=quest)
 
         # If we need to close some labors, lets do that now
         if should_close:
@@ -674,7 +677,7 @@ class Event(Model):
     @classmethod
     def create(
             cls, session,
-            host, user, event_type, note=None
+            host, user, event_type, note=None, quest=None
     ):
         """Log an Event
 
@@ -683,6 +686,7 @@ class Event(Model):
             user: the user that created this event, if manually created
             event_type: the EventType of this event
             note: the optional note to be made about this event
+            quest: the optional quest if event is result of quest creation
 
         Returns:
             a newly created Event
@@ -711,7 +715,14 @@ class Event(Model):
             session.rollback()
             raise
 
-        Fate.question_the_fates(session, event)
+        logging.info(
+            "Created event {}-{} for host {}".format(
+                event_type.category,
+                event_type.state, host.hostname
+            )
+        )
+
+        Fate.question_the_fates(session, event, quest=quest)
 
         return event
 
@@ -824,14 +835,8 @@ class Quest(Model):
         if create:
             for host in found_hosts:
                 created_event = Event.create(
-                    session, host, creator, creation_event_type
+                    session, host, creator, creation_event_type, quest=quest
                 )
-                created_labors = (
-                    session.query(Labor)
-                    .filter(Labor.creation_event == created_event).all()
-                )
-                for labor in created_labors:
-                    labor.add_to_quest(quest)
         else:
             open_labors = (
                 session.query(Labor).filter(
@@ -992,13 +997,14 @@ class Labor(Model):
     @classmethod
     def create(
             cls, session,
-            host, creation_event
+            host, creation_event, quest=None
     ):
         """Create an Labor
 
         Args:
-            host: the host to which this event pertains
+            host: the Host to which this event pertains
             creation_event: the Event that lead to the creation of this labor
+            quest: optional Quest if labor is part of a Quest creation
 
         Returns:
             a newly created Labor
@@ -1014,7 +1020,7 @@ class Labor(Model):
 
         try:
             obj = cls(
-                host=host, creation_event=creation_event
+                host=host, creation_event=creation_event, quest=quest
             )
             obj.add(session)
             session.flush()
