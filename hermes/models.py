@@ -373,8 +373,6 @@ class Host(Model):
             session.rollback()
             raise
 
-        logging.info("Created host {}".format(obj.hostname))
-
         return obj
 
     @classmethod
@@ -714,13 +712,6 @@ class Event(Model):
         except Exception:
             session.rollback()
             raise
-
-        logging.info(
-            "Created event {}-{} for host {}".format(
-                event_type.category,
-                event_type.state, host.hostname
-            )
-        )
 
         Fate.question_the_fates(session, event, quest=quest)
 
