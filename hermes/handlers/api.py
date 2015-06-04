@@ -363,9 +363,9 @@ class HostHandler(ApiHandler):
         self.success(json)
 
     def delete(self, hostname):
-        """Delete a Host
+        """**Delete a Host**
 
-        Not supported
+        *Not supported*
         """
         self.not_supported()
 
@@ -742,9 +742,9 @@ class EventTypeHandler(ApiHandler):
         self.success(json)
 
     def delete(self, id):
-        """Delete an EventType
+        """**Delete an EventType**
 
-        Not supported
+        *Not supported*
         """
         self.not_supported()
 
@@ -914,14 +914,18 @@ class EventsHandler(ApiHandler):
 
 class EventHandler(ApiHandler):
     def get(self, id):
-        """Get a specific Event
+        """ **Get a specific Event**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: host
 
             GET /api/v1/events/1/ HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: host
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -936,8 +940,12 @@ class EventHandler(ApiHandler):
                 "note": "Event note",
             }
 
-        Args:
-            id: the id of the event to get
+        :param id: id of the Event to retrieve
+        :type id: int
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 404: The EventType was not found.
         """
         offset, limit, expand = self.get_pagination_values()
         event = self.session.query(Event).filter_by(id=id).scalar()
@@ -955,16 +963,16 @@ class EventHandler(ApiHandler):
         self.success(json)
 
     def put(self, id):
-        """Update an Event
+        """**Update an Event**
 
-        Not supported
+        *Not supported*
         """
         self.not_supported()
 
     def delete(self, id):
-        """Delete an Event
+        """**Delete an Event**
 
-        Not supported
+        *Not supported*
         """
         self.not_supported()
 
