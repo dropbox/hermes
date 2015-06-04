@@ -96,7 +96,7 @@ class HostsHandler(ApiHandler):
 
         :resheader Location: URL to the created resource.
 
-        :statuscode 201: The site was successfully created.
+        :statuscode 201: The Host was successfully created.
         :statuscode 400: The request was malformed.
         :statuscode 401: The request was made without being logged in.
         :statuscode 409: There was a conflict with another resource.
@@ -310,7 +310,6 @@ class HostHandler(ApiHandler):
             PUT /api/v1/hosts/example HTTP/1.1
             Host: localhost
             Content-Type: application/json
-            X-NSoT-Email: user@localhost
 
             {
                 "hostname": "newname",
@@ -686,7 +685,6 @@ class EventTypeHandler(ApiHandler):
             PUT /api/v1/eventtypes/1/ HTTP/1.1
             Host: localhost
             Content-Type: application/json
-            X-NSoT-Email: user@localhost
 
             {
                 "description": "New description",
@@ -754,9 +752,11 @@ class EventTypeHandler(ApiHandler):
 class EventsHandler(ApiHandler):
 
     def post(self):
-        """ Create an Event entry
+        """ **Create an Event entry**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             POST /api/v1/events HTTP/1.1
             Host: localhost
@@ -768,7 +768,9 @@ class EventsHandler(ApiHandler):
                 "note": "Sample description"
             }
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 201 OK
             Location: /api/v1/events/1
@@ -786,6 +788,21 @@ class EventsHandler(ApiHandler):
                     }
                 }
             }
+
+        :reqjson string hostname: The hostname of the Host of this Event
+        :regjson string user: The user responsible for throwing this Event
+        :regjson string eventTypeId: The id of the EventType
+        :regjson string note: (*optional*) The human readable note describing this Event
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :resheader Location: URL to the created resource.
+
+        :statuscode 201: The Event was successfully created.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 409: There was a conflict with another resource.
         """
 
         try:
@@ -826,14 +843,18 @@ class EventsHandler(ApiHandler):
         self.created("/api/v1/events/{}".format(event.id), json)
 
     def get(self):
-        """ Get all Events
+        """ **Get all Events**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode: http
 
             GET /api/v1/events HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -855,8 +876,26 @@ class EventsHandler(ApiHandler):
                     ...
                 ],
             }
+
+        :query int eventTypeId: (*optional*) Filter Events by EventType id.
+        :query int hostId: (*optional*) Filter Events by Host id.
+        :query int limit: (*optional*) Limit result to N resources.
+        :query int offset: (*optional*) Skip the first N resources.
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
         """
+
+        event_type_id = self.get_argument("eventTypeId", None)
+        host_id = self.get_argument("hostId", None)
+
         events = self.session.query(Event).order_by(desc(Event.timestamp))
+
+        if event_type_id is not None:
+            events = events.filter_by(event_type_id=event_type_id)
+
+        if host_id is not None:
+            events = events.filter_by(host_id=host_id)
 
         offset, limit, expand = self.get_pagination_values()
         events, total = self.paginate_query(events, offset, limit)
@@ -1103,7 +1142,6 @@ class FateHandler(ApiHandler):
             PUT /api/v1/fates/1 HTTP/1.1
             Host: localhost
             Content-Type: application/json
-            X-NSoT-Email: user@localhost
 
             {
                 "description": "New desc",
@@ -1294,7 +1332,6 @@ class LaborHandler(ApiHandler):
             PUT /api/v1/labors/23 HTTP/1.1
             Host: localhost
             Content-Type: application/json
-            X-NSoT-Email: user@localhost
 
             {
                 "questId": 1,
@@ -1614,7 +1651,6 @@ class QuestHandler(ApiHandler):
              PUT /api/v1/quest/1 HTTP/1.1
              Host: localhost
              Content-Type: application/json
-             X-NSoT-Email: user@localhost
 
              {
                  "description": "New desc",
