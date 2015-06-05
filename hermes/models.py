@@ -434,7 +434,7 @@ class Host(Model):
         return (
             self.session.query(Labor).filter(
                 and_(
-                    Labor.host == self,
+                    Labor.host_id == self.id,
                     Labor.completion_time == None
                 ))
             .order_by(desc(Labor.creation_time))
@@ -587,6 +587,7 @@ class Fate(Model):
             session.query(Fate).filter(Fate.intermediate == True).all()
         )
 
+        log.info("Start questioning the fates")
         for event in events:
             host = event.host
             host_labors = host.get_open_labors().all()
@@ -609,7 +610,7 @@ class Fate(Model):
             labor_types_fulfilled = []
             for fate in (
                 session.query(Fate)
-                .filter(Fate.completion_event_type == event_type)
+                .filter(Fate.completion_type_id == event_type.id)
             ):
                 labor_types_fulfilled.append(fate.creation_event_type)
 
@@ -641,7 +642,7 @@ class Fate(Model):
 
         if all_achieved_labors:
             Labor.achieve_many(session, all_achieved_labors)
-
+        log.info("Finished questioning the Fates.  Flushing.")
         session.flush()
         session.commit()
 
@@ -1025,7 +1026,9 @@ class Labor(Model):
     host = relationship(
         Host, lazy="joined", backref="labors"
     )
-    creation_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    creation_time = Column(
+        DateTime, default=datetime.utcnow, nullable=False, index=True
+    )
     ack_time = Column(DateTime, nullable=True)
     ack_user = Column(String(64), nullable=True)
     completion_time = Column(DateTime, nullable=True)
@@ -1098,10 +1101,12 @@ class Labor(Model):
             labors: the list of Labors dicts
             tx: transaction id tied to these bulk creations
         """
+        log.info("Labor.create_many >>")
         session.execute(
             Labor.__table__.insert(), labors
         )
         session.flush()
+        log.info("Labor.create_many <<")
 
     @classmethod
     def achieve_many(cls, session, labor_dicts):
@@ -1122,7 +1127,6 @@ class Labor(Model):
             )
             if labor.quest and labor.quest not in quests:
                 quests.append(labor.quest)
-
         session.flush()
         session.commit()
         for quest in quests:
@@ -1136,7 +1140,7 @@ class Labor(Model):
             questo to list of open Labors
         """
         return session.query(Labor).filter(
-            Labor.completion_event == None
+            Labor.completion_event_id == None
         )
 
     @classmethod
