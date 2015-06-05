@@ -1063,6 +1063,20 @@ class Labor(Model):
         return obj
 
     @classmethod
+    def create_all(cls, session, labors):
+        """Create multiple Labors
+
+        Args:
+            session: active database session
+            labors: the list of Labors dicts
+            tx: transaction id tied to these bulk creations
+        """
+        session.execute(
+            Labor.__table__.insert(), labors
+        )
+        session.flush()
+
+    @classmethod
     def get_open_labors(cls, session):
         """Get all open Labors, regardless of acknowledgement
 
