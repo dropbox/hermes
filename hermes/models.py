@@ -580,6 +580,7 @@ class Fate(Model):
         all_new_labors = []
         all_achieved_labors = []
 
+        all_fates = session.query(Fate).all()
         creation_fates = (
             session.query(Fate).filter(Fate.intermediate == False).all()
         )
@@ -587,10 +588,20 @@ class Fate(Model):
             session.query(Fate).filter(Fate.intermediate == True).all()
         )
 
+        open_labors = (
+            session.query(Labor).filter(Labor.completion_time == None).all()
+        )
+        host_labors = {}
+        for labor in open_labors:
+            if labor.host_id in host_labors:
+                host_labors[labor.host_id].append(labor)
+            else:
+                host_labors[labor.host_id] = [labor]
+
+        log.info(host_labors)
         log.info("Start questioning the fates")
         for event in events:
             host = event.host
-            host_labors = host.get_open_labors().all()
             event_type = event.event_type
 
             # First, lets see if this Event is supposed to create any
@@ -608,34 +619,35 @@ class Fate(Model):
             # Now, let's look at all the Fates that this EventType fulfills
             # and let's make a list of the matching creation EventTypes
             labor_types_fulfilled = []
-            for fate in (
-                session.query(Fate)
-                .filter(Fate.completion_type_id == event_type.id)
-            ):
-                labor_types_fulfilled.append(fate.creation_event_type)
+            for fate in all_fates:
+                if (
+                    Fate.completion_type_id == event_type.id
+                ):
+                    labor_types_fulfilled.append(fate.creation_event_type)
 
             # And with that list of fulfilled EventTypes, we can look for
             # open Labors created by that kind of EventType and collect if
             # for batch achievement
-            for labor in host_labors:
-                if labor.creation_event.event_type in labor_types_fulfilled:
-                    all_achieved_labors.append({
-                        "labor": labor,
-                        "event": event
-                    })
-                    # Since are closing a Labor, we are free to see if an
-                    # intermediate Fate is applicable
-                    for fate in intermediate_fates:
-                        if fate.creation_event_type == event_type:
-                            new_labor_dict = {
-                                "host_id": host.id,
-                                "creation_event_id": event.id,
-                                "quest_id": (
-                                    labor.quest.id if labor.quest else None
-                                )
-                            }
-                            if new_labor_dict not in all_new_labors:
-                                all_new_labors.append(new_labor_dict)
+            if host.id in host_labors:
+                for labor in host_labors[host.id]:
+                    if labor.creation_event.event_type in labor_types_fulfilled:
+                        all_achieved_labors.append({
+                            "labor": labor,
+                            "event": event
+                        })
+                        # Since are closing a Labor, we are free to see if an
+                        # intermediate Fate is applicable
+                        for fate in intermediate_fates:
+                            if fate.creation_event_type == event_type:
+                                new_labor_dict = {
+                                    "host_id": host.id,
+                                    "creation_event_id": event.id,
+                                    "quest_id": (
+                                        labor.quest.id if labor.quest else None
+                                    )
+                                }
+                                if new_labor_dict not in all_new_labors:
+                                    all_new_labors.append(new_labor_dict)
 
         if all_new_labors:
             Labor.create_many(session, all_new_labors)

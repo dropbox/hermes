@@ -286,7 +286,7 @@ def create_event(args):
 
     if found_event_type is None:
         sys.exit(
-            "No matching event type found for %s %s".format(
+            "No matching event type found for {} {}".format(
                 args.category, args.state
             )
         )
