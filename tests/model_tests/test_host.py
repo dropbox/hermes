@@ -58,10 +58,12 @@ def test_get_labors(sample_data1):
     event_type3 = sample_data1.query(EventType).get(3)
     event_type4 = sample_data1.query(EventType).get(4)
 
+    print "Creating events"
     Event.create(sample_data1, host, "testman", event_type1)
     Event.create(sample_data1, host, "testman", event_type3)
     closing_event = Event.create(sample_data1, host, "testman", event_type4)
 
+    print "Get labor info"
     all_labors = host.get_labors().all()
     open_labors = host.get_open_labors().all()
 

@@ -371,12 +371,12 @@ def test_complex_chaining2(sample_data2):
     ET: sys-audit, sys-needed, sys-ready, sys-complete, reboot-needed, reboot-complete, puppet-restart
 
     Fates:
-    sys-audit => sys-needed
-    sys-needed => sys-ready
-    sys-ready => sys-complete
-    sys-needed => reboot-complete
-    reboot-needed => reboot-complete
-    reboot-complete => puppet-restart
+    system-maintenance-audit => system-maintenance-needed
+    system-maintenance-needed => system-maintenance-ready
+    system-maintenance-ready => system-maintenance-complete
+    system-maintenance-needed => system-reboot-complete
+    system-reboot-needed => system-reboot-complete
+    system-reboot-complete => puppet-restart
 
     Quests:
     Bravo: servers need sys-needed
@@ -398,6 +398,7 @@ def test_complex_chaining2(sample_data2):
     target_time1 = datetime.now() + timedelta(days=2)
     target_time2 = datetime.now() + timedelta(days=7)
 
+    print "\nbravo quest"
     bravo_quest = Quest.create(
         sample_data2, "testman", hosts,
         EventType.get_event_type(sample_data2, "system-maintenance", "audit"),
@@ -405,6 +406,7 @@ def test_complex_chaining2(sample_data2):
         description="System maintenance is needed"
     )
 
+    print "\ncharlie quest"
     charlie_quest = Quest.create(
         sample_data2, "testman", hosts,
         EventType.get_event_type(sample_data2, "system-reboot", "needed"),
@@ -424,12 +426,14 @@ def test_complex_chaining2(sample_data2):
     assert len(found_hosts) == 1
     assert len(found_hosts[0].events) == 2
 
+    print "\nevent 1"
     event1 = Event.create(
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-maintenance", "needed")
     )
     assert bravo_quest.get_open_labors().all()[0].creation_event == event1
 
+    print "\nevent 2"
     event2 = Event.create(
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")
@@ -437,6 +441,7 @@ def test_complex_chaining2(sample_data2):
     # since the previous event progressed the workflow, this one below
     # shouldn't create a labor since system-reboot-completed labors are
     # intermediates
+    print "\nevent 3"
     event3 = Event.create(
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")

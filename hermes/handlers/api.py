@@ -1495,7 +1495,7 @@ class QuestsHandler(ApiHandler):
 
         # if we need to create hosts, do them all at once
         if new_hosts_needed:
-            Host.create_all(self.session, new_hosts_needed)
+            Host.create_many(self.session, new_hosts_needed)
             hosts = self.session.query(Host).filter(Host.hostname.in_(hostnames)).all()
 
         log.info("Working with {} hosts".format(len(hosts)))
