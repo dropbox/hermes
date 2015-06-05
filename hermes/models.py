@@ -598,7 +598,6 @@ class Fate(Model):
             else:
                 host_labors[labor.host_id] = [labor]
 
-        log.info(host_labors)
         log.info("Start questioning the fates")
         for event in events:
             host = event.host
@@ -621,7 +620,7 @@ class Fate(Model):
             labor_types_fulfilled = []
             for fate in all_fates:
                 if (
-                    Fate.completion_type_id == event_type.id
+                    fate.completion_type_id == event_type.id
                 ):
                     labor_types_fulfilled.append(fate.creation_event_type)
 
