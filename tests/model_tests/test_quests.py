@@ -404,6 +404,7 @@ def test_complex_chaining2(sample_data2):
         target_time1,
         description="System maintenance is needed"
     )
+
     charlie_quest = Quest.create(
         sample_data2, "testman", hosts,
         EventType.get_event_type(sample_data2, "system-reboot", "needed"),
@@ -428,6 +429,7 @@ def test_complex_chaining2(sample_data2):
         EventType.get_event_type(sample_data2, "system-maintenance", "needed")
     )
     assert bravo_quest.get_open_labors().all()[0].creation_event == event1
+
     event2 = Event.create(
         sample_data2, found_hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")
