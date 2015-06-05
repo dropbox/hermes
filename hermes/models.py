@@ -561,7 +561,7 @@ class Fate(Model):
             quest: the optional quest if event was result of quest creation
             flush: should we flush now or is that done elsewhere?
         """
-        
+
         fates = session.query(Fate).all()
         for event in events:
             host = event.host

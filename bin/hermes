@@ -430,7 +430,7 @@ def create_quest(args):
             logging.debug("Entered host: %s", hostname)
             hosts.append(hostname)
 
-    if len(hosts) and not args.query == 0:
+    if not hosts and not args.query:
         logging.error("No hosts specified")
         return
 
