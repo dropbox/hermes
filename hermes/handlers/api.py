@@ -1474,6 +1474,8 @@ class QuestsHandler(ApiHandler):
             self.write_error(400, message="Bad creation event type")
             return
 
+        # If a host query was specified, we need to talk to the external
+        # query server to resolve this into a list of hostnames
         if "hostQuery" in self.jbody:
             query = self.jbody["hostQuery"]
             response = PluginHelper.request_get(params={"query": query})
@@ -1485,6 +1487,7 @@ class QuestsHandler(ApiHandler):
             "Attempt to lookup or create {} hosts".format(str(len(hostnames)))
         )
 
+        # We need to create a list of hostnames that don't have a Host record
         new_hosts_needed = list(hostnames)
         hosts = self.session.query(Host).filter(Host.hostname.in_(hostnames)).all()
         for host in hosts:
@@ -1492,13 +1495,8 @@ class QuestsHandler(ApiHandler):
 
         # if we need to create hosts, do them all at once
         if new_hosts_needed:
-            self.session.execute(Host.__table__.insert(), [
-                {"hostname": hostname} for hostname in new_hosts_needed
-            ])
-            self.session.flush()
+            Host.create_all(self.session, new_hosts_needed)
             hosts = self.session.query(Host).filter(Host.hostname.in_(hostnames)).all()
-
-        self.session.commit()
 
         log.info("Working with {} hosts".format(len(hosts)))
 

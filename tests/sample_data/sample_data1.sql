@@ -47,8 +47,8 @@ INSERT INTO hosts
 INSERT INTO hosts
     VALUES (3, 'test.dropbox.com');
 
-INSERT INTO events
+INSERT INTO events ('id', 'host_id', 'timestamp', 'user', 'event_type_id', 'note')
     VALUES (1, 1, "2015-04-31 10:00:00", "system", 1, "example.dropbox.com needs a reboot");
 
-INSERT INTO events
+INSERT INTO events ('id', 'host_id', 'timestamp', 'user', 'event_type_id', 'note')
     VALUES (2, 1, "2015-05-01 22:34:03", "system", 2, "example.dropbox.com rebooted.");

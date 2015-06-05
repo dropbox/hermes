@@ -352,10 +352,11 @@ class Host(Model):
 
     @classmethod
     def create(cls, session, hostname):
-        """Create a new host record
+        """Create a new Host record
 
         Args:
-            hostname
+            session: active database session
+            hostname: the hostname of the Host to create
 
         Returns:
             the newly created Host
@@ -374,6 +375,19 @@ class Host(Model):
             raise
 
         return obj
+
+    @classmethod
+    def create_all(cls, session, hostnames):
+        """Create a bunch of Host records
+
+        Args:
+            session: active database session
+            hostnames: the hostnames of the Hosts to create
+        """
+        session.execute(Host.__table__.insert(), [
+                {"hostname": hostname} for hostname in hostnames
+            ])
+        session.flush()
 
     @classmethod
     def get_host(cls, session, hostname):
@@ -537,71 +551,72 @@ class Fate(Model):
         return obj
 
     @classmethod
-    def question_the_fates(cls, session, event, quest=None, flush=True):
+    def question_the_fates(cls, session, events, quest=None, flush=True):
         """Look through the Fates and see if we need to create or close
         Labors based on this event.
 
         Args:
             session: active database session
-            event: the Event for which we need to question the Fates
+            evenst: the Events for which we need to question the Fates
             quest: the optional quest if event was result of quest creation
             flush: should we flush now or is that done elsewhere?
         """
-        host = event.host
-        event_type = event.event_type
+        for event in events:
+            host = event.host
+            event_type = event.event_type
 
-        fates = session.query(Fate).all()
+            fates = session.query(Fate).all()
 
-        # we need to track created labors in case we need to tie to a
-        # quest because this event both closes and creates an labor
-        should_create = False
-        should_create_if_intermediate = False
-        should_close = False
-        labors_to_close = []
+            # we need to track created labors in case we need to tie to a
+            # quest because this event both closes and creates an labor
+            should_create = False
+            should_create_if_intermediate = False
+            should_close = False
+            labors_to_close = []
 
-        # Examine all the Fates.
-        for fate in fates:
-            # If this type of Event is a creation type for a Fate,
-            # flag that we need to create labors.  We also need to track if
-            # this is a creation type for an intermediate fate or not.
-            if event_type == fate.creation_event_type:
-                if fate.intermediate:
-                    should_create_if_intermediate = True
-                else:
-                    should_create = True
+            # Examine all the Fates.
+            for fate in fates:
+                # If this type of Event is a creation type for a Fate,
+                # flag that we need to create labors.  We also need to track if
+                # this is a creation type for an intermediate fate or not.
+                if event_type == fate.creation_event_type:
+                    if fate.intermediate:
+                        should_create_if_intermediate = True
+                    else:
+                        should_create = True
 
-            # If this type of Event is a completion type for a Fate,
-            # flag that we need to look for open labors to close
-            # for this Host.  Add those to a list in case we need to morph this
-            # labor because this is also a creation type event
-            if event_type == fate.completion_event_type:
-                for open_labor in host.get_open_labors().all():
-                    if (
-                        open_labor.creation_event.event_type
-                            == fate.creation_event_type
-                    ):
-                        labors_to_close.append(open_labor)
-                        should_close = True
+                # If this type of Event is a completion type for a Fate,
+                # flag that we need to look for open labors to close
+                # for this Host.  Add those to a list in case we need to morph this
+                # labor because this is also a creation type event
+                if event_type == fate.completion_event_type:
+                    for open_labor in host.get_open_labors().all():
+                        if (
+                            open_labor.creation_event.event_type
+                                == fate.creation_event_type
+                        ):
+                            labors_to_close.append(open_labor)
+                            should_close = True
 
-        # If we need to create a labor because of a non-intermediate fate,
-        # create that now
-        if should_create:
-            new_labor = Labor.create(
-                session, host, event, quest=quest, flush=flush
-            )
+            # If we need to create a labor because of a non-intermediate fate,
+            # create that now
+            if should_create:
+                new_labor = Labor.create(
+                    session, host, event, quest=quest, flush=flush
+                )
 
-        # If we need to close some labors, lets do that now
-        if should_close:
-            # We will examine each labor that needs to get closed.  If we are
-            # also supposed to create a labor because of an intermediate fate,
-            # we will do that now and tie the new labor to the quest of the
-            # labor we are closing, if it exists
-            for labor in labors_to_close:
-                if should_create_if_intermediate:
-                    new_labor = Labor.create(
-                        session, host, event, quest=labor.quest, flush=flush
-                    )
-                labor.achieve(event)
+            # If we need to close some labors, lets do that now
+            if should_close:
+                # We will examine each labor that needs to get closed.  If we are
+                # also supposed to create a labor because of an intermediate fate,
+                # we will do that now and tie the new labor to the quest of the
+                # labor we are closing, if it exists
+                for labor in labors_to_close:
+                    if should_create_if_intermediate:
+                        new_labor = Labor.create(
+                            session, host, event, quest=labor.quest, flush=flush
+                        )
+                    labor.achieve(event)
 
     def href(self, base_uri):
         """Create an HREF value for this object
@@ -648,6 +663,7 @@ class Event(Model):
         user: the user or other arbitrary identifier for the registrar of this event
         event_type: the EventType that informs what this event is
         note: an optional human readable note attached to this Event
+        tx: an internally used transaction id that is useful for retrieval after bulk creation
 
     Notes:
         the user field is for auditing purposes only.  It is not enforced or
@@ -670,6 +686,7 @@ class Event(Model):
     )
     event_type = relationship(EventType, lazy="joined", backref="events")
     note = Column(String(length=1024), nullable=True)
+    tx = Column(Integer, nullable=True, index=True)
 
     __table_args__ = (
         Index("event_idx", id, host_id, event_type_id),
@@ -678,7 +695,7 @@ class Event(Model):
     @classmethod
     def create(
             cls, session,
-            host, user, event_type, note=None, quest=None, flush=True
+            host, user, event_type, note=None, quest=None
     ):
         """Log an Event
 
@@ -688,7 +705,6 @@ class Event(Model):
             event_type: the EventType of this event
             note: the optional note to be made about this event
             quest: the optional quest if event is result of quest creation
-            flush: specify if we should flush on completion
 
         Returns:
             a newly created Event
@@ -711,16 +727,35 @@ class Event(Model):
                 host=host, user=user, event_type=event_type, note=note
             )
             event.add(session)
-            if flush:
-                session.flush()
+            session.flush()
 
         except Exception:
             session.rollback()
             raise
 
-        Fate.question_the_fates(session, event, quest=quest, flush=flush)
+        Fate.question_the_fates(session, [event], quest=quest)
 
         return event
+
+    @classmethod
+    def create_all(cls, session, events, tx, quest=None):
+        """Create multiple Events
+
+        Args:
+            session: active database session
+            events: the list of Event dicts
+            tx: transaction id tied to these bulk creations
+            quest: optional if events tied to quests
+            flush: indicate if we should flush after we are done
+        """
+        session.execute(
+            Event.__table__.insert(), events
+        )
+
+        events = session.query(Event).filter(Event.tx == tx).all()
+        log.info("Created {} events".format(len(events)))
+        Fate.question_the_fates(session, events, quest=quest, flush=False)
+
 
     def href(self, base_uri):
         """Create an HREF value for this object
@@ -818,12 +853,17 @@ class Quest(Model):
             session.rollback()
             raise
 
+        # if we are supposed to create events, we want to do them as a giant batch
+        events_to_create = []
         if create:
             for host in hosts:
-                created_event = Event.create(
-                    session, host, creator, creation_event_type, quest=quest,
-                    flush=False
-                )
+                events_to_create.append({
+                    "host_id": host.id,
+                    "user": creator,
+                    "event_type_id": creation_event_type.id,
+                    "tx": quest.id
+                })
+            Event.create_all(session, events_to_create, quest.id, quest=quest)
         else:
             open_labors = (
                 session.query(Labor).filter(
@@ -840,6 +880,7 @@ class Quest(Model):
                     open_labor.add_to_quest(quest)
 
         session.flush()
+        session.commit()
         return quest
 
     def check_for_victory(self):
