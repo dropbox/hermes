@@ -1483,10 +1483,6 @@ class QuestsHandler(ApiHandler):
                 for hostname in response.json()["results"]:
                     hostnames.append(hostname)
 
-        log.info(
-            "Attempt to lookup or create {} hosts".format(str(len(hostnames)))
-        )
-
         # We need to create a list of hostnames that don't have a Host record
         new_hosts_needed = list(hostnames)
         hosts = self.session.query(Host).filter(Host.hostname.in_(hostnames)).all()

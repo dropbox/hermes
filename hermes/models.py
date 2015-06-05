@@ -483,6 +483,9 @@ class Fate(Model):
         intermediate: if True, this Fate only creates a Labor if also
             closing a previous Labor
         description: the optional human readable description of this Fate
+        _all_fates: cached list of all Fates
+        _intermediate_fates = cached list of all intermediate Fates
+        _starting_fates = cached list of all non-intermediate Fates
     """
 
     __tablename__ = "fates"
@@ -513,6 +516,10 @@ class Fate(Model):
         ),
         Index("fate_idx", id, creation_type_id, completion_type_id),
     )
+
+    _all_fates = None
+    _intermediate_fates = None
+    _starting_fates = None
 
     @classmethod
     def create(
@@ -598,7 +605,6 @@ class Fate(Model):
             else:
                 host_labors[labor.host_id] = [labor]
 
-        log.info("Start questioning the fates")
         for event in events:
             host = event.host
             event_type = event.event_type
@@ -653,7 +659,6 @@ class Fate(Model):
 
         if all_achieved_labors:
             Labor.achieve_many(session, all_achieved_labors)
-        log.info("Finished questioning the Fates.  Flushing.")
         session.flush()
         session.commit()
 
@@ -1112,12 +1117,10 @@ class Labor(Model):
             labors: the list of Labors dicts
             tx: transaction id tied to these bulk creations
         """
-        log.info("Labor.create_many >>")
         session.execute(
             Labor.__table__.insert(), labors
         )
         session.flush()
-        log.info("Labor.create_many <<")
 
     @classmethod
     def achieve_many(cls, session, labor_dicts):
