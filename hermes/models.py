@@ -667,7 +667,12 @@ class Fate(Model):
 
         log.info("{} Getting open labors".format(str(datetime.utcnow())))
         open_labors = (
-            session.query(Labor).filter(Labor.completion_time == None).all()
+            session.query(Labor).filter(
+                and_(
+                    Labor.completion_time == None,
+                    Labor.host_id.in_([event.host_id for event in events])
+                )
+            ).all()
         )
         log.info("{} Sorting labors".format(str(datetime.utcnow())))
         host_labors = {}
