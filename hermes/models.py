@@ -657,6 +657,7 @@ class Fate(Model):
         # To optimize the database work, we will collect all the work to be
         # done into these lists and then do them all at the end after
         # having processed all events.
+        log.info("{} Starting QTF".format(str(datetime.utcnow())))
         all_new_labors = []
         all_achieved_labors = []
 
@@ -664,9 +665,11 @@ class Fate(Model):
         starting_fates = Fate.get_starting_fates(session)
         intermediate_fates = Fate.get_intermediate_fates(session)
 
+        log.info("{} Getting open labors".format(str(datetime.utcnow())))
         open_labors = (
             session.query(Labor).filter(Labor.completion_time == None).all()
         )
+        log.info("{} Sorting labors".format(str(datetime.utcnow())))
         host_labors = {}
         for labor in open_labors:
             if labor.host_id in host_labors:
@@ -674,12 +677,14 @@ class Fate(Model):
             else:
                 host_labors[labor.host_id] = [labor]
 
+        log.info("{} Starting events loop".format(str(datetime.utcnow())))
         for event in events:
             host = event.host
             event_type = event.event_type
 
             # First, lets see if this Event is supposed to create any
             # non-intermediate Labors and add them to the batch
+            log.info("{} Looking for labors to create".format(str(datetime.utcnow())))
             for fate in starting_fates:
                 if fate["creation_type_id"] == event_type.id:
                     new_labor_dict = {
@@ -692,6 +697,7 @@ class Fate(Model):
 
             # Now, let's look at all the Fates that this EventType fulfills
             # and let's make a list of the matching creation EventTypes
+            log.info("{} Find fullfilled event types".format(str(datetime.utcnow())))
             labor_types_fulfilled = []
             for fate in all_fates:
                 if (
@@ -702,6 +708,7 @@ class Fate(Model):
             # And with that list of fulfilled EventTypes, we can look for
             # open Labors created by that kind of EventType and collect if
             # for batch achievement
+            log.info("{} Processing host labors".format(str(datetime.utcnow())))
             if host.id in host_labors:
                 for labor in host_labors[host.id]:
                     if labor.creation_event.event_type.id in labor_types_fulfilled:
@@ -711,6 +718,7 @@ class Fate(Model):
                         })
                         # Since are closing a Labor, we are free to see if an
                         # intermediate Fate is applicable
+                        log.info("{} Looking for intermediate labors to create".format(str(datetime.utcnow())))
                         for fate in intermediate_fates:
                             if fate["creation_type_id"] == event_type.id:
                                 new_labor_dict = {
@@ -723,9 +731,11 @@ class Fate(Model):
                                 if new_labor_dict not in all_new_labors:
                                     all_new_labors.append(new_labor_dict)
 
+        log.info("{} Creating labors".format(str(datetime.utcnow())))
         if all_new_labors:
             Labor.create_many(session, all_new_labors)
 
+        log.info("{} Achieving labors".format(str(datetime.utcnow())))
         if all_achieved_labors:
             Labor.achieve_many(session, all_achieved_labors)
         session.flush()
