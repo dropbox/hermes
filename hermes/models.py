@@ -589,13 +589,6 @@ class Fate(Model):
             else:
                 Fate._starting_fates.append(fate_dict)
 
-        print "*************** REFRESHING"
-        from pprint import pprint
-        pprint(Fate._all_fates)
-        pprint(Fate._starting_fates)
-        pprint(Fate._intermediate_fates)
-        print "***************"
-
     @classmethod
     def get_all_fates(cls, session):
         """Returns the cached list of all Fates, if available.  Otherwise,
@@ -695,7 +688,6 @@ class Fate(Model):
                         "quest_id": quest.id if quest else None
                     }
                     if new_labor_dict not in all_new_labors:
-                        print "adding a new labor"
                         all_new_labors.append(new_labor_dict)
 
             # Now, let's look at all the Fates that this EventType fulfills
@@ -717,7 +709,6 @@ class Fate(Model):
                             "labor": labor,
                             "event": event
                         })
-                        print "closing labor {}".format(labor.id)
                         # Since are closing a Labor, we are free to see if an
                         # intermediate Fate is applicable
                         for fate in intermediate_fates:
@@ -730,7 +721,6 @@ class Fate(Model):
                                     )
                                 }
                                 if new_labor_dict not in all_new_labors:
-                                    print "adding intermediate labor"
                                     all_new_labors.append(new_labor_dict)
 
         if all_new_labors:
