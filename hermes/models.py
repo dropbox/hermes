@@ -643,7 +643,7 @@ class Fate(Model):
                         # Since are closing a Labor, we are free to see if an
                         # intermediate Fate is applicable
                         for fate in intermediate_fates:
-                            if fate.creation_event_type == event_type:
+                            if fate.creation_type_id == event_type.id:
                                 new_labor_dict = {
                                     "host_id": host.id,
                                     "creation_event_id": event.id,
