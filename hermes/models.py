@@ -555,11 +555,91 @@ class Fate(Model):
             obj.add(session)
             session.flush()
 
+            Fate._all_fates = None
+            Fate._intermediate_fates = None
+            Fate._starting_fates = None
+
         except Exception:
             session.rollback()
             raise
 
         return obj
+
+    @classmethod
+    def _refresh_cache(cls, session):
+        """Helper method to refresh the Fates cache from the database
+
+        Args:
+            session: an active database session
+        """
+        fates = session.query(Fate).all()
+        Fate._all_fates = []
+        Fate._intermediate_fates = []
+        Fate._starting_fates = []
+        for fate in fates:
+            fate_dict = {
+                "id": fate.id,
+                "completion_type_id": fate.completion_type_id,
+                "creation_type_id": fate.creation_type_id,
+                "intermediate": fate.intermediate
+            }
+            Fate._all_fates.append(fate_dict)
+            if fate.intermediate:
+                Fate._intermediate_fates.append(fate_dict)
+            else:
+                Fate._starting_fates.append(fate_dict)
+
+        print "*************** REFRESHING"
+        from pprint import pprint
+        pprint(Fate._all_fates)
+        pprint(Fate._starting_fates)
+        pprint(Fate._intermediate_fates)
+        print "***************"
+
+    @classmethod
+    def get_all_fates(cls, session):
+        """Returns the cached list of all Fates, if available.  Otherwise,
+        pull from the database first and then return.
+
+        Args:
+            session: an active database connection
+
+        Returns:
+            list of all Fates
+        """
+        if not Fate._all_fates:
+            Fate._refresh_cache(session)
+        return Fate._all_fates
+
+    @classmethod
+    def get_intermediate_fates(cls, session):
+        """Returns the cached list of all intermediate Fates, if available.
+        Otherwise, pull from the database first and then return.
+
+        Args:
+            session: an active database connection
+
+        Returns:
+            list of all intermediate Fates
+        """
+        if not Fate._intermediate_fates:
+            Fate._refresh_cache(session)
+        return Fate._intermediate_fates
+
+    @classmethod
+    def get_starting_fates(cls, session):
+        """Returns the cached list of all starting Fates, if available.
+        Otherwise, pull from the database first and then return.
+
+        Args:
+            session: an active database connection
+
+        Returns:
+            list of all starting Fates
+        """
+        if not Fate._starting_fates:
+            Fate._refresh_cache(session)
+        return Fate._starting_fates
 
     @classmethod
     def question_the_fates(cls, session, events, quest=None, flush=True):
@@ -587,13 +667,9 @@ class Fate(Model):
         all_new_labors = []
         all_achieved_labors = []
 
-        all_fates = session.query(Fate).all()
-        creation_fates = (
-            session.query(Fate).filter(Fate.intermediate == False).all()
-        )
-        intermediate_fates = (
-            session.query(Fate).filter(Fate.intermediate == True).all()
-        )
+        all_fates = Fate.get_all_fates(session)
+        starting_fates = Fate.get_starting_fates(session)
+        intermediate_fates = Fate.get_intermediate_fates(session)
 
         open_labors = (
             session.query(Labor).filter(Labor.completion_time == None).all()
@@ -611,14 +687,15 @@ class Fate(Model):
 
             # First, lets see if this Event is supposed to create any
             # non-intermediate Labors and add them to the batch
-            for fate in creation_fates:
-                if fate.creation_type_id == event_type.id:
+            for fate in starting_fates:
+                if fate["creation_type_id"] == event_type.id:
                     new_labor_dict = {
                         "host_id": host.id,
                         "creation_event_id": event.id,
                         "quest_id": quest.id if quest else None
                     }
                     if new_labor_dict not in all_new_labors:
+                        print "adding a new labor"
                         all_new_labors.append(new_labor_dict)
 
             # Now, let's look at all the Fates that this EventType fulfills
@@ -626,9 +703,9 @@ class Fate(Model):
             labor_types_fulfilled = []
             for fate in all_fates:
                 if (
-                    fate.completion_type_id == event_type.id
+                    fate["completion_type_id"] == event_type.id
                 ):
-                    labor_types_fulfilled.append(fate.creation_type_id)
+                    labor_types_fulfilled.append(fate["creation_type_id"])
 
             # And with that list of fulfilled EventTypes, we can look for
             # open Labors created by that kind of EventType and collect if
@@ -640,10 +717,11 @@ class Fate(Model):
                             "labor": labor,
                             "event": event
                         })
+                        print "closing labor {}".format(labor.id)
                         # Since are closing a Labor, we are free to see if an
                         # intermediate Fate is applicable
                         for fate in intermediate_fates:
-                            if fate.creation_type_id == event_type.id:
+                            if fate["creation_type_id"] == event_type.id:
                                 new_labor_dict = {
                                     "host_id": host.id,
                                     "creation_event_id": event.id,
@@ -652,6 +730,7 @@ class Fate(Model):
                                     )
                                 }
                                 if new_labor_dict not in all_new_labors:
+                                    print "adding intermediate labor"
                                     all_new_labors.append(new_labor_dict)
 
         if all_new_labors:

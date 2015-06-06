@@ -16,6 +16,8 @@ def session(db_engine, request, tmpdir):
     models.Session.configure(bind=db_engine)
     session = models.Session()
 
+    models.Fate._all_fates = None
+
     def fin():
         session.close()
     request.addfinalizer(fin)

@@ -55,6 +55,8 @@ def tornado_app(request, tmpdir):
     Model.metadata.create_all(db_engine)
     Session.configure(bind=db_engine)
 
+    Fate._all_fates = None
+
     my_settings = {
         "db_engine": db_engine,
         "db_session": Session,
