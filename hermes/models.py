@@ -612,7 +612,7 @@ class Fate(Model):
             # First, lets see if this Event is supposed to create any
             # non-intermediate Labors and add them to the batch
             for fate in creation_fates:
-                if fate.creation_event_type == event_type:
+                if fate.creation_type_id == event_type.id:
                     new_labor_dict = {
                         "host_id": host.id,
                         "creation_event_id": event.id,
@@ -628,14 +628,14 @@ class Fate(Model):
                 if (
                     fate.completion_type_id == event_type.id
                 ):
-                    labor_types_fulfilled.append(fate.creation_event_type)
+                    labor_types_fulfilled.append(fate.creation_type_id)
 
             # And with that list of fulfilled EventTypes, we can look for
             # open Labors created by that kind of EventType and collect if
             # for batch achievement
             if host.id in host_labors:
                 for labor in host_labors[host.id]:
-                    if labor.creation_event.event_type in labor_types_fulfilled:
+                    if labor.creation_event.event_type.id in labor_types_fulfilled:
                         all_achieved_labors.append({
                             "labor": labor,
                             "event": event
