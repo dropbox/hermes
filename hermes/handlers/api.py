@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 class HostsHandler(ApiHandler):
 
     def post(self):
-        """ **Create a Host entry**
+        """**Create a Host entry**
 
         **Example Request:**
 
@@ -133,7 +133,7 @@ class HostsHandler(ApiHandler):
             self.created(data={"hosts": hosts, "totalHosts": len(hosts)})
 
     def get(self):
-        """ **Get all Hosts**
+        """**Get all Hosts**
 
         **Example Request:**
 
@@ -375,7 +375,7 @@ class HostHandler(ApiHandler):
 class EventTypesHandler(ApiHandler):
 
     def post(self):
-        """ **Create a EventType entry**
+        """**Create a EventType entry**
 
         **Example Request:**
 
@@ -528,7 +528,7 @@ class EventTypesHandler(ApiHandler):
             )
 
     def get(self):
-        """ **Get all EventTypes**
+        """**Get all EventTypes**
 
         **Example Request:**
 
@@ -756,7 +756,7 @@ class EventTypeHandler(ApiHandler):
 class EventsHandler(ApiHandler):
 
     def post(self):
-        """ **Create an Event entry**
+        """**Create an Event entry**
 
         **Example Request:**
 
@@ -847,7 +847,7 @@ class EventsHandler(ApiHandler):
         self.created("/api/v1/events/{}".format(event.id), json)
 
     def get(self):
-        """ **Get all Events**
+        """**Get all Events**
 
         **Example Request:**
 
@@ -918,7 +918,7 @@ class EventsHandler(ApiHandler):
 
 class EventHandler(ApiHandler):
     def get(self, id):
-        """ **Get a specific Event**
+        """**Get a specific Event**
 
         **Example Request:**
 
@@ -984,7 +984,7 @@ class EventHandler(ApiHandler):
 class FatesHandler(ApiHandler):
 
     def post(self):
-        """ **Create a Fate entry**
+        """**Create a Fate entry**
 
         **Example Request:**
 
@@ -1076,7 +1076,7 @@ class FatesHandler(ApiHandler):
         self.created("/api/v1/fates/{}".format(fate.id), json)
 
     def get(self):
-        """ **Get all Fates**
+        """**Get all Fates**
 
         **Example Request:**
 
@@ -1163,7 +1163,7 @@ class FateHandler(ApiHandler):
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
-        :statuscode 404: The EventType was not found.
+        :statuscode 404: The Fate was not found.
         """
         offset, limit, expand = self.get_pagination_values()
         fate = self.session.query(Fate).filter_by(id=id).scalar()
@@ -1263,9 +1263,9 @@ class FateHandler(ApiHandler):
         self.success(json)
 
     def delete(self, id):
-        """Delete a Fate
+        """**Delete a Fate**
 
-        Not supported
+        *Not supported*
         """
         self.not_supported()
 
@@ -1273,21 +1273,25 @@ class FateHandler(ApiHandler):
 class LaborsHandler(ApiHandler):
 
     def post(self):
-        """ Create a Labor entry
+        """**Create a Labor entry**
 
-        Not supported.  Labors are only created by Fates.
+        *Not supported.  Labors are only created by Fates.*
         """
         self.not_supported()
 
     def get(self):
-        """ Get all Labors
+        """**Get all Labors**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             GET /api/v1/labors HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -1314,13 +1318,20 @@ class LaborsHandler(ApiHandler):
                     ...
                 ],
             }
+
+        :query string hostname: filter Labors by a particular hostname
+        :query int limit: (*optional*) Limit result to N resources.
+        :query int offset: (*optional*) Skip the first N resources.
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
         """
         hostname = self.get_argument("hostname", None)
 
         labors = self.session.query(Labor)
         if hostname is not None:
             labors = (
-                labors.filter_by(hostname=hostname)
+                labors.filter_by(Labor.host.hostname == hostname)
                 .order_by(desc(Labor.creation_time))
             )
 
@@ -1341,14 +1352,18 @@ class LaborsHandler(ApiHandler):
 
 class LaborHandler(ApiHandler):
     def get(self, id):
-        """Get a specific Labor
+        """**Get a specific Labor**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             GET /api/v1/labors/1 HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -1367,8 +1382,12 @@ class LaborHandler(ApiHandler):
                 "completionEventId": 212,
             }
 
-        Args:
-            hostname: the name of the host to get
+        :param id: id of the Labor to retrieve
+        :type id: int
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 404: The EventType was not found.
         """
         offset, limit, expand = self.get_pagination_values()
         labor = self.session.query(Labor).filter_by(id=id).scalar()
@@ -1390,9 +1409,11 @@ class LaborHandler(ApiHandler):
         self.success(json)
 
     def put(self, id):
-        """Update a Labor
+        """**Update a Labor**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             PUT /api/v1/labors/23 HTTP/1.1
             Host: localhost
@@ -1402,13 +1423,17 @@ class LaborHandler(ApiHandler):
                 "questId": 1,
             }
 
-            or
+        or
+
+        .. sourcecode:: http
 
             {
                 "ackUser": "johnny"
             }
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -1427,8 +1452,21 @@ class LaborHandler(ApiHandler):
                 "completionEventId": 212,
             }
 
-        Args:
-            id: the id of the Labor to update
+        :param id: id of the Labor that should be updated.
+        :type id: string
+
+        :reqjson int questId: The Quest ID to which this Fate should now be associated.
+        :reqjson string ackUser: The username to log as having acknowledged this Labor
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :statuscode 200: The request was successful.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 403: The request was made with insufficient permissions.
+        :statuscode 404: The Labor was not found.
+        :statuscode 409: There was a conflict with another resource.
         """
         labor = self.session.query(Labor).filter_by(id=id).scalar()
         if not labor:
@@ -1461,18 +1499,20 @@ class LaborHandler(ApiHandler):
         self.success(json)
 
     def delete(self, id):
-        """Delete a Labor
+        """**Delete a Labor**
 
-        Not supported
+        *Not supported*
         """
         self.not_supported()
 
 
 class QuestsHandler(ApiHandler):
     def post(self):
-        """ Create a Quest entry
+        """**Create a Quest entry**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             POST /api/v1/quests HTTP/1.1
             Host: localhost
@@ -1486,7 +1526,9 @@ class QuestsHandler(ApiHandler):
                 "hostQuery": "tag=value"
             }
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 201 OK
             Location: /api/v1/hosts/example
@@ -1502,6 +1544,23 @@ class QuestsHandler(ApiHandler):
                 "description": "This is a quest almighty",
                 "labors": [],
             }
+
+        :reqjson int eventTypeId: the ID of the EventType to for the Events that will be thrown in the creation of this Quest
+        :regjson string creator: the user creating this Quest
+        :regjson array hostnames: the array of hostnames that will be part of this Quest
+        :regjson string hostQuery: the query to send to the plugin to come up with the list of hostnames that will be part of this Quest
+        :regjson string description: The human readable description this Quest
+        :regjson timestamp targetTime: (*optional*) The target date for the completion of this Quest
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :resheader Location: URL to the created resource.
+
+        :statuscode 201: The Quest was successfully created.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 409: There was a conflict with another resource.
 
         """
         log.info("Creating a new quest")
@@ -1587,14 +1646,18 @@ class QuestsHandler(ApiHandler):
         self.created("/api/v1/quests/{}".format(quest.id), json)
 
     def get(self):
-        """ Get all Quests
+        """**Get all Quests**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             GET /api/v1/quests HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -1618,6 +1681,13 @@ class QuestsHandler(ApiHandler):
                     ...
                 ],
             }
+
+        :query boolean filterClosed: if true, filter out completed Quests
+        :query int limit: (*optional*) Limit result to N resources.
+        :query int offset: (*optional*) Skip the first N resources.
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
         """
         filter_closed = self.get_argument("filterClosed", None)
 
@@ -1645,23 +1715,26 @@ class QuestsHandler(ApiHandler):
             "limit": limit,
             "offset": offset,
             "totalQuests": total,
+            "quests": quests_json
         }
-
-        json["quests"] = quests_json
 
         self.success(json)
 
 
 class QuestHandler(ApiHandler):
     def get(self, id):
-        """Get a specific Quest
+        """**Get a specific Quest**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             GET /api/v1/quests/1 HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -1678,8 +1751,12 @@ class QuestHandler(ApiHandler):
                 "labors": [],
             }
 
-        Args:
-            id: the id of the quest to get
+        :param id: id of the Quest to retrieve
+        :type id: int
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 404: The EventType was not found.
         """
         offset, limit, expand = self.get_pagination_values()
 
@@ -1726,9 +1803,11 @@ class QuestHandler(ApiHandler):
         self.success(json)
 
     def put(self, id):
-        """Update a Quest
+        """**Update a Quest**
 
-         Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
              PUT /api/v1/quest/1 HTTP/1.1
              Host: localhost
@@ -1739,26 +1818,41 @@ class QuestHandler(ApiHandler):
                  "creator": "tammy"
              }
 
-         Example response:
+        **Example response:**
 
-             HTTP/1.1 200 OK
-             Content-Type: application/json
+        .. sourcecode:: http
 
-             {
-                 "status": "ok",
-                 "id": 1,
-                 "href": "/api/v1/quests/1",
-                 "creator": "tammy",
-                 "embarkTime": timestamp,
-                 "targetTime": timestamp,
-                 "completionTime": timestamp,
-                 "description": "New desc",
-                 "labors": [],
-             }
+            HTTP/1.1 200 OK
+            Content-Type: application/json
 
-         Args:
-             id: the id of the fate to update
-         """
+            {
+                "status": "ok",
+                "id": 1,
+                "href": "/api/v1/quests/1",
+                "creator": "tammy",
+                "embarkTime": timestamp,
+                "targetTime": timestamp,
+                "completionTime": timestamp,
+                "description": "New desc",
+                "labors": [],
+            }
+
+        :param id: id of the Quest that should be updated.
+        :type id: string
+
+        :reqjson string description: the new description of the Quest
+        :reqjson string creator: The new username of the creator (owner)
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :statuscode 200: The request was successful.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 403: The request was made with insufficient permissions.
+        :statuscode 404: The Quest was not found.
+        :statuscode 409: There was a conflict with another resource.
+        """
         quest = self.session.query(Quest).filter_by(id=id).scalar()
 
         if not quest:
@@ -1793,8 +1887,8 @@ class QuestHandler(ApiHandler):
         self.success(json)
 
     def delete(self, id):
-        """Delete a Quest
+        """**Delete a Quest**
 
-        Not supported
+        *Not supported*
         """
         self.not_supported()
