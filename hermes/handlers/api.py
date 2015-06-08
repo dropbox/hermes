@@ -1,5 +1,6 @@
 import ipaddress
 import logging
+import re
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 
@@ -14,6 +15,8 @@ from dateutil import parser
 
 
 log = logging.getLogger(__name__)
+
+EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
 
 class HostsHandler(ApiHandler):
@@ -812,6 +815,8 @@ class EventsHandler(ApiHandler):
         try:
             hostname = self.jbody["hostname"]
             user = self.jbody["user"]
+            if not EMAIL_REGEX.match(user):
+                user += "@" + self.domain
             event_type_id = self.jbody["eventTypeId"]
             note = self.jbody["note"]
         except KeyError as err:
@@ -1480,6 +1485,8 @@ class LaborHandler(ApiHandler):
 
             if "ackUser" in self.jbody:
                 ack_user = self.jbody["ackUser"]
+                if not EMAIL_REGEX.match(ack_user):
+                    ack_user += "@" + self.domain
 
             if not quest_id and not ack_user:
                 raise exc.BadRequest("Must update either questId or ackUser")
@@ -1568,6 +1575,8 @@ class QuestsHandler(ApiHandler):
         try:
             event_type_id = self.jbody["eventTypeId"]
             creator = self.jbody["creator"]
+            if not EMAIL_REGEX.match(creator):
+                creator += "@" + self.domain
             description = self.jbody["description"]
             hostnames = self.jbody["hostnames"]
 
@@ -1865,6 +1874,8 @@ class QuestHandler(ApiHandler):
                 new_desc = self.jbody["description"]
             if "creator" in self.jbody:
                 new_creator = self.jbody['creator']
+                if not EMAIL_REGEX.match(new_creator):
+                    new_creator += "@" + self.domain
         except KeyError as err:
             raise exc.BadRequest(
                 "Missing Required Argument: {}".format(err.message))

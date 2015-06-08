@@ -34,6 +34,7 @@ class BaseHandler(RequestHandler):
     def initialize(self):
         self.session = self.application.my_settings.get("db_session")()
         self.engine = self.application.my_settings.get("db_engine")
+        self.domain = self.application.my_settings.get("domain")
 
     def on_finish(self):
         self.session.close()

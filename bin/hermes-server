@@ -70,6 +70,7 @@ def main():
     my_settings = {
         "db_engine": db_engine,
         "db_session": Session,
+        "domain": settings.domain
     }
 
     application = Application(my_settings=my_settings, **tornado_settings)

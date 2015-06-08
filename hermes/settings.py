@@ -48,6 +48,7 @@ settings = Settings({
     "database": None,
     "query_server": "http://localhost:5353/api/query",
     "debug": False,
+    "domain": "localhost",
     "port": 8990,
     "user_auth_header": "X-Hermes-Email",
     "restrict_networks": [],

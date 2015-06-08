@@ -21,6 +21,9 @@ bind_address: "127.0.0.1"
 # Type: bool
 debug: true
 
+# The domain name to append to user names if not specified
+domain: "dropbox.com"
+
 # Specifies whether to use XSRF headers/cookies for API calls. Default: true
 # Type: bool
 api_xsrf_enabled: false
