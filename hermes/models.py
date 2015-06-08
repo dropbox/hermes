@@ -1007,12 +1007,14 @@ class Quest(Model):
 
         Called when an associated Achievment is completed.
         """
-        complete = True
-        for labor in self.labors:
-            if labor.completion_time is None:
-                complete = False
+        labors = self.session.query(Labor).filter(
+            and_(
+                Labor.quest_id == self.id,
+                Labor.completion_event_id == None
+            )
+        ).count()
 
-        if complete:
+        if labors == 0:
             self.update(
                 completion_time=datetime.utcnow()
             )
