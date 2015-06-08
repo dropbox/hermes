@@ -1335,8 +1335,9 @@ class LaborsHandler(ApiHandler):
 
         labors = self.session.query(Labor)
         if hostname is not None:
+            host = Host.query().filter(Host.hostname == hostname).one()
             labors = (
-                labors.filter_by(Labor.host.hostname == hostname)
+                labors.filter(Labor.host == host)
                 .order_by(desc(Labor.creation_time))
             )
 
