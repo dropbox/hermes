@@ -332,6 +332,8 @@ class HostHandler(ApiHandler):
         :param hostname: hostname of the Host that should be updated.
         :type hostname: string
 
+        :reqjson string hostname: The new hostname of the Host.
+
         :reqheader Content-Type: The server expects a json body specified with
                                  this header.
 
@@ -709,6 +711,8 @@ class EventTypeHandler(ApiHandler):
         :param id: id of the EventType that should be updated.
         :type id: string
 
+        :reqjson string description: The new description of the EventType.
+
         :reqheader Content-Type: The server expects a json body specified with
                                  this header.
 
@@ -918,14 +922,14 @@ class EventHandler(ApiHandler):
 
         **Example Request:**
 
-        .. sourcecode:: host
+        .. sourcecode:: http
 
             GET /api/v1/events/1/ HTTP/1.1
             Host: localhost
 
         **Example response:**
 
-        .. sourcecode:: host
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -980,10 +984,11 @@ class EventHandler(ApiHandler):
 class FatesHandler(ApiHandler):
 
     def post(self):
-        """ Create a Fate entry
+        """ **Create a Fate entry**
 
-        Example Request:
+        **Example Request:**
 
+        .. sourcecode:: http
 
             POST /api/v1/fates HTTP/1.1
             Host: localhost
@@ -995,7 +1000,9 @@ class FatesHandler(ApiHandler):
                 "description": "This is a fate"
             }
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 201 OK
             Location: /api/v1/fates/1
@@ -1008,6 +1015,21 @@ class FatesHandler(ApiHandler):
                 "intermediate": false,
                 "description": "This is a fate"
             }
+
+        :reqjson int creationEventTypeId: the ID of the EventType that triggers this Fate
+        :regjson int completionEventTypeId: the ID of the EventType that closes Labors created by this Fate
+        :regjson boolean intermediate: If true, this Fate only creates Labors if simultaneously closing an existing Labor
+        :regjson string description: (*optional*) The human readable description this Fate
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :resheader Location: URL to the created resource.
+
+        :statuscode 201: The Fate was successfully created.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 409: There was a conflict with another resource.
         """
 
         try:
@@ -1054,14 +1076,18 @@ class FatesHandler(ApiHandler):
         self.created("/api/v1/fates/{}".format(fate.id), json)
 
     def get(self):
-        """ Get all Fates
+        """ **Get all Fates**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             GET /api/v1/fates HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -1082,6 +1108,12 @@ class FatesHandler(ApiHandler):
                     ...
                 ],
             }
+
+        :query int limit: (*optional*) Limit result to N resources.
+        :query int offset: (*optional*) Skip the first N resources.
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
         """
         fates = self.session.query(Fate)
 
@@ -1100,14 +1132,18 @@ class FatesHandler(ApiHandler):
 
 class FateHandler(ApiHandler):
     def get(self, id):
-        """Get a specific Fate
+        """**Get a specific Fate**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             GET /api/v1/fates/1/ HTTP/1.1
             Host: localhost
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -1122,8 +1158,12 @@ class FateHandler(ApiHandler):
                 "description": string,
             }
 
-        Args:
-            id: the id of the fate to get
+        :param id: id of the Fate to retrieve
+        :type id: int
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 404: The EventType was not found.
         """
         offset, limit, expand = self.get_pagination_values()
         fate = self.session.query(Fate).filter_by(id=id).scalar()
@@ -1143,9 +1183,11 @@ class FateHandler(ApiHandler):
         self.success(json)
 
     def put(self, id):
-        """Update a Fate
+        """**Update a Fate**
 
-        Example Request:
+        **Example Request:**
+
+        .. sourcecode:: http
 
             PUT /api/v1/fates/1 HTTP/1.1
             Host: localhost
@@ -1156,7 +1198,9 @@ class FateHandler(ApiHandler):
                 "intermediate: true
             }
 
-        Example response:
+        **Example response:**
+
+        .. sourcecode:: http
 
             HTTP/1.1 200 OK
             Content-Type: application/json
@@ -1171,8 +1215,21 @@ class FateHandler(ApiHandler):
                 "description": "New desc"
             }
 
-        Args:
-            id: the id of the fate to update
+        :param id: id of the Fate that should be updated.
+        :type id: string
+
+        :reqjson string description: The new description of this Fate.
+        :reqjson boolean intermediate: The new intermediate flag value.
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :statuscode 200: The request was successful.
+        :statuscode 400: The request was malformed.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 403: The request was made with insufficient permissions.
+        :statuscode 404: The Fate was not found.
+        :statuscode 409: There was a conflict with another resource.
         """
         fate = self.session.query(Fate).filter_by(id=id).scalar()
         if not fate:
