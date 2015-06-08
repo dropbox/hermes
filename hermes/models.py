@@ -664,6 +664,7 @@ class Fate(Model):
         starting_fates = Fate.get_starting_fates(session)
         intermediate_fates = Fate.get_intermediate_fates(session)
 
+        # Query the database for open labors for hosts of which we have an event
         open_labors = (
             session.query(Labor).filter(
                 and_(

@@ -1459,6 +1459,10 @@ class QuestsHandler(ApiHandler):
                 target_time = parser.parse(
                     self.jbody["targetTime"]
                 )
+                if target_time <= datetime.utcnow():
+                    raise exc.BadRequest(
+                        "Quest target date must be in future"
+                    )
             else:
                 target_time = None
         except KeyError as err:
