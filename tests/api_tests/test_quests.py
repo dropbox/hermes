@@ -26,13 +26,13 @@ def test_creation(sample_data1_server):
                         "href": "/api/v1/events/1",
                         "id": 1,
                         "note": "example needs a reboot",
-                        "user": "system"},
+                        "user": "system@example.com"},
                        {"eventTypeId": 2,
                         "hostId": 1,
                         "href": "/api/v1/events/2",
                         "id": 2,
                         "note": "example needs a rebooted",
-                        "user": "system"}],
+                        "user": "system@example.com"}],
             "href": "/api/v1/events",
             "limit": 10,
             "offset": 0,
@@ -57,7 +57,7 @@ def test_creation(sample_data1_server):
     assert_created(
         client.create(
             "/quests",
-            creator="johnny",
+            creator="johnny@example.com",
             eventTypeId=1,
             targetTime=str(target_time),
             description="This is a quest almighty",
@@ -82,7 +82,7 @@ def test_creation(sample_data1_server):
         {
             "href": "/api/v1/quests/1",
             "id": 1,
-            "creator": "johnny",
+            "creator": "johnny@example.com",
             "targetTime": str(target_time),
             "description": "This is a quest almighty",
             "completionTime": None
@@ -110,7 +110,7 @@ def test_update(sample_data1_server):
     assert_created(
         client.create(
             "/quests",
-            creator="johnny",
+            creator="johnny@example.com",
             eventTypeId=1,
             targetTime=str(target_time),
             description="This is a quest almighty",
@@ -122,12 +122,12 @@ def test_update(sample_data1_server):
     assert_success(
         client.update(
             "/quests/1",
-            creator="betsy"
+            creator="betsy@example.com"
         ),
         {
             "href": "/api/v1/quests/1",
             "id": 1,
-            "creator": "betsy",
+            "creator": "betsy@example.com",
             "targetTime": str(target_time),
             "description": "This is a quest almighty",
             "completionTime": None
@@ -140,7 +140,7 @@ def test_update(sample_data1_server):
         {
             "href": "/api/v1/quests/1",
             "id": 1,
-            "creator": "betsy",
+            "creator": "betsy@example.com",
             "targetTime": str(target_time),
             "description": "This is a quest almighty",
             "completionTime": None
@@ -156,7 +156,7 @@ def test_update(sample_data1_server):
         {
             "href": "/api/v1/quests/1",
             "id": 1,
-            "creator": "betsy",
+            "creator": "betsy@example.com",
             "targetTime": str(target_time),
             "description": "New desc",
             "completionTime": None
@@ -169,7 +169,7 @@ def test_update(sample_data1_server):
         {
             "href": "/api/v1/quests/1",
             "id": 1,
-            "creator": "betsy",
+            "creator": "betsy@example.com",
             "targetTime": str(target_time),
             "description": "New desc",
             "completionTime": None
@@ -181,12 +181,12 @@ def test_update(sample_data1_server):
         client.update(
             "/quests/1",
             description="Newer desc",
-            creator="tommy"
+            creator="tommy@example.com"
         ),
         {
             "href": "/api/v1/quests/1",
             "id": 1,
-            "creator": "tommy",
+            "creator": "tommy@example.com",
             "targetTime": str(target_time),
             "description": "Newer desc",
             "completionTime": None
@@ -199,7 +199,7 @@ def test_update(sample_data1_server):
         {
             "href": "/api/v1/quests/1",
             "id": 1,
-            "creator": "tommy",
+            "creator": "tommy@example.com",
             "targetTime": str(target_time),
             "description": "Newer desc",
             "completionTime": None

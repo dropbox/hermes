@@ -60,6 +60,7 @@ def tornado_app(request, tmpdir):
     my_settings = {
         "db_engine": db_engine,
         "db_session": Session,
+        "domain": "example.com"
     }
 
     tornado_settings = {

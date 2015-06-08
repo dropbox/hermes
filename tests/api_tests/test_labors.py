@@ -135,7 +135,7 @@ def test_update(sample_data1_server):
         client.create(
             "/events",
             hostname="example",
-            user="testman",
+            user="testman@example.com",
             eventTypeId=1,
             note="This is a test event"
         ),
@@ -162,7 +162,7 @@ def test_update(sample_data1_server):
     # attach the labor to a quest
     response = client.update(
         "/labors/4",
-        ackUser="johnny",
+        ackUser="johnny@example.com",
         questId=1
     )
 
@@ -171,7 +171,7 @@ def test_update(sample_data1_server):
         response,
         {
             "href": "/api/v1/labors/4",
-            "ackUser": "johnny",
+            "ackUser": "johnny@example.com",
             "completionEventId": None,
             "completionTime": None,
             "creationEventId": 6,

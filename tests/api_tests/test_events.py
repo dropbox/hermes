@@ -68,13 +68,13 @@ def test_creation(sample_data1_server):
                         "href": "/api/v1/events/1",
                         "id": 1,
                         "note": "example needs a reboot",
-                        "user": "system"},
+                        "user": "system@example.com"},
                        {"eventTypeId": 2,
                         "hostId": 1,
                         "href": "/api/v1/events/2",
                         "id": 2,
                         "note": "example needs a rebooted",
-                        "user": "system"}],
+                        "user": "system@example.com"}],
             "href": "/api/v1/events",
             "limit": 10,
             "offset": 0,
@@ -87,7 +87,7 @@ def test_creation(sample_data1_server):
         client.create(
             "/events",
             hostname="example",
-            user="testman",
+            user="testman@example.com",
             eventTypeId=1,
             note="This is a test event"
         ),
@@ -102,7 +102,7 @@ def test_creation(sample_data1_server):
             "href": "/api/v1/events/3",
             "note": "This is a test event",
             "eventTypeId": 1,
-            "user": "testman"
+            "user": "testman@example.com"
         },
         strip=["timestamp"]
     )
@@ -114,7 +114,7 @@ def test_update(sample_data1_server):
         client.create(
             "/events",
             hostname="example",
-            user="testman",
+            user="testman@example.com",
             eventTypeId=1,
             note="This is a test event"
         ),
@@ -129,7 +129,7 @@ def test_update(sample_data1_server):
             "href": "/api/v1/events/3",
             "note": "This is a test event",
             "eventTypeId": 1,
-            "user": "testman"
+            "user": "testman@example.com"
         },
         strip=["timestamp"]
     )
