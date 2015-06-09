@@ -217,29 +217,26 @@ def add_host(args):
 def list_host_last_state(args):
     logging.debug("list_host_last_state(%s)", args.hostname)
 
-
-
     response = request_get("/api/v1/eventtypes?limit=all")
-    event_types = response.json()
+    event_types = response.json()["eventTypes"]
 
-
-
-    response = request_get(
-        "/api/v1/hosts/{}?expand=events&expand=eventtypes&limit={}".format(
-            args.hostname,
-            args.limit
+    for event_type in event_types:
+        response = request_get(
+            "/api/v1/events/?limit=1&hostname={}&eventTypeId={}".format(
+                args.hostname,
+                event_type["id"]
+            )
         )
-    )
-
-    host = response.json()
-    events = host["events"]
-
-    print "EVENTS FOR {} (up to {}):".format(host["hostname"], args.limit)
-    for event in events:
-        print "{}  {} {}  {}".format(
-            event["timestamp"], event["eventType"]["category"],
-            event["eventType"]["state"], event["note"]
-        )
+        events = response.json()["events"]
+        if events:
+            print "{} {}: {}".format(
+                event_type["category"], event_type["state"],
+                events[0]["timestamp"]
+            )
+        else:
+            print "{} {}: Never".format(
+                event_type["category"], event_type["state"]
+            )
 
 
 def list_host_events(args):
