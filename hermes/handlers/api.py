@@ -1337,8 +1337,6 @@ class LaborsHandler(ApiHandler):
         open_flag = self.get_argument("open", None)
         quest_id = self.get_argument("questId", None)
 
-        log.info("Open flag {}".format(open_flag))
-
         labors = self.session.query(Labor)
 
         if open_flag and open_flag.lower() == "true":
@@ -1361,11 +1359,18 @@ class LaborsHandler(ApiHandler):
 
         labors = labors.from_self().order_by(Labor.creation_time)
 
+        labor_dicts = []
+        for labor in labors:
+            labor_dict = labor.to_dict("/api/v1")
+            if "hosts" in expand:
+                labor_dict["host"] = labor.host.to_dict("/api/v1")
+            labor_dicts.append(labor_dict)
+
         json = {
             "limit": limit,
             "offset": offset,
             "totalLabors": total,
-            "labors": [labor.to_dict("/api/v1") for labor in labors.all()],
+            "labors": labor_dicts,
         }
 
         self.success(json)
