@@ -889,6 +889,7 @@ class EventsHandler(ApiHandler):
 
         :query int eventTypeId: (*optional/multiple*) Filter Events by EventType id.
         :query int hostId: (*optional*) Filter Events by Host id.
+        :query string hostname: (*optional*) Filter Events by Host's hostname
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -898,8 +899,7 @@ class EventsHandler(ApiHandler):
 
         event_type_id = self.get_arguments("eventTypeId")
         host_id = self.get_argument("hostId", None)
-
-        log.info(event_type_id)
+        hostname = self.get_argument("hostname", None)
 
         events = self.session.query(Event).order_by(desc(Event.timestamp))
 
@@ -908,6 +908,10 @@ class EventsHandler(ApiHandler):
 
         if host_id is not None:
             events = events.filter_by(host_id=host_id)
+
+        if hostname:
+            host = Host.query().filter(Host.hostname == hostname).one()
+            events = events.filter(Event.host == host)
 
         offset, limit, expand = self.get_pagination_values()
         events, total = self.paginate_query(events, offset, limit)

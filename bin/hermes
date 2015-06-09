@@ -214,6 +214,34 @@ def add_host(args):
         )
 
 
+def list_host_last_state(args):
+    logging.debug("list_host_last_state(%s)", args.hostname)
+
+
+
+    response = request_get("/api/v1/eventtypes?limit=all")
+    event_types = response.json()
+
+
+
+    response = request_get(
+        "/api/v1/hosts/{}?expand=events&expand=eventtypes&limit={}".format(
+            args.hostname,
+            args.limit
+        )
+    )
+
+    host = response.json()
+    events = host["events"]
+
+    print "EVENTS FOR {} (up to {}):".format(host["hostname"], args.limit)
+    for event in events:
+        print "{}  {} {}  {}".format(
+            event["timestamp"], event["eventType"]["category"],
+            event["eventType"]["state"], event["note"]
+        )
+
+
 def list_host_events(args):
     logging.debug("list_host_events(%s)", args.hostname)
 
@@ -591,6 +619,10 @@ def parse_cli_args():
         help="Limit the number of events displayed"
     )
     host_events_parser.set_defaults(func=list_host_events)
+    # Host last unique events
+    host_events_parser = host_subparser.add_parser("last-state")
+    host_events_parser.add_argument("hostname")
+    host_events_parser.set_defaults(func=list_host_last_state)
     # Host labors parser
     host_labors_parser = host_subparser.add_parser("labors")
     host_labors_parser.add_argument("hostname")
