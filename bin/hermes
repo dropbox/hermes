@@ -10,16 +10,11 @@ import logging
 import sys
 import requests
 
-from datetime import datetime
 from dateutil import parser
-from sqlalchemy import desc
 
 import hermes
-from hermes import models
-from hermes.models import Event, EventType, Host, Fate, Labor, Quest
 from hermes.settings_client import settings
 
-sa_log = logging.getLogger("sqlalchemy.engine.base.Engine")
 logging.getLogger("requests").setLevel(logging.WARNING)
 
 

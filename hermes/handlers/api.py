@@ -1325,6 +1325,8 @@ class LaborsHandler(ApiHandler):
             }
 
         :query string hostname: filter Labors by a particular hostname
+        :query boolean open: if true, filter Labors to those still open
+        :query int questId: the id of the quest we want to filter by
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -1332,8 +1334,21 @@ class LaborsHandler(ApiHandler):
         :statuscode 401: The request was made without being logged in.
         """
         hostname = self.get_argument("hostname", None)
+        open_flag = self.get_argument("open", None)
+        quest_id = self.get_argument("questId", None)
+
+        log.info("Open flag {}".format(open_flag))
 
         labors = self.session.query(Labor)
+
+        if open_flag and open_flag.lower() == "true":
+            labors = labors.filter(Labor.completion_event_id == None)
+        if open_flag and open_flag.lower() == "false":
+            labors = labors.filter(Labor.completion_event_id != None)
+
+        if quest_id:
+            labors = labors.filter(Labor.quest_id == quest_id)
+
         if hostname is not None:
             host = Host.query().filter(Host.hostname == hostname).one()
             labors = (
