@@ -227,6 +227,7 @@ class HostHandler(ApiHandler):
         :param hostname: hostname of the Host to retrieve
         :type hostname: string
 
+        :query string expand: (*optional*) supports labors, events, eventtypes, quests
         :query int limit: (*optional*) Limit result of child resources.
         :query int offset: (*optional*) Skip the first N child resources.
 
@@ -633,6 +634,7 @@ class EventTypeHandler(ApiHandler):
         :param id: id of the EventType to retrieve
         :type id: int
 
+        :query string expand: (*optional*) supports events, fates
         :query int limit: (*optional*) Limit result of child resources.
         :query int offset: (*optional*) Skip the first N child resources.
 
@@ -757,7 +759,6 @@ class EventTypeHandler(ApiHandler):
 
 
 class EventsHandler(ApiHandler):
-
     def post(self):
         """**Create an Event entry**
 
@@ -951,6 +952,8 @@ class EventHandler(ApiHandler):
 
         :param id: id of the Event to retrieve
         :type id: int
+
+        :query string expand: (*optional*) supports hosts, eventtypes
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
@@ -1166,6 +1169,8 @@ class FateHandler(ApiHandler):
         :param id: id of the Fate to retrieve
         :type id: int
 
+        :query string expand: (*optional*) supports eventtypes
+
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
         :statuscode 404: The Fate was not found.
@@ -1327,6 +1332,7 @@ class LaborsHandler(ApiHandler):
         :query string hostname: filter Labors by a particular hostname
         :query boolean open: if true, filter Labors to those still open
         :query int questId: the id of the quest we want to filter by
+        :query string expand: (*optional*) supports hosts
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -1410,6 +1416,8 @@ class LaborHandler(ApiHandler):
 
         :param id: id of the Labor to retrieve
         :type id: int
+
+        :query string expand: (*optional*) supports hosts, eventtypes
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
@@ -1783,6 +1791,8 @@ class QuestHandler(ApiHandler):
 
         :param id: id of the Quest to retrieve
         :type id: int
+
+        :query string expand: (*optional*) supports labors, hosts, events, eventtypes
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
