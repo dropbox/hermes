@@ -887,7 +887,7 @@ class EventsHandler(ApiHandler):
                 ],
             }
 
-        :query int eventTypeId: (*optional*) Filter Events by EventType id.
+        :query int eventTypeId: (*optional/multiple*) Filter Events by EventType id.
         :query int hostId: (*optional*) Filter Events by Host id.
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
@@ -896,13 +896,15 @@ class EventsHandler(ApiHandler):
         :statuscode 401: The request was made without being logged in.
         """
 
-        event_type_id = self.get_argument("eventTypeId", None)
+        event_type_id = self.get_arguments("eventTypeId")
         host_id = self.get_argument("hostId", None)
+
+        log.info(event_type_id)
 
         events = self.session.query(Event).order_by(desc(Event.timestamp))
 
-        if event_type_id is not None:
-            events = events.filter_by(event_type_id=event_type_id)
+        if event_type_id:
+            events = events.filter(Event.event_type_id.in_(event_type_id))
 
         if host_id is not None:
             events = events.filter_by(host_id=host_id)
