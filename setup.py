@@ -2,8 +2,8 @@
 
 import os
 
-from setuptools import find_packages
-from distutils.core import setup
+from setuptools import find_packages, setup
+# from distutils.core import setup
 
 execfile('hermes/version.py')
 
