@@ -168,6 +168,7 @@ class HostsHandler(ApiHandler):
             }
 
         :query string hostname: (*optional*) Filter Hosts by hostname.
+        :query string hostQuery: (*optional*) the query to send to the plugin to come up with the list of hostnames
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -175,10 +176,27 @@ class HostsHandler(ApiHandler):
         :statuscode 401: The request was made without being logged in.
         """
         hostname = self.get_argument("hostname", None)
+        host_query = self.get_argument("hostQuery", None)
 
         hosts = self.session.query(Host)
         if hostname is not None:
             hosts = hosts.filter_by(hostname=hostname)
+
+        hostnames = []
+        if host_query:
+            response = PluginHelper.request_get(params={"query": host_query})
+            if (
+                response.status_code == 200
+                and response.json()["status"] == "ok"
+            ):
+                for hostname in response.json()["results"]:
+                    hostnames.append(hostname)
+            else:
+                raise exc.BadRequest("Bad host query: {}".format(host_query))
+
+        log.info(hostnames)
+        if hostnames:
+            hosts = hosts.filter(Host.hostname.in_(hostnames))
 
         offset, limit, expand = self.get_pagination_values()
         hosts, total = self.paginate_query(hosts, offset, limit)
