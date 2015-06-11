@@ -20,4 +20,8 @@ tornado==4.0.2
 MySQL-python==1.2.5
 requests==2.7.0
 python-dateutil==2.4.2
+<<<<<<< HEAD
 git+https://github.com/dropbox/hermes.git
+=======
+git+git://github.com/dropbox/hermes.git
+>>>>>>> Add github package to requirements
