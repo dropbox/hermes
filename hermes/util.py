@@ -4,8 +4,8 @@ Project-wide utilities.
 
 import collections
 import logging
-from dateutil import tz
-from datetime import datetime
+import tornado
+from jinja2 import Environment, PackageLoader
 
 from .settings import settings
 from .version import __version__
@@ -17,19 +17,6 @@ _TRUTHY = set([
     "true", "yes", "1", ""
 ])
 
-
-def time_str(the_date):
-    """Convert a UTC datetime to a local datetime and return a string.
-
-    Args:
-        the_date: a UTC datetime
-    Returns:
-        string of the local datetime
-    """
-    from_zone = tz.gettz('UTC')
-    to_zone = tz.tzlocal()
-    the_date = the_date.replace(tzinfo=from_zone)
-    return str(the_date.astimezone(to_zone))
 
 def qp_to_bool(arg):
     return str(arg).lower() in _TRUTHY
