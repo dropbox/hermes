@@ -2,7 +2,7 @@
 
 import os
 
-import setuptools
+from setuptools import find_packages
 from distutils.core import setup
 
 execfile('hermes/version.py')
@@ -26,7 +26,7 @@ get_package_data("hermes", "hermes/migrations")
 kwargs = {
     "name": "hermes",
     "version": str(__version__),
-    "packages": ["hermes", "hermes.handlers"],
+    "packages": find_packages(exclude=['tests']),
     "package_data": package_data,
     "scripts": ["bin/hermes-server", "bin/hermes"],
     "description": "Hermes Event Management and Autotasker",
@@ -36,6 +36,10 @@ kwargs = {
     "maintainer_email": "digant@dropbox.com",
     "license": "Apache",
     "install_requires": required,
+    "entry_points": """
+        [console_scripts]
+        hermes=bin.hermes:main
+    """,
     "url": "https://github.com/dropbox/hermes",
     "download_url": "https://github.com/dropbox/hermes/archive/master.tar.gz",
     "classifiers": [
