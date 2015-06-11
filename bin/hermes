@@ -29,6 +29,7 @@ def request_get(path):
     response = requests.get(settings.hermes_server + path)
 
     if response.status_code != requests.codes.ok:
+        logging.debug(response.json())
         sys.exit("Error: {}".format(response.json()["error"]["message"]))
 
     return response
@@ -48,6 +49,7 @@ def request_post(path, json):
     response = requests.post(settings.hermes_server + path, json=json)
 
     if response.status_code != requests.codes.created:
+        logging.debug(response.json())
         sys.exit("Error: {}".format(response.json()["error"]["message"]))
 
     return response
@@ -279,7 +281,8 @@ def list_host_labors(args):
         print "[{}] created on {} (due by {}) by event {} {}  {}".format(
             labor["id"],
             labor["creationTime"],
-            labor["targetTime"] or "whenever",
+            labor["targetTime"] or "whenever"
+            if "targetTime" in labor else "whenever",
             labor["creationEvent"]["eventType"]["category"],
             labor["creationEvent"]["eventType"]["state"],
             labor["creationEvent"]["note"] or ""
