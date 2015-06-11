@@ -17,6 +17,8 @@ from sqlalchemy.types import Integer, String, Boolean
 from sqlalchemy.types import DateTime
 
 from .settings import settings
+from .util import time_str
+
 import exc
 
 log = logging.getLogger(__name__)
@@ -899,7 +901,7 @@ class Event(Model):
         out = {
             "id": self.id,
             "hostId": self.host_id,
-            "timestamp": str(self.timestamp),
+            "timestamp": time_str(self.timestamp),
             "user": self.user,
             "eventTypeId": self.event_type_id,
             "note": self.note if self.note else "",
@@ -1072,12 +1074,12 @@ class Quest(Model):
         """
         out = {
             "id": self.id,
-            "embarkTime": str(self.embark_time),
+            "embarkTime": time_str(self.embark_time),
             "completionTime": (
-                str(self.completion_time) if self.completion_time else None
+                time_str(self.completion_time) if self.completion_time else None
             ),
             "creator": self.creator,
-            "targetTime": str(self.target_time) if self.target_time else None,
+            "targetTime": time_str(self.target_time) if self.target_time else None,
             "description": self.description,
         }
 
@@ -1304,23 +1306,23 @@ class Labor(Model):
             "id": self.id,
             "questId": self.quest_id,
             "hostId": self.host_id,
-            "creationTime": str(self.creation_time),
+            "creationTime": time_str(self.creation_time),
             "creationEventId": self.creation_event_id,
             "completionTime": (
-                str(self.completion_time)
+                time_str(self.completion_time)
                 if self.completion_time else None
             ),
             "completionEventId": self.completion_event_id,
             "ackUser": self.ack_user,
             "ackTime": (
-                str(self.ack_time)
+                time_str(self.ack_time)
                 if self.ack_time else None
             )
         }
 
         if self.quest:
             out['targetTime'] = (
-                str(self.quest.target_time)
+                time_str(self.quest.target_time)
                 if self.quest.target_time else None
             )
 
