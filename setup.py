@@ -2,8 +2,8 @@
 
 import os
 
-from setuptools import find_packages, setup
-# from distutils.core import setup
+from setuptools import find_packages
+from distutils.core import setup
 
 execfile('hermes/version.py')
 
@@ -21,7 +21,6 @@ def get_package_data(package, base_dir):
 
 get_package_data("hermes", "hermes/static")
 get_package_data("hermes", "hermes/templates")
-get_package_data("hermes", "hermes/migrations")
 
 kwargs = {
     "name": "hermes",
@@ -36,10 +35,6 @@ kwargs = {
     "maintainer_email": "digant@dropbox.com",
     "license": "Apache",
     "install_requires": required,
-    "entry_points": """
-        [console_scripts]
-        hermes=bin.hermes:main
-    """,
     "url": "https://github.com/dropbox/hermes",
     "download_url": "https://github.com/dropbox/hermes/archive/master.tar.gz",
     "classifiers": [
