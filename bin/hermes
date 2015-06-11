@@ -10,7 +10,7 @@ import logging
 import sys
 import requests
 
-from dateutil import parser
+from dateutil import parser, tz
 
 import hermes
 from hermes.settings_client import settings
@@ -222,6 +222,8 @@ def list_host_last_state(args):
     response = request_get("/api/v1/eventtypes?limit=all")
     event_types = response.json()["eventTypes"]
 
+    latest_by_category = []
+
     for event_type in event_types:
         response = request_get(
             "/api/v1/events/?limit=1&hostname={}&eventTypeId={}".format(
@@ -231,14 +233,35 @@ def list_host_last_state(args):
         )
         events = response.json()["events"]
         if events:
-            print "{} {}: {}".format(
-                event_type["category"], event_type["state"],
-                events[0]["timestamp"]
-            )
-        else:
-            print "{} {}: Never".format(
-                event_type["category"], event_type["state"]
-            )
+            event = events[0]
+            # see if have an entry for this category, and if we do
+            # see if this one is more recent
+            updated = False
+            for entry in latest_by_category:
+                if (
+                    entry["category"] == event_type["category"]
+                    and entry["timestamp"] < event["timestamp"]
+                ):
+                    entry["state"] = event_type["state"]
+                    entry["timestamp"] = event["timestamp"]
+                    updated = True
+
+            # if we didn't update an entry, we need to add one for this category
+            if not updated:
+                latest_by_category.append({
+                    "category": event_type["category"],
+                    "state": event_type["state"],
+                    "timestamp": event["timestamp"]
+                })
+
+    for entry in latest_by_category:
+        timestamp = parser.parse(entry["timestamp"])
+        timestamp = timestamp.replace(tzinfo=tz.tzutc())
+        timestamp = timestamp.astimezone(tz.tzlocal())
+        print "{} {}: {}".format(
+            entry["category"], entry["state"],
+            timestamp
+        )
 
 
 def list_host_events(args):
@@ -256,8 +279,11 @@ def list_host_events(args):
 
     print "EVENTS FOR {} (up to {}):".format(host["hostname"], args.limit)
     for event in events:
+        timestamp = parser.parse(event["timestamp"])
+        timestamp = timestamp.replace(tzinfo=tz.tzutc())
+        timestamp = timestamp.astimezone(tz.tzlocal())
         print "{}  {} {}  {}".format(
-            event["timestamp"], event["eventType"]["category"],
+            timestamp, event["eventType"]["category"],
             event["eventType"]["state"], event["note"]
         )
 
@@ -278,11 +304,20 @@ def list_host_labors(args):
 
     print "OPEN LABORS FOR {} (up to {}):".format(host["hostname"], args.limit)
     for labor in labors:
+        creation_time = parser.parse(labor["creationTime"])
+        creation_time = creation_time.replace(tzinfo=tz.tzutc())
+        creation_time = creation_time.astimezone(tz.tzlocal())
+        if "targetTime" in labor and labor["targetTime"]:
+            target_time = parser.parse(labor["targetTime"])
+            target_time = target_time.replace(tzinfo=tz.tzutc())
+            target_time = target_time.astimezone(tz.tzlocal())
+        else:
+            target_time = "whenever"
+
         print "[{}] created on {} (due by {}) by event {} {}  {}".format(
             labor["id"],
-            labor["creationTime"],
-            labor["targetTime"] or "whenever"
-            if "targetTime" in labor else "whenever",
+            creation_time,
+            target_time,
             labor["creationEvent"]["eventType"]["category"],
             labor["creationEvent"]["eventType"]["state"],
             labor["creationEvent"]["note"] or ""
@@ -343,14 +378,18 @@ def list_quests(args):
 
     print "OPEN QUESTS:"
     for quest in quests:
+        embark_time = parser.parse(quest["embarkTime"])
+        embark_time = embark_time.replace(tzinfo=tz.tzutc())
+        embark_time = embark_time.astimezone(tz.tzlocal())
         print "[{}] {} by {}.\n\tEmbarked on {}".format(
             quest["id"], quest["description"], quest["creator"],
-            quest["embarkTime"]
+            embark_time
         )
         if quest["targetTime"]:
-            print"\tTarget Completion: {}".format(
-                quest["targetTime"]
-            )
+            target_time = parser.parse(quest["targetTime"])
+            target_time = target_time.replace(tzinfo=tz.tzutc())
+            target_time = target_time.astimezone(tz.tzlocal())
+            print"\tTarget Completion: {}".format(target_time)
 
         labors_remaining = 0
         for labor in quest["labors"]:
@@ -390,21 +429,28 @@ def show_quest(args):
 
     if not args.list_only:
         print "QUEST {}:".format(args.quest_id)
+        embark_time = parser.parse(quest["embarkTime"])
+        embark_time = embark_time.replace(tzinfo=tz.tzutc())
+        embark_time = embark_time.astimezone(tz.tzlocal())
         print "{} by {}.\n\tEmbarked on {}".format(
-            quest["description"], quest["creator"], quest["embarkTime"]
+            quest["description"], quest["creator"], embark_time
         )
         if quest["targetTime"]:
-            print"\tTarget Completion: {}".format(
-                quest["targetTime"]
-            )
+            target_time = parser.parse(quest["targetTime"])
+            target_time = target_time.replace(tzinfo=tz.tzutc())
+            target_time = target_time.astimezone(tz.tzlocal())
+            print"\tTarget Completion: {}".format(target_time)
 
         if args.all or args.completed_only:
             for labor in completed:
+                completion_time = parser.parse(labor["completionTime"])
+                completion_time = completion_time.replace(tzinfo=tz.tzutc())
+                completion_time = completion_time.astimezone(tz.tzlocal())
                 print "{} achieved {} {} on {}".format(
                     labor["host"]["hostname"].rjust(max_width + 4),
                     labor["creationEvent"]["eventType"]["category"],
                     labor["creationEvent"]["eventType"]["state"],
-                    labor["completionTime"]
+                    completion_time
                 )
         if not args.completed_only:
             for labor in remaining:
@@ -489,7 +535,10 @@ def create_quest(args):
 
     if args.due:
         try:
-            json["targetTime"] = str(parser.parse(args.due, yearfirst=True))
+            target_time = parser.parse(parser.parse(args.due, yearfirst=True))
+            target_time = target_time.replace(tzinfo=tz.tzlocal())
+            target_time = target_time.astimezone(tz.tzutc())
+            json["targetTime"] = str(target_time)
         except ValueError:
             sys.exit(
                 "Invalid target date: {}"
