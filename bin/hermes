@@ -9,6 +9,7 @@ import getpass
 import logging
 import sys
 import requests
+import urllib3
 
 from dateutil import parser, tz
 
@@ -16,7 +17,7 @@ import hermes
 from hermes.settings_client import settings
 
 logging.getLogger("requests").setLevel(logging.WARNING)
-logging.captureWarnings(True)
+urllib3.disable_warnings()
 
 def request_get(path):
     """Make an HTTP GET request for the given path

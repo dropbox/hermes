@@ -194,7 +194,6 @@ class HostsHandler(ApiHandler):
             else:
                 raise exc.BadRequest("Bad host query: {}".format(host_query))
 
-        log.info(hostnames)
         if hostnames:
             hosts = hosts.filter(Host.hostname.in_(hostnames))
 
