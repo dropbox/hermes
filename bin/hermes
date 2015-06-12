@@ -572,9 +572,10 @@ def create_quest(args):
 
     if args.due:
         try:
-            target_time = parser.parse(parser.parse(args.due, yearfirst=True))
+            target_time = parser.parse(args.due, yearfirst=True)
             target_time = target_time.replace(tzinfo=tz.tzlocal())
             target_time = target_time.astimezone(tz.tzutc())
+            target_time = target_time.replace(tzinfo=None)
             json["targetTime"] = str(target_time)
         except ValueError:
             sys.exit(
