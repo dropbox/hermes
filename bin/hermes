@@ -315,8 +315,44 @@ def list_host_labors(args):
         else:
             target_time = "whenever"
 
-        print "[{}] created on {} (due by {}) by event {} {}  {}".format(
+        print "[{}] created on {} (due by {}) \n\tby event {} {}  {}".format(
             labor["id"],
+            creation_time,
+            target_time,
+            labor["creationEvent"]["eventType"]["category"],
+            labor["creationEvent"]["eventType"]["state"],
+            labor["creationEvent"]["note"] or ""
+        )
+
+
+def list_labors(args):
+    logging.debug("list_labors()")
+
+    url = "/api/v1/labors/?limit={}&open=true&expand=events&expand=hosts&expand=eventtypes".format(args.limit)
+
+    if args.query:
+        url += "&hostQuery={}".format(args.query)
+    if args.user:
+        url += "&userQuery={}".format(args.user)
+
+    response = request_get(url)
+    labors = response.json()["labors"]
+
+    print "OPEN LABORS (up to {}):".format(args.limit)
+    for labor in labors:
+        creation_time = parser.parse(labor["creationTime"])
+        creation_time = creation_time.replace(tzinfo=tz.tzutc())
+        creation_time = creation_time.astimezone(tz.tzlocal())
+        if "targetTime" in labor and labor["targetTime"]:
+            target_time = parser.parse(labor["targetTime"])
+            target_time = target_time.replace(tzinfo=tz.tzutc())
+            target_time = target_time.astimezone(tz.tzlocal())
+        else:
+            target_time = "whenever"
+
+        print "[{}] {}: \n\tcreated on {} (due by {}) \n\tby event {} {}  {}".format(
+            labor["id"],
+            labor["host"]["hostname"],
             creation_time,
             target_time,
             labor["creationEvent"]["eventType"]["category"],
@@ -682,6 +718,26 @@ def parse_cli_args():
     )
     host_labors_parser.set_defaults(func=list_host_labors)
 
+    # labors command line parser
+    labor_parser = subparsers.add_parser(
+        "labor", help="List labors"
+    )
+    labor_subparser = labor_parser.add_subparsers()
+    labor_list_parser = labor_subparser.add_parser("list")
+    labor_list_parser.add_argument(
+        "-l", "--limit", default=20, type=int,
+        help="Limit the number of labors displayed"
+    )
+    labor_list_parser.add_argument(
+        "--query", type=str,
+        help="Query for hosts with a search string"
+    )
+    labor_list_parser.add_argument(
+        "--user", type=str,
+        help="Query for hosts by user responsible"
+    )
+    labor_list_parser.set_defaults(func=list_labors)
+
     # events command line parser
     event_parser = subparsers.add_parser(
         "event", help="Create and list events"
@@ -739,7 +795,7 @@ def parse_cli_args():
     )
     quest_create_parser.add_argument(
         "--query", type=str,
-        help="Host query"
+        help="Query for hosts with a search string"
     )
     quest_create_parser.set_defaults(func=create_quest)
 

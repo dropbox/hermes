@@ -1357,7 +1357,7 @@ class LaborsHandler(ApiHandler):
         :query string userQuest: (*optional*) the user quest to send to the plugin to come up with the list of hostnames
         :query boolean open: if true, filter Labors to those still open
         :query int questId: the id of the quest we want to filter by
-        :query string expand: (*optional*) supports hosts
+        :query string expand: (*optional*) supports hosts, eventtypes, events
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -1428,6 +1428,20 @@ class LaborsHandler(ApiHandler):
             labor_dict = labor.to_dict("/api/v1")
             if "hosts" in expand:
                 labor_dict["host"] = labor.host.to_dict("/api/v1")
+            if "events" in expand:
+                event_dict = labor.creation_event.to_dict("/api/v1")
+                if "eventtypes" in expand:
+                    event_dict["eventType"] = (
+                        labor.creation_event.event_type.to_dict("/api/v1")
+                    )
+                labor_dict["creationEvent"] = event_dict
+                if labor.completion_event:
+                    event_dict = labor.completion_event.to_dict("/api/v1")
+                    if "eventtypes" in expand:
+                        event_dict["eventType"] = (
+                            labor.completion_event.event_type.to_dict("/api/v1")
+                        )
+                    labor_dict["completionEvent"] = event_dict
             labor_dicts.append(labor_dict)
 
         json = {
