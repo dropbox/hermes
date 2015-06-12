@@ -59,14 +59,6 @@ class Model(object):
         return object_session(self)
 
     @classmethod
-    def query(cls):
-        """Return a Query using session defaults."""
-        # The Model.query() method doesn't work on classmethods. We need a
-        # scoped_session for that
-        from .meta import ScopedSession
-        return ScopedSession().query(cls)
-
-    @classmethod
     def get_or_create(cls, session, **kwargs):
         instance = session.query(cls).filter_by(**kwargs).scalar()
         if instance:

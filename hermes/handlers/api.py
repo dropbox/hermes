@@ -928,7 +928,7 @@ class EventsHandler(ApiHandler):
             events = events.filter_by(host_id=host_id)
 
         if hostname:
-            host = Host.query().filter(Host.hostname == hostname).one()
+            host = self.session.query(Host).filter(Host.hostname == hostname).one()
             events = events.filter(Event.host == host)
 
         offset, limit, expand = self.get_pagination_values()
@@ -1382,7 +1382,7 @@ class LaborsHandler(ApiHandler):
             labors = labors.filter(Labor.quest_id == quest_id)
 
         if hostname is not None:
-            host = Host.query().filter(Host.hostname == hostname).one()
+            host = self.session.query(Host).filter(Host.hostname == hostname).one()
             labors = (
                 labors.filter(Labor.host == host)
                 .order_by(desc(Labor.creation_time))
@@ -1413,7 +1413,7 @@ class LaborsHandler(ApiHandler):
 
         if host_query or user_query:
             if hostnames:
-                hosts = Host.query().filter(Host.hostname.in_(hostnames))
+                hosts = self.session.query(Host).filter(Host.hostname.in_(hostnames))
                 host_ids = [host.id for host in hosts]
                 labors = labors.filter(Labor.host_id.in_(host_ids))
             else:
