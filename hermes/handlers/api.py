@@ -1352,7 +1352,9 @@ class LaborsHandler(ApiHandler):
                 ],
             }
 
-        :query string hostname: filter Labors by a particular hostname
+        :query string hostname: (*optional*) filter Labors by a particular hostname
+        :query string hostQuery: (*optional*) the query to send to the plugin to come up with the list of hostnames
+        :query string userQuest: (*optional*) the user quest to send to the plugin to come up with the list of hostnames
         :query boolean open: if true, filter Labors to those still open
         :query int questId: the id of the quest we want to filter by
         :query string expand: (*optional*) supports hosts
@@ -1365,6 +1367,8 @@ class LaborsHandler(ApiHandler):
         hostname = self.get_argument("hostname", None)
         open_flag = self.get_argument("open", None)
         quest_id = self.get_argument("questId", None)
+        host_query = self.get_argument("hostQuery", None)
+        user_query = self.get_argument("userQuery", None)
 
         labors = self.session.query(Labor)
 
@@ -1382,6 +1386,37 @@ class LaborsHandler(ApiHandler):
                 labors.filter(Labor.host == host)
                 .order_by(desc(Labor.creation_time))
             )
+
+        hostnames = []
+        if host_query:
+            response = PluginHelper.request_get(params={"query": host_query})
+            if (
+                response.status_code == 200
+                and response.json()["status"] == "ok"
+            ):
+                for hostname in response.json()["results"]:
+                    hostnames.append(hostname)
+            else:
+                raise exc.BadRequest("Bad host query: {}".format(host_query))
+
+        if user_query:
+            response = PluginHelper.request_get(params={"user": user_query})
+            if (
+                response.status_code == 200
+                and response.json()["status"] == "ok"
+            ):
+                for hostname in response.json()["results"]:
+                    hostnames.append(hostname)
+            else:
+                raise exc.BadRequest("Bad user query: {}".format(user_query))
+
+        if host_query or user_query:
+            if hostnames:
+                hosts = Host.query().filter(Host.hostname.in_(hostnames))
+                host_ids = [host.id for host in hosts]
+                labors = labors.filter(Labor.host_id.in_(host_ids))
+            else:
+                raise exc.BadRequest("Querying on 0 hosts")
 
         offset, limit, expand = self.get_pagination_values()
         labors, total = self.paginate_query(labors, offset, limit)
