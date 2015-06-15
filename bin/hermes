@@ -5,19 +5,24 @@
 from __future__ import division
 
 import argparse
+from dateutil import parser, tz
 import getpass
 import logging
-import sys
 import requests
 from requests.packages import urllib3
+import sys
+import traceback
 
-from dateutil import parser, tz
 
 import hermes
 from hermes.settings_client import settings
 
 logging.getLogger("requests").setLevel(logging.WARNING)
 urllib3.disable_warnings()
+
+class HermesException(Exception):
+    """Generic exception used to indicate a problem with a Hermes operation"""
+    pass
 
 def request_get(path):
     """Make an HTTP GET request for the given path
@@ -31,7 +36,9 @@ def request_get(path):
 
     if response.status_code != requests.codes.ok:
         logging.debug(response.json())
-        sys.exit("Error: {}".format(response.json()["error"]["message"]))
+        raise HermesException(
+            "Error: {}".format(response.json()["error"]["message"])
+        )
 
     return response
 
@@ -51,7 +58,9 @@ def request_post(path, json):
 
     if response.status_code != requests.codes.created:
         logging.debug(response.json())
-        sys.exit("Error: {}".format(response.json()["error"]["message"]))
+        raise HermesException(
+            "Error: {}".format(response.json()["error"]["message"])
+        )
 
     return response
 
@@ -326,6 +335,50 @@ def list_host_labors(args):
             labor["creationEvent"]["note"] or ""
         )
 
+def list_host_labors_monitoring(args):
+    """Check the host for open labors and report it like a plugin for Nagios
+
+    Args:
+        hostname: the host we want to check
+    Returns:
+        prints out the Nagios response and exits per plugin specs
+    """
+    logging.debug("list_host_labors_monitoring(%s)", args.hostname)
+
+    try:
+        response = request_get(
+            "/api/v1/labors/"
+            "?open=true&expand=hosts&limit=all&hostname={}".format(
+                args.hostname
+            )
+        )
+        json = response.json()
+        labors = json["labors"]
+    except HermesException as exc:
+        # FIXME -- add error codes to Hermes API and test for that
+        if exc.message.startswith("Error: No host"):
+            # if the error was that the hostname wasn't found, just return
+            # an empty list because hermes doesn't know about this host and
+            # so we can assume it has no open labors
+            labors = []
+    except Exception as exc:
+        print "UNKNOWN: Querying Hermes returned an exception"
+        print ""
+        traceback.print_exc(file=sys.stdout)
+        sys.exit(3)
+
+    if labors:
+        print "WARNING: {} open labor{} for this host".format(
+            len(labors),
+            "s" if len(labors) > 1 else ""
+        )
+        print ""
+        print "For more details, login to shelby and run:"
+        print "hermes host labors {}".format(args.hostname)
+        sys.exit(1)
+    else:
+        print "OK: No open labors for this host"
+        sys.exit(0)
 
 def list_labors(args):
     logging.debug("list_labors()")
@@ -720,6 +773,10 @@ def parse_cli_args():
         help="Limit the number of labors displayed"
     )
     host_labors_parser.set_defaults(func=list_host_labors)
+    # Host monitoring plugin output
+    host_monitoring_parser = host_subparser.add_parser("monitoring")
+    host_monitoring_parser.add_argument("hostname")
+    host_monitoring_parser.set_defaults(func=list_host_labors_monitoring)
 
     # labors command line parser
     labor_parser = subparsers.add_parser(
