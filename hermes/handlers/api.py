@@ -373,7 +373,9 @@ class HostHandler(ApiHandler):
         try:
             new_hostname = self.jbody["hostname"]
         except KeyError as err:
-            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
 
         try:
             host = host.update(
@@ -513,7 +515,9 @@ class EventTypesHandler(ApiHandler):
                 ]
 
         except KeyError as err:
-            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
@@ -755,7 +759,9 @@ class EventTypeHandler(ApiHandler):
         try:
             description = self.jbody["description"]
         except KeyError as err:
-            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
 
         try:
             event_type.update(
@@ -839,7 +845,9 @@ class EventsHandler(ApiHandler):
             event_type_id = self.jbody["eventTypeId"]
             note = self.jbody["note"]
         except KeyError as err:
-            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
@@ -928,7 +936,11 @@ class EventsHandler(ApiHandler):
             events = events.filter_by(host_id=host_id)
 
         if hostname:
-            host = self.session.query(Host).filter(Host.hostname == hostname).one()
+            host = (
+                self.session.query(Host).filter(
+                    Host.hostname == hostname
+                ).one()
+            )
             events = events.filter(Event.host == host)
 
         offset, limit, expand = self.get_pagination_values()
@@ -1070,7 +1082,9 @@ class FatesHandler(ApiHandler):
             intermediate = self.jbody["intermediate"]
             description = self.jbody["description"]
         except KeyError as err:
-            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
@@ -1277,7 +1291,9 @@ class FateHandler(ApiHandler):
             if "intermediate" in self.jbody:
                 new_intermediate = self.jbody['intermediate']
         except KeyError as err:
-            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
 
         try:
             if new_desc:
@@ -1382,11 +1398,18 @@ class LaborsHandler(ApiHandler):
             labors = labors.filter(Labor.quest_id == quest_id)
 
         if hostname is not None:
-            host = self.session.query(Host).filter(Host.hostname == hostname).one()
-            labors = (
-                labors.filter(Labor.host == host)
-                .order_by(desc(Labor.creation_time))
+            host = (
+                self.session.query(Host).filter(
+                    Host.hostname == hostname
+                ).one()
             )
+            if host:
+                labors = (
+                    labors.filter(Labor.host == host)
+                    .order_by(desc(Labor.creation_time))
+                )
+            else:
+                raise exc.BadRequest("Bad hostname {}".format(hostname))
 
         hostnames = []
         if host_query:
@@ -1413,7 +1436,11 @@ class LaborsHandler(ApiHandler):
 
         if host_query or user_query:
             if hostnames:
-                hosts = self.session.query(Host).filter(Host.hostname.in_(hostnames))
+                hosts = (
+                    self.session.query(Host).filter(
+                        Host.hostname.in_(hostnames)
+                    )
+                )
                 host_ids = [host.id for host in hosts]
                 labors = labors.filter(Labor.host_id.in_(host_ids))
             else:
@@ -1593,7 +1620,9 @@ class LaborHandler(ApiHandler):
             if not quest_id and not ack_user:
                 raise exc.BadRequest("Must update either questId or ackUser")
         except KeyError as err:
-            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
 
         try:
             if quest_id:
@@ -1693,7 +1722,9 @@ class QuestsHandler(ApiHandler):
             else:
                 target_time = None
         except KeyError as err:
-            raise exc.BadRequest("Missing Required Argument: {}".format(err.message))
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
@@ -1716,14 +1747,20 @@ class QuestsHandler(ApiHandler):
 
         # We need to create a list of hostnames that don't have a Host record
         new_hosts_needed = list(hostnames)
-        hosts = self.session.query(Host).filter(Host.hostname.in_(hostnames)).all()
+        hosts = (
+            self.session.query(Host).filter(Host.hostname.in_(hostnames)).all()
+        )
         for host in hosts:
             new_hosts_needed.remove(str(host.hostname))
 
         # if we need to create hosts, do them all at once
         if new_hosts_needed:
             Host.create_many(self.session, new_hosts_needed)
-            hosts = self.session.query(Host).filter(Host.hostname.in_(hostnames)).all()
+            hosts = (
+                self.session.query(Host).filter(
+                    Host.hostname.in_(hostnames)
+                ).all()
+            )
 
         log.info("Working with {} hosts".format(len(hosts)))
 
