@@ -108,7 +108,8 @@ def list_fates(args):
     response = request_get("/api/v1/eventtypes?limit=all")
     event_types = response.json()["eventTypes"]
 
-    print "FATES  ([id] created by => completed by)\n "
+    print "FATES  ([id] created by => completed by)"
+    print "       * = intermediate\n"
     for fate in fates:
         creation_event = None
         completion_event = None
@@ -118,8 +119,9 @@ def list_fates(args):
             if event_type["id"] == fate['completionEventTypeId']:
                 completion_event = event_type
 
-        print "[{}] {} => {}".format(
+        print "[{}]{} {} => {}".format(
             fate["id"],
+            "*" if fate["intermediate"] else " ",
             creation_event["category"] + "-" + creation_event["state"],
             completion_event["category"] + "-" + completion_event["state"]
         )
