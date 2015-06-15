@@ -1,6 +1,7 @@
 import ipaddress
 import logging
 import re
+import sqlalchemy
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
 
@@ -936,11 +937,15 @@ class EventsHandler(ApiHandler):
             events = events.filter_by(host_id=host_id)
 
         if hostname:
-            host = (
-                self.session.query(Host).filter(
-                    Host.hostname == hostname
-                ).one()
-            )
+            try:
+                host = (
+                    self.session.query(Host).filter(
+                        Host.hostname == hostname
+                    ).one()
+                )
+            except sqlalchemy.orm.exc.NoResultFound:
+                raise exc.BadRequest("No host {} found".format(hostname))
+
             events = events.filter(Event.host == host)
 
         offset, limit, expand = self.get_pagination_values()
@@ -1398,18 +1403,19 @@ class LaborsHandler(ApiHandler):
             labors = labors.filter(Labor.quest_id == quest_id)
 
         if hostname is not None:
-            host = (
-                self.session.query(Host).filter(
-                    Host.hostname == hostname
-                ).one()
-            )
-            if host:
-                labors = (
-                    labors.filter(Labor.host == host)
-                    .order_by(desc(Labor.creation_time))
+            try:
+                host = (
+                    self.session.query(Host).filter(
+                        Host.hostname == hostname
+                    ).one()
                 )
-            else:
-                raise exc.BadRequest("Bad hostname {}".format(hostname))
+            except sqlalchemy.orm.exc.NoResultFound:
+                raise exc.BadRequest("No host {} found".format(hostname))
+
+            labors = (
+                labors.filter(Labor.host == host)
+                .order_by(desc(Labor.creation_time))
+            )
 
         hostnames = []
         if host_query:
