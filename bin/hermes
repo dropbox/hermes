@@ -11,6 +11,7 @@ import logging
 import requests
 from requests.packages import urllib3
 import sys
+from time import sleep
 import traceback
 
 
@@ -32,7 +33,15 @@ def request_get(path):
     Returns:
         the http response
     """
-    response = requests.get(settings.hermes_server + path)
+    retries = 0
+    clear_response = False
+    while not clear_response and retries < 5:
+        response = requests.get(settings.hermes_server + path)
+        if response.status_code >= 500:
+            retries += 1
+            sleep(1)
+        else:
+            clear_response = True
 
     if response.status_code != requests.codes.ok or not response.content:
         try:
@@ -58,7 +67,15 @@ def request_post(path, json):
     Returns:
         the http response
     """
-    response = requests.post(settings.hermes_server + path, json=json)
+    retries = 0
+    clear_response = False
+    while not clear_response and retries < 5:
+        response = requests.post(settings.hermes_server + path, json=json)
+        if response.status_code >= 500:
+            retries += 1
+            sleep(1)
+        else:
+            clear_response = True
 
     if (
             response.status_code != requests.codes.created
