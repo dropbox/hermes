@@ -34,15 +34,15 @@ def request_get(path):
     """
     response = requests.get(settings.hermes_server + path)
 
-    if response.status_code != requests.codes.ok:
+    if response.status_code != requests.codes.ok or len(response.content) == 0:
         try:
             data = response.json()["error"]["message"]
         except Exception:
             data = "Received invalid response: {}".format(response)
 
-            raise HermesException(
-                "Error: {}".format(data)
-            )
+        raise HermesException(
+            "Error: {}".format(data)
+        )
 
     return response
 
@@ -60,14 +60,17 @@ def request_post(path, json):
     """
     response = requests.post(settings.hermes_server + path, json=json)
 
-    if response.status_code != requests.codes.created:
+    if (
+            response.status_code != requests.codes.created
+            or len(response.content) == 0
+    ):
         try:
             data = response.json()["error"]["message"]
         except Exception:
             data = "Received invalid response: {}".format(response)
-            raise HermesException(
-                "Error: {}".format(data)
-            )
+        raise HermesException(
+            "Error: {}".format(data)
+        )
 
     return response
 
