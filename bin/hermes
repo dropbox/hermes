@@ -11,6 +11,7 @@ import logging
 import requests
 from requests.packages import urllib3
 import sys
+from time import sleep
 import traceback
 
 
@@ -24,6 +25,22 @@ class HermesException(Exception):
     """Generic exception used to indicate a problem with a Hermes operation"""
     pass
 
+def retry(num_attempts, min_sleep=.1, max_sleep=5):
+    for num in range(1, num_attempts+1):
+        yield num
+
+        # Don't sleep on final attempt. You've failed :(
+        if num == num_attempts:
+            break
+
+        # Sleep longer for each attempt
+        sleep_time = (min_sleep * (num * num))
+
+        # Clamp the sleep time to max_sleep
+        sleep_time = max(0, min(max_sleep, sleep_time))
+
+        sleep(sleep_time)
+
 def request_get(path):
     """Make an HTTP GET request for the given path
 
@@ -32,7 +49,10 @@ def request_get(path):
     Returns:
         the http response
     """
-    response = requests.get(settings.hermes_server + path)
+    for attempt in retry(settings.api_retries):
+        response = requests.get(settings.hermes_server + path)
+        if response.status_code < 500:
+            break
 
     if response.status_code != requests.codes.ok or not response.content:
         try:
@@ -58,7 +78,10 @@ def request_post(path, json):
     Returns:
         the http response
     """
-    response = requests.post(settings.hermes_server + path, json=json)
+    for attempt in retry(settings.api_retries):
+        response = requests.post(settings.hermes_server + path, json=json)
+        if response.status_code < 500:
+            break
 
     if (
             response.status_code != requests.codes.created
