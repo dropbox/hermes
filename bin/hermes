@@ -34,15 +34,15 @@ def request_get(path):
     """
     response = requests.get(settings.hermes_server + path)
 
-    if response.status_code != requests.codes.ok:
+    if response.status_code != requests.codes.ok or not response.content:
         try:
             data = response.json()["error"]["message"]
         except Exception:
-            data = "Received invalid response: {}".format(response)
+            data = "Received invalid response: {}".format(response.content)
 
-            raise HermesException(
-                "Error: {}".format(data)
-            )
+        raise HermesException(
+            "Error: {}".format(data)
+        )
 
     return response
 
@@ -60,14 +60,17 @@ def request_post(path, json):
     """
     response = requests.post(settings.hermes_server + path, json=json)
 
-    if response.status_code != requests.codes.created:
+    if (
+            response.status_code != requests.codes.created
+            or not response.content
+    ):
         try:
             data = response.json()["error"]["message"]
         except Exception:
-            data = "Received invalid response: {}".format(response)
-            raise HermesException(
-                "Error: {}".format(data)
-            )
+            data = "Received invalid response: {}".format(response.content)
+        raise HermesException(
+            "Error: {}".format(data)
+        )
 
     return response
 
@@ -368,6 +371,11 @@ def list_host_labors_monitoring(args):
             # an empty list because hermes doesn't know about this host and
             # so we can assume it has no open labors
             labors = []
+        else:
+            print "UNKNOWN: Querying Hermes returned an exception"
+            print ""
+            traceback.print_exc(file=sys.stdout)
+            sys.exit(3)
     except Exception as exc:
         print "UNKNOWN: Querying Hermes returned an exception"
         print ""
