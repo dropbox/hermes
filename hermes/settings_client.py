@@ -46,5 +46,6 @@ settings = Settings({
     "log_format": "%(asctime)-15s\t%(levelname)s\t%(message)s",
     "debug": False,
     "user_auth_header": "X-Hermes-Email",
-    "hermes_server": "http://localhost:10901"
+    "hermes_server": "http://localhost:10901",
+    "api_retries": 5
 })
