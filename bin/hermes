@@ -39,9 +39,10 @@ def request_get(path):
             data = response.json()["error"]["message"]
         except Exception:
             data = "Received invalid response: {}".format(response)
-        raise HermesException(
-            "Error: {}".format(data)
-        )
+
+            raise HermesException(
+                "Error: {}".format(data)
+            )
 
     return response
 
@@ -64,9 +65,9 @@ def request_post(path, json):
             data = response.json()["error"]["message"]
         except Exception:
             data = "Received invalid response: {}".format(response)
-        raise HermesException(
-            "Error: {}".format(data)
-        )
+            raise HermesException(
+                "Error: {}".format(data)
+            )
 
     return response
 
