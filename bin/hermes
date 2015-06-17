@@ -368,6 +368,33 @@ def list_host_labors(args):
             labor["creationEvent"]["note"] or ""
         )
 
+def print_labor(labor):
+    """Print the details of a labor to standard out
+
+    Args:
+        labor: the labor to print
+    """
+    creation_time = parser.parse(labor["creationTime"])
+    creation_time = creation_time.replace(tzinfo=tz.tzutc())
+    creation_time = creation_time.astimezone(tz.tzlocal())
+    if "targetTime" in labor and labor["targetTime"]:
+        target_time = parser.parse(labor["targetTime"])
+        target_time = target_time.replace(tzinfo=tz.tzutc())
+        target_time = target_time.astimezone(tz.tzlocal())
+    else:
+        target_time = "whenever"
+
+    print "[{}] {}: \n\tcreated on {} (due by {}) \n\tby event {} {}  {}".format(
+        labor["id"],
+        labor["host"]["hostname"],
+        creation_time,
+        target_time,
+        labor["creationEvent"]["eventType"]["category"],
+        labor["creationEvent"]["eventType"]["state"],
+        labor["creationEvent"]["note"] or ""
+    )
+
+
 def list_host_labors_monitoring(args):
     """Check the host for open labors and report it like a plugin for Nagios
 
@@ -381,7 +408,8 @@ def list_host_labors_monitoring(args):
     try:
         response = request_get(
             "/api/v1/labors/"
-            "?open=true&expand=hosts&limit=all&hostname={}".format(
+            "?open=true&expand=hosts&expand=eventtypes&expand=events"
+            "&limit=all&hostname={}".format(
                 args.hostname
             )
         )
@@ -411,6 +439,9 @@ def list_host_labors_monitoring(args):
             "s" if len(labors) > 1 else ""
         )
         print ""
+        for labor in labors:
+            print_labor(labor)
+        print ""
         print "For more details, login to shelby and run:"
         print "hermes host labors {}".format(args.hostname)
         sys.exit(1)
@@ -430,28 +461,11 @@ def list_labors(args):
 
     response = request_get(url)
     labors = response.json()["labors"]
+    total_labors = response.json()["totalLabors"]
 
-    print "OPEN LABORS (up to {}):".format(args.limit)
+    print "OPEN LABORS ({} of {}):".format(len(labors), total_labors)
     for labor in labors:
-        creation_time = parser.parse(labor["creationTime"])
-        creation_time = creation_time.replace(tzinfo=tz.tzutc())
-        creation_time = creation_time.astimezone(tz.tzlocal())
-        if "targetTime" in labor and labor["targetTime"]:
-            target_time = parser.parse(labor["targetTime"])
-            target_time = target_time.replace(tzinfo=tz.tzutc())
-            target_time = target_time.astimezone(tz.tzlocal())
-        else:
-            target_time = "whenever"
-
-        print "[{}] {}: \n\tcreated on {} (due by {}) \n\tby event {} {}  {}".format(
-            labor["id"],
-            labor["host"]["hostname"],
-            creation_time,
-            target_time,
-            labor["creationEvent"]["eventType"]["category"],
-            labor["creationEvent"]["eventType"]["state"],
-            labor["creationEvent"]["note"] or ""
-        )
+        print_labor(labor)
 
 
 def create_event(args):
