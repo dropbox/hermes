@@ -14,7 +14,6 @@ import hermes
 from hermes import version
 from hermes.app import Application
 from hermes.settings import settings
-from hermes.models import get_db_engine, Session
 
 
 from sqlalchemy.exc import OperationalError
@@ -64,12 +63,10 @@ def main():
         "cookie_secret": settings.secret_key,
     }
 
-    db_engine = get_db_engine(settings.database)
-    Session.configure(bind=db_engine)
-
     my_settings = {
-        "db_engine": db_engine,
-        "db_session": Session,
+        "db_uri": settings.database,
+        "db_engine": None,
+        "db_session": None,
         "domain": settings.domain
     }
 

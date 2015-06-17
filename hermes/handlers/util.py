@@ -32,9 +32,17 @@ class PluginHelper(object):
 
 class BaseHandler(RequestHandler):
     def initialize(self):
-        self.session = self.application.my_settings.get("db_session")()
-        self.engine = self.application.my_settings.get("db_engine")
-        self.domain = self.application.my_settings.get("domain")
+
+        my_settings = self.application.my_settings
+
+        # Lazily build the engine and session for support of multi-processing
+        if my_settings.get("db_engine") is None and my_settings.get("db_session") is None:
+            my_settings["db_engine"] = models.get_db_engine(my_settings.get("db_uri"))
+            my_settings["db_session"] = models.Session.configure(bind=my_settings["db_engine"])
+
+        self.session = my_settings.get("db_session")()
+        self.engine = my_settings.get("db_engine")
+        self.domain = my_settings.get("domain")
 
     def on_finish(self):
         self.session.close()
