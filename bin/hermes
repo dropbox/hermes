@@ -377,7 +377,7 @@ def print_labor(labor):
     creation_time = parser.parse(labor["creationTime"])
     creation_time = creation_time.replace(tzinfo=tz.tzutc())
     creation_time = creation_time.astimezone(tz.tzlocal())
-    if "targetTime" in labor and labor["targetTime"]:
+    if labor.get("targetTime", None):
         target_time = parser.parse(labor["targetTime"])
         target_time = target_time.replace(tzinfo=tz.tzutc())
         target_time = target_time.astimezone(tz.tzlocal())
