@@ -408,7 +408,8 @@ def list_host_labors_monitoring(args):
     try:
         response = request_get(
             "/api/v1/labors/"
-            "?open=true&expand=hosts&limit=all&hostname={}".format(
+            "?open=true&expand=hosts&expand=eventtypes&expand=events"
+            "&limit=all&hostname={}".format(
                 args.hostname
             )
         )
