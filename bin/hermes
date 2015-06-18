@@ -536,10 +536,14 @@ def list_quests(args):
         embark_time = parser.parse(quest["embarkTime"])
         embark_time = embark_time.replace(tzinfo=tz.tzutc())
         embark_time = embark_time.astimezone(tz.tzlocal())
-        print "[{}] {} by {}.\n\tEmbarked on {}".format(
-            quest["id"], quest["description"], quest["creator"],
+        print "[{}] by {}.\n\tEmbarked on {}".format(
+            quest["id"], quest["creator"],
             embark_time
         )
+        print "\t\"{}\"".format(textwrap.fill(
+            quest["description"],
+            width=60, subsequent_indent="\t "
+        ))
         if quest["targetTime"]:
             target_time = parser.parse(quest["targetTime"])
             target_time = target_time.replace(tzinfo=tz.tzutc())
@@ -552,7 +556,7 @@ def list_quests(args):
                 labors_remaining += 1
 
         total_labors = len(quest["labors"])
-        print "{:.2%} complete.  {} total labors.  {} remain open.\n".format(
+        print "\n\t{:.2%} complete.  {} total labors.  {} remain open.\n".format(
             (total_labors - labors_remaining)/total_labors,
             total_labors,
             labors_remaining
