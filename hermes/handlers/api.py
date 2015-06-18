@@ -1163,6 +1163,8 @@ class FatesHandler(ApiHandler):
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
+        :query string expand: (*optional*) supports eventtypes
+
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
         """
@@ -1171,11 +1173,23 @@ class FatesHandler(ApiHandler):
         offset, limit, expand = self.get_pagination_values()
         hosts, total = self.paginate_query(fates, offset, limit)
 
+        fates_json = []
+        for fate in fates.all():
+            fate_json = fate.to_dict(API_VER)
+            if "eventtypes" in expand:
+                fate_json["creationEventType"] = (
+                    fate.creation_event_type.to_dict(API_VER)
+                )
+                fate_json["completionEventType"] = (
+                    fate.completion_event_type.to_dict(API_VER)
+                )
+            fates_json.append(fate_json)
+
         json = {
             "limit": limit,
             "offset": offset,
             "totalFates": total,
-            "fates": [fate.to_dict(API_VER) for fate in fates.all()],
+            "fates": fates_json,
         }
 
         self.success(json)
@@ -1379,7 +1393,7 @@ class LaborsHandler(ApiHandler):
         :query string userQuest: (*optional*) the user quest to send to the plugin to come up with the list of hostnames
         :query boolean open: if true, filter Labors to those still open
         :query int questId: the id of the quest we want to filter by
-        :query string expand: (*optional*) supports hosts, eventtypes, events
+        :query string expand: (*optional*) supports hosts, eventtypes, events, quests
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -1460,6 +1474,10 @@ class LaborsHandler(ApiHandler):
         labor_dicts = []
         for labor in labors:
             labor_dict = labor.to_dict(API_VER)
+            if "quests" in expand:
+                labor_dict["quest"] = (
+                    labor.quest.to_dict(API_VER) if labor.quest else None
+                )
             if "hosts" in expand:
                 labor_dict["host"] = labor.host.to_dict(API_VER)
             if "events" in expand:

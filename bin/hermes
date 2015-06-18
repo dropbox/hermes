@@ -11,6 +11,7 @@ import logging
 import requests
 from requests.packages import urllib3
 import sys
+import textwrap
 from time import sleep
 import traceback
 
@@ -98,6 +99,54 @@ def request_post(path, json):
     return response
 
 
+def print_labor(labor, fates):
+    """Print the details of a labor to standard out
+
+    Args:
+        labor: the labor to print
+        fates: all the fates so we can give suggestions
+    """
+    creation_time = parser.parse(labor["creationTime"])
+    creation_time = creation_time.replace(tzinfo=tz.tzutc())
+    creation_time = creation_time.astimezone(tz.tzlocal())
+    if labor.get("targetTime", None):
+        target_time = parser.parse(labor["targetTime"])
+        target_time = target_time.replace(tzinfo=tz.tzutc())
+        target_time = target_time.astimezone(tz.tzlocal())
+        target_time_str = "(due by {})".format(target_time)
+    else:
+        target_time_str = ""
+
+    print "[{}] {}: \n\tcreated on {} {} \n\tby event {} {}  {}".format(
+        labor["id"],
+        labor["host"]["hostname"],
+        creation_time,
+        target_time_str,
+        labor["creationEvent"]["eventType"]["category"],
+        labor["creationEvent"]["eventType"]["state"],
+        labor["creationEvent"]["note"] or ""
+    )
+
+    if labor.get("questId", None):
+        print "\n\tPart of Quest [{}] created by {}".format(
+            labor["quest"]["id"],
+            labor["quest"]["creator"]
+        )
+        print "\t\"{}\"".format(textwrap.fill(
+            labor["quest"]["description"],
+            width=60, subsequent_indent="\t "
+        ))
+
+    print "\n\tPossible Resolutions:"
+    for fate in fates:
+        if fate["creationEventTypeId"] == labor["creationEvent"]["eventType"]["id"]:
+            print "{}".format(textwrap.fill(
+                fate["description"], width=60,
+                initial_indent="\t* ", subsequent_indent="\t   "
+            ))
+    print ""
+
+
 def list_event_types(args):
     logging.debug("list_event_types()")
 
@@ -144,28 +193,23 @@ def create_event_type(args):
 def list_fates(args):
     logging.debug("list_fates()")
 
-    response = request_get("/api/v1/fates?limit=all")
+    response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
     fates = response.json()["fates"]
-
-    response = request_get("/api/v1/eventtypes?limit=all")
-    event_types = response.json()["eventTypes"]
 
     print "FATES  ([id] created by => completed by)"
     print "       * = intermediate\n"
     for fate in fates:
-        creation_event = None
-        completion_event = None
-        for event_type in event_types:
-            if event_type["id"] == fate['creationEventTypeId']:
-                creation_event = event_type
-            if event_type["id"] == fate['completionEventTypeId']:
-                completion_event = event_type
-
         print "[{}]{} {} => {}".format(
             fate["id"],
             "*" if fate["intermediate"] else " ",
-            creation_event["category"] + "-" + creation_event["state"],
-            completion_event["category"] + "-" + completion_event["state"]
+            (
+                fate["creationEventType"]["category"]
+                + "-" + fate["creationEventType"]["state"]
+            ),
+            (
+                fate["completionEventType"]["category"]
+                + "-" + fate["completionEventType"]["state"]
+            )
         )
         print fate["description"]
         print ""
@@ -337,62 +381,22 @@ def list_host_labors(args):
     logging.debug("list_host_labors(%s)", args.hostname)
 
     response = request_get(
-        "/api/v1/hosts/{}"
-        "?expand=labors&expand=events&expand=eventtypes&limit={}".format(
-            args.hostname,
-            args.limit
+            "/api/v1/labors/"
+            "?open=true&expand=hosts&expand=eventtypes&expand=events"
+            "&expand=quests&limit={}&hostname={}".format(
+                args.limit,
+                args.hostname
+            )
         )
-    )
 
-    host = response.json()
-    labors = host["labors"]
+    labors = response.json()["labors"]
 
-    print "OPEN LABORS FOR {} (up to {}):".format(host["hostname"], args.limit)
+    response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
+    fates = response.json()["fates"]
+
+    print "OPEN LABORS FOR {} (up to {}):".format(args.hostname, args.limit)
     for labor in labors:
-        creation_time = parser.parse(labor["creationTime"])
-        creation_time = creation_time.replace(tzinfo=tz.tzutc())
-        creation_time = creation_time.astimezone(tz.tzlocal())
-        if "targetTime" in labor and labor["targetTime"]:
-            target_time = parser.parse(labor["targetTime"])
-            target_time = target_time.replace(tzinfo=tz.tzutc())
-            target_time = target_time.astimezone(tz.tzlocal())
-        else:
-            target_time = "whenever"
-
-        print "[{}] created on {} (due by {}) \n\tby event {} {}  {}".format(
-            labor["id"],
-            creation_time,
-            target_time,
-            labor["creationEvent"]["eventType"]["category"],
-            labor["creationEvent"]["eventType"]["state"],
-            labor["creationEvent"]["note"] or ""
-        )
-
-def print_labor(labor):
-    """Print the details of a labor to standard out
-
-    Args:
-        labor: the labor to print
-    """
-    creation_time = parser.parse(labor["creationTime"])
-    creation_time = creation_time.replace(tzinfo=tz.tzutc())
-    creation_time = creation_time.astimezone(tz.tzlocal())
-    if labor.get("targetTime", None):
-        target_time = parser.parse(labor["targetTime"])
-        target_time = target_time.replace(tzinfo=tz.tzutc())
-        target_time = target_time.astimezone(tz.tzlocal())
-    else:
-        target_time = "whenever"
-
-    print "[{}] {}: \n\tcreated on {} (due by {}) \n\tby event {} {}  {}".format(
-        labor["id"],
-        labor["host"]["hostname"],
-        creation_time,
-        target_time,
-        labor["creationEvent"]["eventType"]["category"],
-        labor["creationEvent"]["eventType"]["state"],
-        labor["creationEvent"]["note"] or ""
-    )
+        print_labor(labor, fates)
 
 
 def list_host_labors_monitoring(args):
@@ -409,12 +413,13 @@ def list_host_labors_monitoring(args):
         response = request_get(
             "/api/v1/labors/"
             "?open=true&expand=hosts&expand=eventtypes&expand=events"
-            "&limit=all&hostname={}".format(
+            "&expand=quests&limit=all&hostname={}".format(
                 args.hostname
             )
         )
         json = response.json()
         labors = json["labors"]
+
     except HermesException as exc:
         # FIXME -- add error codes to Hermes API and test for that
         if exc.message.startswith("Error: No host"):
@@ -433,6 +438,9 @@ def list_host_labors_monitoring(args):
         traceback.print_exc(file=sys.stdout)
         sys.exit(3)
 
+    response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
+    fates = response.json()["fates"]
+
     if labors:
         print "WARNING: {} open labor{} for this host".format(
             len(labors),
@@ -440,7 +448,7 @@ def list_host_labors_monitoring(args):
         )
         print ""
         for labor in labors:
-            print_labor(labor)
+            print_labor(labor, fates)
         print ""
         print "For more details, login to shelby and run:"
         print "hermes host labors {}".format(args.hostname)
@@ -452,7 +460,7 @@ def list_host_labors_monitoring(args):
 def list_labors(args):
     logging.debug("list_labors()")
 
-    url = "/api/v1/labors/?limit={}&open=true&expand=events&expand=hosts&expand=eventtypes".format(args.limit)
+    url = "/api/v1/labors/?limit={}&open=true&expand=events&expand=hosts&expand=eventtypes&expand=quests".format(args.limit)
 
     if args.query:
         url += "&hostQuery={}".format(args.query)
@@ -463,9 +471,12 @@ def list_labors(args):
     labors = response.json()["labors"]
     total_labors = response.json()["totalLabors"]
 
+    response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
+    fates = response.json()["fates"]
+
     print "OPEN LABORS ({} of {}):".format(len(labors), total_labors)
     for labor in labors:
-        print_labor(labor)
+        print_labor(labor, fates)
 
 
 def create_event(args):
@@ -525,10 +536,14 @@ def list_quests(args):
         embark_time = parser.parse(quest["embarkTime"])
         embark_time = embark_time.replace(tzinfo=tz.tzutc())
         embark_time = embark_time.astimezone(tz.tzlocal())
-        print "[{}] {} by {}.\n\tEmbarked on {}".format(
-            quest["id"], quest["description"], quest["creator"],
+        print "[{}] by {}.\n\tEmbarked on {}".format(
+            quest["id"], quest["creator"],
             embark_time
         )
+        print "\t\"{}\"".format(textwrap.fill(
+            quest["description"],
+            width=60, subsequent_indent="\t "
+        ))
         if quest["targetTime"]:
             target_time = parser.parse(quest["targetTime"])
             target_time = target_time.replace(tzinfo=tz.tzutc())
@@ -541,7 +556,7 @@ def list_quests(args):
                 labors_remaining += 1
 
         total_labors = len(quest["labors"])
-        print "{:.2%} complete.  {} total labors.  {} remain open.\n".format(
+        print "\n\t{:.2%} complete.  {} total labors.  {} remain open.\n".format(
             (total_labors - labors_remaining)/total_labors,
             total_labors,
             labors_remaining
