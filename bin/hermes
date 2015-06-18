@@ -99,6 +99,24 @@ def request_post(path, json):
     return response
 
 
+def ping_server(args):
+    """Ping the Hermes API server and ensure it responds.  Return output
+    appropriate for a Nagios-style monitoring service.
+    """
+    try:
+        response = request_get("/api/v1/eventtypes?limit=1")
+    except Exception as exc:
+        print "CRIT: Error in Hermes API server response"
+        print ""
+        traceback.print_exc(file=sys.stdout)
+        sys.exit(2)
+
+    print "OK: Hermes server seems ok"
+    print ""
+    print "Successfully ran a simple query against the Hermes API"
+    sys.exit(0)
+
+
 def print_labor(labor, fates):
     """Print the details of a labor to standard out
 
@@ -117,15 +135,17 @@ def print_labor(labor, fates):
     else:
         target_time_str = ""
 
-    print "[{}] {}: \n\tcreated on {} {} \n\tby event {} {}  {}".format(
+    print "[{}] {}: \n\tcreated on {} {} \n\tby event {} {}".format(
         labor["id"],
         labor["host"]["hostname"],
         creation_time,
         target_time_str,
         labor["creationEvent"]["eventType"]["category"],
-        labor["creationEvent"]["eventType"]["state"],
-        labor["creationEvent"]["note"] or ""
+        labor["creationEvent"]["eventType"]["state"]
     )
+
+    if labor["creationEvent"]["note"]:
+        print "\tNote: \"{}\"".format(labor["creationEvent"]["note"])
 
     if labor.get("questId", None):
         print "\n\tPart of Quest [{}] created by {}".format(
@@ -456,6 +476,7 @@ def list_host_labors_monitoring(args):
     else:
         print "OK: No open labors for this host"
         sys.exit(0)
+
 
 def list_labors(args):
     logging.debug("list_labors()")
@@ -878,6 +899,12 @@ def parse_cli_args():
         "-n", "--note", type=str, help="Note to attach to the Event"
     )
     event_create_parser.set_defaults(func=create_event)
+
+    # monitoring ping command line parser
+    ping_parser = subparsers.add_parser(
+        "ping", help="Perform a ping of the Hermes API server"
+    )
+    ping_parser.set_defaults(func=ping_server)
 
     # quest command line parser
     quest_parser = subparsers.add_parser(
