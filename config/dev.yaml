@@ -38,6 +38,10 @@ database: "mysql://localhost:3306/emsdb?user=emsdb&passwd=testpw"
 # The server to use to host queries
 query_server: "http://localhost:5353/api/query"
 
+# Slack integration (optional)
+# slack_webhook:  "https://hooks.slack.com/services/"
+# slack_proxyhost: "proxyserver:port"
+
 # This is the expiration (in seconds) of auth_tokens used for API calls
 # Type: int
 auth_token_expiry: 600

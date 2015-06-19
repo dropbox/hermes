@@ -16,6 +16,7 @@ from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.types import Integer, String, Boolean
 from sqlalchemy.types import DateTime
 
+from .util import slack_message
 from .settings import settings
 import exc
 
@@ -627,7 +628,7 @@ class Fate(Model):
         return Fate._starting_fates
 
     @classmethod
-    def question_the_fates(cls, session, events, quest=None, flush=True):
+    def question_the_fates(cls, session, events, quest=None):
         """Look through the Fates and see if we need to create or close
         Labors based on these Events.
 
@@ -844,6 +845,12 @@ class Event(Model):
             session.rollback()
             raise
 
+        slack_message("*Event:* {} = {} {}".format(
+            event.host.hostname,
+            event.event_type.category,
+            event.event_type.state
+        ))
+
         Fate.question_the_fates(session, [event], quest=quest)
 
         return event
@@ -865,7 +872,11 @@ class Event(Model):
 
         events = session.query(Event).filter(Event.tx == tx).all()
         log.info("Created {} events".format(len(events)))
-        Fate.question_the_fates(session, events, quest=quest, flush=False)
+
+
+        slack_message("*Events:* created {} events".format(len(events)))
+
+        Fate.question_the_fates(session, events, quest=quest)
 
 
     def href(self, base_uri):
@@ -992,6 +1003,18 @@ class Quest(Model):
 
         session.flush()
         session.commit()
+
+        slack_message(
+            "*Quest {}* created by {}: "
+            "{} hosts started with {} {}\n\t\"{}\"".format(
+                quest.id,
+                quest.creator,
+                len(hosts),
+                creation_event_type.category,
+                creation_event_type.state,
+                quest.description
+            )
+        )
         return quest
 
     def check_for_victory(self):
@@ -1010,6 +1033,10 @@ class Quest(Model):
             self.update(
                 completion_time=datetime.utcnow()
             )
+            slack_message("*Quest {}* completed:\n\t\"{}\"".format(
+                self.id,
+                self.description
+            ))
 
     @classmethod
     def get_open_quests(cls, session):
@@ -1139,45 +1166,6 @@ class Labor(Model):
     )
 
     @classmethod
-    def create(
-            cls, session,
-            host, creation_event, quest=None, flush=True
-    ):
-        """Create an Labor
-
-        Args:
-            host: the Host to which this event pertains
-            creation_event: the Event that lead to the creation of this labor
-            quest: optional Quest if labor is part of a Quest creation
-            flush: should we flush now?
-
-        Returns:
-            a newly created Labor
-        """
-        if host is None:
-            raise exc.ValidationError(
-                "Host cannot be null for an labor"
-            )
-        if creation_event is None:
-            raise exc.ValidationError(
-                "Creation Event cannot be null for an labor"
-            )
-
-        try:
-            obj = cls(
-                host=host, creation_event=creation_event, quest=quest
-            )
-            obj.add(session)
-            if flush:
-                session.flush()
-
-        except Exception:
-            session.rollback()
-            raise
-
-        return obj
-
-    @classmethod
     def create_many(cls, session, labors):
         """Create multiple Labors
 
@@ -1190,6 +1178,10 @@ class Labor(Model):
             Labor.__table__.insert(), labors
         )
         session.flush()
+        slack_message("*Labors:* created {} labor{}".format(
+            len(labors),
+            "s" if len(labors) > 1 else ""
+        ))
 
     @classmethod
     def achieve_many(cls, session, labor_dicts):
@@ -1208,6 +1200,14 @@ class Labor(Model):
                 completion_event=event, completion_time=datetime.utcnow(),
                 flush=False, commit=False
             )
+
+            slack_message("*Labor {}* completed.\n\t{}: {} {} => {} {}".format(
+                labor.id, labor.host.hostname,
+                labor.creation_event.event_type.category,
+                labor.creation_event.event_type.state,
+                labor.completion_event.event_type.category,
+                labor.completion_event.event_type.state
+            ))
             if labor.quest and labor.quest not in quests:
                 quests.append(labor.quest)
         session.flush()
@@ -1247,22 +1247,6 @@ class Labor(Model):
             user: the arbitrary user name acknowledging this Labor
         """
         self.update(ack_time=datetime.utcnow(), ack_user=user)
-
-    def achieve(self, event, flush=True, commit=True):
-        """Mark an labor as completed.
-
-        Args:
-            event: the event that closed this labor
-            flush: should we flush the database right away?
-            commit: should we commit the database right away?
-        """
-        self.update(
-            completion_event=event, completion_time=datetime.utcnow(),
-            flush=flush, commit=commit
-        )
-
-        if self.quest:
-            self.quest.check_for_victory()
 
     def add_to_quest(self, quest):
         """Tie this labor to a particular Quest
