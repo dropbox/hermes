@@ -11,7 +11,7 @@ from .settings import settings
 log = logging.getLogger(__name__)
 
 
-def slack_message(cls, message):
+def slack_message(message):
     """Post a message to Slack if a webhook as been defined.
 
     Args:
