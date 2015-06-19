@@ -845,7 +845,7 @@ class Event(Model):
             session.rollback()
             raise
 
-        SlackHelper.message("*Event:* {} = {} {}".format(
+        slack_message("*Event:* {} = {} {}".format(
             event.host.hostname,
             event.event_type.category,
             event.event_type.state
@@ -874,7 +874,7 @@ class Event(Model):
         log.info("Created {} events".format(len(events)))
 
 
-        SlackHelper.message("*Events:* created {} events".format(len(events)))
+        slack_message("*Events:* created {} events".format(len(events)))
 
         Fate.question_the_fates(session, events, quest=quest)
 
@@ -1004,7 +1004,7 @@ class Quest(Model):
         session.flush()
         session.commit()
 
-        SlackHelper.message(
+        slack_message(
             "*Quest {}* created by {}: "
             "{} hosts started with {} {}\n\t\"{}\"".format(
                 quest.id,
@@ -1033,7 +1033,7 @@ class Quest(Model):
             self.update(
                 completion_time=datetime.utcnow()
             )
-            SlackHelper.message("*Quest {}* completed:\n\t\"{}\"".format(
+            slack_message("*Quest {}* completed:\n\t\"{}\"".format(
                 self.id,
                 self.description
             ))
@@ -1178,7 +1178,7 @@ class Labor(Model):
             Labor.__table__.insert(), labors
         )
         session.flush()
-        SlackHelper.message("*Labors:* created {} labor{}".format(
+        slack_message("*Labors:* created {} labor{}".format(
             len(labors),
             "s" if len(labors) > 1 else ""
         ))
@@ -1201,7 +1201,7 @@ class Labor(Model):
                 flush=False, commit=False
             )
 
-            SlackHelper.message("*Labor {}* completed.\n\t{}: {} {} => {} {}".format(
+            slack_message("*Labor {}* completed.\n\t{}: {} {} => {} {}".format(
                 labor.id, labor.host.hostname,
                 labor.creation_event.event_type.category,
                 labor.creation_event.event_type.state,
