@@ -1139,45 +1139,6 @@ class Labor(Model):
     )
 
     @classmethod
-    def create(
-            cls, session,
-            host, creation_event, quest=None, flush=True
-    ):
-        """Create an Labor
-
-        Args:
-            host: the Host to which this event pertains
-            creation_event: the Event that lead to the creation of this labor
-            quest: optional Quest if labor is part of a Quest creation
-            flush: should we flush now?
-
-        Returns:
-            a newly created Labor
-        """
-        if host is None:
-            raise exc.ValidationError(
-                "Host cannot be null for an labor"
-            )
-        if creation_event is None:
-            raise exc.ValidationError(
-                "Creation Event cannot be null for an labor"
-            )
-
-        try:
-            obj = cls(
-                host=host, creation_event=creation_event, quest=quest
-            )
-            obj.add(session)
-            if flush:
-                session.flush()
-
-        except Exception:
-            session.rollback()
-            raise
-
-        return obj
-
-    @classmethod
     def create_many(cls, session, labors):
         """Create multiple Labors
 
@@ -1247,22 +1208,6 @@ class Labor(Model):
             user: the arbitrary user name acknowledging this Labor
         """
         self.update(ack_time=datetime.utcnow(), ack_user=user)
-
-    def achieve(self, event, flush=True, commit=True):
-        """Mark an labor as completed.
-
-        Args:
-            event: the event that closed this labor
-            flush: should we flush the database right away?
-            commit: should we commit the database right away?
-        """
-        self.update(
-            completion_event=event, completion_time=datetime.utcnow(),
-            flush=flush, commit=commit
-        )
-
-        if self.quest:
-            self.quest.check_for_victory()
 
     def add_to_quest(self, quest):
         """Tie this labor to a particular Quest
