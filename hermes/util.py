@@ -19,9 +19,6 @@ class SlackHelper(object):
         Args:
             message: the content of the Slack post
         """
-        print "SlackHelper()"
-        print settings
-
         if not settings.slack_webhook:
             return
 
