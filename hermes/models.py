@@ -16,7 +16,7 @@ from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.types import Integer, String, Boolean
 from sqlalchemy.types import DateTime
 
-from .util import SlackHelper
+from .util import slack_message
 from .settings import settings
 import exc
 
