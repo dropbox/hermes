@@ -16,6 +16,7 @@ from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.types import Integer, String, Boolean
 from sqlalchemy.types import DateTime
 
+from .util import SlackHelper
 from .settings import settings
 import exc
 
@@ -627,7 +628,7 @@ class Fate(Model):
         return Fate._starting_fates
 
     @classmethod
-    def question_the_fates(cls, session, events, quest=None, flush=True):
+    def question_the_fates(cls, session, events, quest=None):
         """Look through the Fates and see if we need to create or close
         Labors based on these Events.
 
@@ -844,6 +845,12 @@ class Event(Model):
             session.rollback()
             raise
 
+        SlackHelper.message("*Event:* {} = {} {}".format(
+            event.host.hostname,
+            event.event_type.category,
+            event.event_type.state
+        ))
+
         Fate.question_the_fates(session, [event], quest=quest)
 
         return event
@@ -865,7 +872,11 @@ class Event(Model):
 
         events = session.query(Event).filter(Event.tx == tx).all()
         log.info("Created {} events".format(len(events)))
-        Fate.question_the_fates(session, events, quest=quest, flush=False)
+
+
+        SlackHelper.message("*Events:* created {} events".format(len(events)))
+
+        Fate.question_the_fates(session, events, quest=quest)
 
 
     def href(self, base_uri):
@@ -992,6 +1003,18 @@ class Quest(Model):
 
         session.flush()
         session.commit()
+
+        SlackHelper.message(
+            "*Quest {}* created by {}: "
+            "{} hosts started with {} {}\n\t\"{}\"".format(
+                quest.id,
+                quest.creator,
+                len(hosts),
+                creation_event_type.category,
+                creation_event_type.state,
+                quest.description
+            )
+        )
         return quest
 
     def check_for_victory(self):
@@ -1010,6 +1033,10 @@ class Quest(Model):
             self.update(
                 completion_time=datetime.utcnow()
             )
+            SlackHelper.message("*Quest {}* completed:\n\t\"{}\"".format(
+                self.id,
+                self.description
+            ))
 
     @classmethod
     def get_open_quests(cls, session):
@@ -1151,6 +1178,10 @@ class Labor(Model):
             Labor.__table__.insert(), labors
         )
         session.flush()
+        SlackHelper.message("*Labors:* created {} labor{}".format(
+            len(labors),
+            "s" if len(labors) > 1 else ""
+        ))
 
     @classmethod
     def achieve_many(cls, session, labor_dicts):
@@ -1169,6 +1200,14 @@ class Labor(Model):
                 completion_event=event, completion_time=datetime.utcnow(),
                 flush=False, commit=False
             )
+
+            SlackHelper.message("*Labor {}* completed.\n\t{}: {} {} => {} {}".format(
+                labor.id, labor.host.hostname,
+                labor.creation_event.event_type.category,
+                labor.creation_event.event_type.state,
+                labor.completion_event.event_type.category,
+                labor.completion_event.event_type.state
+            ))
             if labor.quest and labor.quest not in quests:
                 quests.append(labor.quest)
         session.flush()

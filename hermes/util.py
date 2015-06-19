@@ -2,71 +2,46 @@
 Project-wide utilities.
 """
 
-import collections
 import logging
-import tornado
-from jinja2 import Environment, PackageLoader
+import requests
 
 from .settings import settings
-from .version import __version__
 
 
 log = logging.getLogger(__name__)
 
-_TRUTHY = set([
-    "true", "yes", "1", ""
-])
 
+class SlackHelper(object):
+    @classmethod
+    def message(cls, message):
+        """Post a message to Slack if a webhook as been defined.
 
-def qp_to_bool(arg):
-    return str(arg).lower() in _TRUTHY
+        Args:
+            message: the content of the Slack post
+        """
+        print "SlackHelper()"
+        print settings
 
+        if not settings.slack_webhook:
+            return
 
-#: Namedtuple for resultant items from ``parse_set_query()``
-SetQuery = collections.namedtuple('SetQuery', 'action name value')
-
-
-def parse_set_query(query):
-    """
-    Parse a representation of set operations for attribute/value pairs into
-    (action, name, value) and return a list of ``SetQuery`` objects.
-
-    Computes left-to-right evaluation, where the first character indicates the
-    set operation:
-
-    + "+" indicates a union
-    + "-" indicates a difference
-    + no marker indicates an intersection
-
-    For example::
-
-        >>> parse_set_query('+owner=team-networking')
-        [SetQuery(action='union', name='owner', value='team-networking')]
-        >>> parse_set_query('foo=bar')
-        [SetQuery(action='intersection', name='foo', value='bar')]
-        >>> parse_set_query('foo=bar -owner=team-networking')
-        [SetQuery(action='intersection', name='foo', value='bar'),
-         SetQuery(action='difference', name='owner', value='team-networking')]
-
-    :param query:
-        Set query string
-    """
-    log.debug('Incoming query = %r' % (query,))
-    queries = query.split()
-
-    attributes = []
-    for q in queries:
-        if q.startswith('+'):
-            action = 'union'
-            q = q[1:]
-        elif q.startswith('-'):
-            action = 'difference'
-            q = q[1:]
+        if settings.slack_proxyhost:
+            proxies = {
+                "http": "http://{}".format(settings.slack_proxyhost),
+                "https": "http://{}".format(settings.slack_proxyhost)
+            }
         else:
-            action = 'intersection'
+            proxies = None
 
-        name, _, value = q.partition('=')
-        attributes.append(SetQuery(action, name, value))
-
-    log.debug('Outgoing attributes = %r' % (attributes,))
-    return attributes
+        json = {
+            "text": message,
+            "username": "Hermes Log",
+            "icon_emoji": ":hermes:",
+        }
+        try:
+            log.info("{} {}".format(settings.slack_webhook, json))
+            response = requests.post(
+                settings.slack_webhook, json=json, proxies=proxies
+            )
+        except Exception as exc:
+            log.warn("Error writing to Slack: {}".format(exc.message))

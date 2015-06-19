@@ -9,7 +9,6 @@ from sqlalchemy.exc import IntegrityError
 from .util import ApiHandler, PluginHelper
 from .. import exc
 from ..models import Host, EventType, Event, Labor, Fate, Quest
-from ..util import qp_to_bool as qpbool, parse_set_query
 
 from datetime import datetime
 from dateutil import parser
