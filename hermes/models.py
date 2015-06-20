@@ -845,11 +845,11 @@ class Event(Model):
             session.rollback()
             raise
 
-        slack_message("*Event:* {} = {} {}".format(
-            event.host.hostname,
-            event.event_type.category,
-            event.event_type.state
-        ))
+        # slack_message("*Event:* {} = {} {}".format(
+        #     event.host.hostname,
+        #     event.event_type.category,
+        #     event.event_type.state
+        # ))
 
         Fate.question_the_fates(session, [event], quest=quest)
 
@@ -874,7 +874,7 @@ class Event(Model):
         log.info("Created {} events".format(len(events)))
 
 
-        slack_message("*Events:* created {} events".format(len(events)))
+        # slack_message("*Events:* created {} events".format(len(events)))
 
         Fate.question_the_fates(session, events, quest=quest)
 
@@ -1201,12 +1201,15 @@ class Labor(Model):
                 flush=False, commit=False
             )
 
-            slack_message("*Labor {}* completed.\n\t{}: {} {} => {} {}".format(
+            slack_message("*Labor {}* completed.\n\t{}: {} {} => {} {}{}".format(
                 labor.id, labor.host.hostname,
                 labor.creation_event.event_type.category,
                 labor.creation_event.event_type.state,
                 labor.completion_event.event_type.category,
-                labor.completion_event.event_type.state
+                labor.completion_event.event_type.state,
+                "\n\tPart of Quest [{}] \"{}\"".format(
+                    labor.quest_id, labor.quest.description
+                ) if labor.quest_id else ""
             ))
             if labor.quest and labor.quest not in quests:
                 quests.append(labor.quest)
