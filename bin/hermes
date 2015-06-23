@@ -410,11 +410,14 @@ def list_host_labors(args):
         )
 
     labors = response.json()["labors"]
+    total_labors = response.json()["totalLabors"]
 
     response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
     fates = response.json()["fates"]
 
-    print "OPEN LABORS FOR {} (up to {}):".format(args.hostname, args.limit)
+    print "OPEN LABORS FOR {} ({} of {}):".format(
+        args.hostname, len(labors), total_labors
+    )
     for labor in labors:
         print_labor(labor, fates)
 
