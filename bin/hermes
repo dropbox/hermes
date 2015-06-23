@@ -597,6 +597,7 @@ def show_quest(args):
 
     max_width = 0
     remaining = []
+    remaining_types = {}
     completed = []
     for labor in quest["labors"]:
         if len(labor["host"]["hostname"]) > max_width:
@@ -604,16 +605,25 @@ def show_quest(args):
 
         if labor["completionTime"] is None:
             remaining.append(labor)
+            type_key = "{} {}".format(
+                labor["creationEvent"]["eventType"]["category"],
+                labor["creationEvent"]["eventType"]["state"],
+            )
+            if type_key in remaining_types:
+                remaining_types[type_key] += 1
+            else:
+                remaining_types[type_key] = 1
         else:
             completed.append(labor)
 
     if not args.list_only:
-        print "QUEST {}:".format(args.quest_id)
         embark_time = parser.parse(quest["embarkTime"])
         embark_time = embark_time.replace(tzinfo=tz.tzutc())
         embark_time = embark_time.astimezone(tz.tzlocal())
-        print "{} by {}.\n\tEmbarked on {}".format(
-            quest["description"], quest["creator"], embark_time
+        print "\nQUEST {}: Embarked on {} by {}".format(
+            args.quest_id,
+            embark_time,
+            quest["creator"],
         )
         if quest["targetTime"]:
             target_time = parser.parse(quest["targetTime"])
@@ -621,21 +631,29 @@ def show_quest(args):
             target_time = target_time.astimezone(tz.tzlocal())
             print"\tTarget Completion: {}".format(target_time)
 
+        print "\n\"{}\"\n".format(
+            textwrap.fill(
+                quest["description"],
+                width=76, subsequent_indent=" "
+            )
+        )
+
+        print "\tLABORS:"
         if args.all or args.completed_only:
             for labor in completed:
                 completion_time = parser.parse(labor["completionTime"])
                 completion_time = completion_time.replace(tzinfo=tz.tzutc())
                 completion_time = completion_time.astimezone(tz.tzlocal())
-                print "{} achieved {} {} on {}".format(
-                    labor["host"]["hostname"].rjust(max_width + 4),
+                print "\t{} achieved {} {} on {}".format(
+                    labor["host"]["hostname"].rjust(max_width),
                     labor["creationEvent"]["eventType"]["category"],
                     labor["creationEvent"]["eventType"]["state"],
                     completion_time
                 )
         if not args.completed_only:
             for labor in remaining:
-                print "{} must achieve {} {}".format(
-                    labor["host"]["hostname"].rjust(max_width + 4),
+                print "\t{} is currently {} {}".format(
+                    labor["host"]["hostname"].rjust(max_width),
                     labor["creationEvent"]["eventType"]["category"],
                     labor["creationEvent"]["eventType"]["state"]
                 )
@@ -643,7 +661,14 @@ def show_quest(args):
         total_labors = len(quest["labors"])
         labors_remaining = len(remaining)
         labors_completed = len(completed)
-        print "{:.2%} complete.  {} total labors.  {} remain open.\n".format(
+        if labors_remaining:
+            print "\n\tOPEN LABORS BY TYPE:"
+            for type in remaining_types.iterkeys():
+                print "\t\t{}: {}".format(
+                    type,
+                    remaining_types[type]
+                )
+        print "\n\t{:.2%} complete.  {} total labors.  {} remain open.\n".format(
             labors_completed/total_labors,
             total_labors,
             labors_remaining
