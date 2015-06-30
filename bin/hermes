@@ -506,8 +506,9 @@ def list_labors(args):
 def create_event(args):
     logging.debug("create_event()")
     logging.debug(
-        "host: %s    category: %s    state: %s    note: %s   query: %s",
-        args.hostname, args.category, args.state, args.note, args.query
+        "host: %s  category: %s  state: %s  note: %s query: %s, quest: %s",
+        args.hostname, args.category, args.state, args.note, args.query,
+        args.quest_id
     )
 
     response = request_get("/api/v1/eventtypes?limit=all")
@@ -542,6 +543,8 @@ def create_event(args):
     if args.query:
         json["hostQuery"] = args.query
 
+    if args.quest_id:
+        json["questId"] = args.quest_id
 
     response = request_post("/api/v1/events", json)
 
@@ -943,6 +946,10 @@ def parse_cli_args():
     event_create_parser.add_argument(
         "--query", type=str,
         help="Query for Hosts for which to create this Event"
+    )
+    event_create_parser.add_argument(
+        "--questId", type=str, dest="quest_id",
+        help="Create Events for each of the Hosts in this Quest"
     )
     event_create_parser.set_defaults(func=create_event)
 
