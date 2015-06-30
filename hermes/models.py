@@ -13,7 +13,7 @@ from sqlalchemy.orm import relationship, object_session, aliased, validates
 from sqlalchemy.orm import synonym, sessionmaker, Session as _Session, backref
 from sqlalchemy.orm import subqueryload
 from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
-from sqlalchemy.types import Integer, String, Boolean
+from sqlalchemy.types import Integer, String, Boolean, BigInteger
 from sqlalchemy.types import DateTime
 
 from .util import slack_message
@@ -798,7 +798,7 @@ class Event(Model):
     )
     event_type = relationship(EventType, lazy="joined", backref="events")
     note = Column(String(length=1024), nullable=True)
-    tx = Column(Integer, nullable=True, index=True)
+    tx = Column(BigInteger, nullable=True, index=True)
 
     __table_args__ = (
         Index("event_idx", id, host_id, event_type_id),
@@ -1193,6 +1193,7 @@ class Labor(Model):
                 (with keys labor and event)
         """
         quests = []
+        all_messages = ""
         for labor_dict in labor_dicts:
             labor = labor_dict["labor"]
             event = labor_dict["event"]
@@ -1201,7 +1202,7 @@ class Labor(Model):
                 flush=False, commit=False
             )
 
-            slack_message("*Labor {}* completed.\n\t{}: {} {} => {} {}{}".format(
+            all_messages += ("*Labor {}* completed.\n\t{}: {} {} => {} {}{}\n".format(
                 labor.id, labor.host.hostname,
                 labor.creation_event.event_type.category,
                 labor.creation_event.event_type.state,
@@ -1215,6 +1216,13 @@ class Labor(Model):
                 quests.append(labor.quest)
         session.flush()
         session.commit()
+
+        if len(labor_dicts) < 10:
+            slack_message(all_messages)
+        else:
+            slack_message(
+                "*Labor:* completed {} Labors".format(len(labor_dicts))
+            )
         for quest in quests:
             quest.check_for_victory()
 

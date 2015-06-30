@@ -506,8 +506,8 @@ def list_labors(args):
 def create_event(args):
     logging.debug("create_event()")
     logging.debug(
-        "host: %s    category: %s    state: %s    note: %s",
-        args.hostname, args.category, args.state, args.note
+        "host: %s    category: %s    state: %s    note: %s   query: %s",
+        args.hostname, args.category, args.state, args.note, args.query
     )
 
     response = request_get("/api/v1/eventtypes?limit=all")
@@ -531,16 +531,25 @@ def create_event(args):
     user = getpass.getuser()
 
     json = {
-        "hostname": args.hostname,
         "user": user,
         "eventTypeId": found_event_type["id"],
         "note": args.note
     }
 
+    if args.hostname:
+        json["hostname"] = args.hostname
+
+    if args.query:
+        json["hostQuery"] = args.query
+
+
     response = request_post("/api/v1/events", json)
 
     if response.json()["status"] == "created":
-        print "Created event {}".format(response.json()["id"])
+        if "totalEvents" in response.json():
+            print "Created {} events".format(response.json()["totalEvents"])
+        else:
+            print "Created event {}".format(response.json()["id"])
     else:
         sys.exit(
             "Received unexpected status {}".format(response.json()["status"])
@@ -734,9 +743,11 @@ def create_quest(args):
     json = {
         "eventTypeId": found_event_type["id"],
         "creator": user,
-        "description": args.description,
-        "hostnames": hosts
+        "description": args.description
     }
+
+    if hosts:
+        json["hostnames"] = hosts
 
     if args.query:
         json["hostQuery"] = args.query
@@ -920,11 +931,18 @@ def parse_cli_args():
     )
     event_subparser = event_parser.add_subparsers()
     event_create_parser = event_subparser.add_parser("create")
-    event_create_parser.add_argument("hostname")
     event_create_parser.add_argument("category")
     event_create_parser.add_argument("state")
     event_create_parser.add_argument(
         "-n", "--note", type=str, help="Note to attach to the Event"
+    )
+    event_create_parser.add_argument(
+        "--host", "--hostname", type=str, dest="hostname",
+        help="Host for which to create this Event"
+    )
+    event_create_parser.add_argument(
+        "--query", type=str,
+        help="Query for Hosts for which to create this Event"
     )
     event_create_parser.set_defaults(func=create_event)
 

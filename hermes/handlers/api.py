@@ -1,9 +1,11 @@
-import ipaddress
 import logging
+import random
 import re
 import sqlalchemy
 from sqlalchemy import desc
 from sqlalchemy.exc import IntegrityError
+import string
+import time
 
 
 from .util import ApiHandler, PluginHelper
@@ -795,6 +797,7 @@ class EventsHandler(ApiHandler):
             Content-Type: application/json
             {
                 "hostname": "example",
+                "hostQuery": "tag=value",
                 "user": "johnny",
                 "eventTypeId": 3,
                 "note": "Sample description"
@@ -809,16 +812,33 @@ class EventsHandler(ApiHandler):
 
             {
                 "status": "created",
-                "data": {
-                    "event": {
-                        "id": 1,
-                        "href": "/api/v1/events/1",
-                        "hostname": "example",
-                        "user": "johnny",
-                        "eventTypeId": 3,
-                        "note": "Sample description"
-                    }
-                }
+                "id": 1,
+                "href": "/api/v1/events/1",
+                "hostname": "example",
+                "user": "johnny",
+                "eventTypeId": 3,
+                "note": "Sample description"
+            }
+
+        or
+
+        .. sourcecode:: http
+
+        HTTP/1.1 201 OK
+            Location: /api/v1/events/1
+
+            {
+                "status": "created",
+                "events": [{
+                    "id": 1,
+                    "href": "/api/v1/events/1",
+                    "hostname": "example",
+                    "user": "johnny",
+                    "eventTypeId": 3,
+                    "note": "Sample description"
+                },
+                ...
+                ]
             }
 
         :reqjson string hostname: The hostname of the Host of this Event
@@ -838,12 +858,15 @@ class EventsHandler(ApiHandler):
         """
 
         try:
-            hostname = self.jbody["hostname"]
+            hostnames = (
+                [self.jbody.get("hostname", None)]
+                if self.jbody.get("hostname", None) else []
+            )
             user = self.jbody["user"]
             if not EMAIL_REGEX.match(user):
                 user += "@" + self.domain
             event_type_id = self.jbody["eventTypeId"]
-            note = self.jbody["note"]
+            note = self.jbody.get("note", None)
         except KeyError as err:
             raise exc.BadRequest(
                 "Missing Required Argument: {}".format(err.message)
@@ -857,26 +880,80 @@ class EventsHandler(ApiHandler):
             self.write_error(400, message="Bad event type")
             return
 
-        host = Host.get_host(self.session, hostname)
+        # If a host query was specified, we need to talk to the external
+        # query server to resolve this into a list of hostnames
+        if "hostQuery" in self.jbody:
+            query = self.jbody["hostQuery"]
+            response = PluginHelper.request_get(params={"query": query})
+            if response.json()["status"] == "ok":
+                hostnames.extend(response.json()["results"])
 
-        if host is None:
-            host = Host.create(self.session, hostname)
+        # We need to create a list of hostnames that don't have a Host record
+        new_hosts_needed = list(hostnames)
+        hosts = (
+            self.session.query(Host).filter(Host.hostname.in_(hostnames)).all()
+        )
+        for host in hosts:
+            new_hosts_needed.remove(str(host.hostname))
+
+        # if we need to create hosts, do them all at once
+        if new_hosts_needed:
+            Host.create_many(self.session, new_hosts_needed)
+            hosts = (
+                self.session.query(Host).filter(
+                    Host.hostname.in_(hostnames)
+                ).all()
+            )
+
+        if len(hosts) == 0:
+            raise exc.BadRequest("No hosts found with given list")
 
         try:
-            event = Event.create(
-                self.session, host, user, event_type, note=note
-            )
+            if len(hosts) > 1:
+                # if we are supposed to create many events, we want to do them as a giant batch
+                events_to_create = []
+                # we need a unique tx number so we can look these back up again
+                # FIXME: how can we guarantee uniqueness here?
+                tx = int(time.time() * 100000) + random.randrange(10000, 99999)
+                for host in hosts:
+                    events_to_create.append({
+                        "host_id": host.id,
+                        "user": user,
+                        "event_type_id": event_type_id,
+                        "note": note,
+                        "tx": tx
+                    })
+                Event.create_many(self.session, events_to_create, tx)
+            else:
+                # if we are just creating one event, do it the simple way
+                event = Event.create(self.session, hosts[0], user, event_type)
+
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
         except exc.ValidationError as err:
             raise exc.BadRequest(err.message)
 
+        self.session.flush()
         self.session.commit()
 
-        json = event.to_dict(API_VER)
-        json["href"] = "/api/v1/events/{}".format(event.id)
-
-        self.created("/api/v1/events/{}".format(event.id), json)
+        if len(hosts) == 1:
+            json = event.to_dict(API_VER)
+            json["href"] = "/api/v1/events/{}".format(event.id)
+            self.created(
+                "/api/v1/events/{}".format(event.id), json
+            )
+        else:
+            # if we created many events, we need to look them up by the TX
+            # number to figure out what they were since the were created in bulk
+            created_events = self.session.query(Event).filter(Event.tx == tx).all()
+            self.created(
+                data={
+                    "events": (
+                        [event.to_dict(API_VER) for event in created_events]
+                    ),
+                    "totalEvents": len(created_events)
+                }
+            )
 
     def get(self):
         """**Get all Events**
@@ -1732,7 +1809,7 @@ class QuestsHandler(ApiHandler):
             if not EMAIL_REGEX.match(creator):
                 creator += "@" + self.domain
             description = self.jbody["description"]
-            hostnames = self.jbody["hostnames"]
+            hostnames = self.jbody.get("hostnames") or []
 
             if "targetTime" in self.jbody:
                 target_time = parser.parse(
@@ -1765,8 +1842,7 @@ class QuestsHandler(ApiHandler):
             query = self.jbody["hostQuery"]
             response = PluginHelper.request_get(params={"query": query})
             if response.json()["status"] == "ok":
-                for hostname in response.json()["results"]:
-                    hostnames.append(hostname)
+                hostnames.extend(response.json()["results"])
 
         # We need to create a list of hostnames that don't have a Host record
         new_hosts_needed = list(hostnames)
