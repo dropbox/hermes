@@ -99,6 +99,37 @@ def request_post(path, json):
     return response
 
 
+def request_put(path, json):
+    """Make an HTTP PUT request for the given path
+
+    If a non-OK status is returned, display the error message and exit
+
+    Args:
+        path: the full path to the resource
+        json: the json to send in the body
+    Returns:
+        the http response
+    """
+    for attempt in retry(settings.api_retries):
+        response = requests.put(settings.hermes_server + path, json=json)
+        if response.status_code < 500:
+            break
+
+    if (
+            response.status_code != requests.codes.ok
+            or not response.content
+    ):
+        try:
+            data = response.json()["error"]["message"]
+        except Exception:
+            data = "Received invalid response: {}".format(response.content)
+        raise HermesException(
+            "Error: {}".format(data)
+        )
+
+    return response
+
+
 def ping_server(args):
     """Ping the Hermes API server and ensure it responds.  Return output
     appropriate for a Nagios-style monitoring service.
@@ -322,6 +353,30 @@ def add_host(args):
     else:
         sys.exit(
             "Received unexpected status adding host {}".format(response.json()["status"])
+        )
+
+
+def rename_host(args):
+    logging.debug("rename_host(%s, %s)", args.oldname, args.newname)
+    response = request_get("/api/v1/hosts?hostname={}".format(args.oldname))
+    hosts = response.json()
+
+    if hosts["totalHosts"] != 1:
+        sys.exit("Host {} does not exist".format(args.oldname))
+
+    json = {
+        "hostname": args.newname
+    }
+
+    response = request_put("/api/v1/hosts/{}".format(args.oldname), json)
+
+    if response.json()["status"] == "ok":
+        print "Renamed host {} to {}".format(
+            args.oldname, response.json()["hostname"]
+        )
+    else:
+        sys.exit(
+            "Received unexpected status renaming host {}".format(args.oldname)
         )
 
 
@@ -883,6 +938,11 @@ def parse_cli_args():
     host_add_parser = host_subparser.add_parser("add")
     host_add_parser.add_argument("hostname")
     host_add_parser.set_defaults(func=add_host)
+    # Host rename parser
+    host_rename_parser = host_subparser.add_parser("rename")
+    host_rename_parser.add_argument("oldname")
+    host_rename_parser.add_argument("newname")
+    host_rename_parser.set_defaults(func=rename_host)
     # Host events parsers
     host_events_parser = host_subparser.add_parser("events")
     host_events_parser.add_argument("hostname")
