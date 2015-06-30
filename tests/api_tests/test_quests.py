@@ -101,6 +101,25 @@ def test_creation(sample_data1_server):
         strip=["events"]
     )
 
+    # see if we can create events based on quest id
+    client.create(
+        "/events",
+        questId=1,
+        user="testman@example.com",
+        eventTypeId=2,
+        note="These are test events for the quest"
+    )
+
+    assert_success(
+        client.get("/events"),
+        {
+            "href": "/api/v1/events",
+            "limit": 10,
+            "offset": 0,
+            "totalEvents": 8
+        },
+        strip=["events"]
+    )
 
 def test_update(sample_data1_server):
     client = sample_data1_server

@@ -797,7 +797,34 @@ class EventsHandler(ApiHandler):
             Content-Type: application/json
             {
                 "hostname": "example",
+                "user": "johnny",
+                "eventTypeId": 3,
+                "note": "Sample description"
+            }
+
+        or
+
+        .. sourcecode:: http
+
+            POST /api/v1/events HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            {
                 "hostQuery": "tag=value",
+                "user": "johnny",
+                "eventTypeId": 3,
+                "note": "Sample description"
+            }
+
+        or
+
+        .. sourcecode:: http
+
+            POST /api/v1/events HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            {
+                "questId": 1,
                 "user": "johnny",
                 "eventTypeId": 3,
                 "note": "Sample description"
@@ -841,9 +868,11 @@ class EventsHandler(ApiHandler):
                 ]
             }
 
-        :reqjson string hostname: The hostname of the Host of this Event
+        :reqjson string hostname: (*optional*) The hostname of the Host of this Event
+        :reqjson string hostQuery: (*optional*) The external query to run to get Hosts for which to create Events
+        :regjson int queryId: (*optional*) The Quest ID which has hosts for which we want to create Events
         :regjson string user: The user responsible for throwing this Event
-        :regjson string eventTypeId: The id of the EventType
+        :regjson int eventTypeId: The id of the EventType
         :regjson string note: (*optional*) The human readable note describing this Event
 
         :reqheader Content-Type: The server expects a json body specified with
@@ -858,10 +887,6 @@ class EventsHandler(ApiHandler):
         """
 
         try:
-            hostnames = (
-                [self.jbody.get("hostname", None)]
-                if self.jbody.get("hostname", None) else []
-            )
             user = self.jbody["user"]
             if not EMAIL_REGEX.match(user):
                 user += "@" + self.domain
@@ -880,6 +905,11 @@ class EventsHandler(ApiHandler):
             self.write_error(400, message="Bad event type")
             return
 
+        hostnames = (
+            [self.jbody.get("hostname", None)]
+            if self.jbody.get("hostname", None) else []
+        )
+
         # If a host query was specified, we need to talk to the external
         # query server to resolve this into a list of hostnames
         if "hostQuery" in self.jbody:
@@ -887,6 +917,17 @@ class EventsHandler(ApiHandler):
             response = PluginHelper.request_get(params={"query": query})
             if response.json()["status"] == "ok":
                 hostnames.extend(response.json()["results"])
+
+        # If a quest Id was given, look up the labors in that quest and
+        # get all the hostnames for those labors.
+        if "questId" in self.jbody:
+            quest = self.session.query(Quest).filter_by(
+                id=self.jbody["questId"]
+            ).scalar()
+            if not quest:
+                raise exc.NotFound("No such Quest {} found".format(id))
+            for labor in quest.labors:
+                hostnames.append(labor.host.hostname)
 
         # We need to create a list of hostnames that don't have a Host record
         new_hosts_needed = list(hostnames)
@@ -905,7 +946,7 @@ class EventsHandler(ApiHandler):
                 ).all()
             )
 
-        if len(hosts) == 0:
+        if not hosts:
             raise exc.BadRequest("No hosts found with given list")
 
         try:

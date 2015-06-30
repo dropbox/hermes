@@ -34,7 +34,7 @@ def slack_message(message):
         "icon_emoji": ":hermes:",
     }
     try:
-        log.info("{} {}".format(settings.slack_webhook, json))
+        log.debug("{} {}".format(settings.slack_webhook, json))
         response = requests.post(
             settings.slack_webhook, json=json, proxies=proxies
         )
