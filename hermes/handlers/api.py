@@ -926,7 +926,9 @@ class EventsHandler(ApiHandler):
                 Event.create_many(self.session, events_to_create, tx)
             else:
                 # if we are just creating one event, do it the simple way
-                event = Event.create(self.session, hosts[0], user, event_type)
+                event = Event.create(
+                    self.session, hosts[0], user, event_type, note=note
+                )
 
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
