@@ -930,10 +930,11 @@ class EventsHandler(ApiHandler):
                 hostnames.append(labor.host.hostname)
 
         # We need to create a list of hostnames that don't have a Host record
-        new_hosts_needed = list(hostnames)
+        new_hosts_needed = set(hostnames)
         hosts = (
             self.session.query(Host).filter(Host.hostname.in_(hostnames)).all()
         )
+
         for host in hosts:
             new_hosts_needed.remove(str(host.hostname))
 

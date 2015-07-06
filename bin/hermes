@@ -247,23 +247,26 @@ def list_fates(args):
     response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
     fates = response.json()["fates"]
 
-    print "FATES  ([id] created by => completed by)"
-    print "       * = intermediate\n"
+    print "FATES:  \n[id] created by => completed by\n"
     for fate in fates:
         print "[{}]{} {} => {}".format(
             fate["id"],
             "*" if fate["intermediate"] else " ",
             (
                 fate["creationEventType"]["category"]
-                + "-" + fate["creationEventType"]["state"]
+                + " " + fate["creationEventType"]["state"]
             ),
             (
                 fate["completionEventType"]["category"]
-                + "-" + fate["completionEventType"]["state"]
+                + " " + fate["completionEventType"]["state"]
             )
         )
-        print fate["description"]
+        print textwrap.fill(
+            fate["description"], width=60,
+            initial_indent="\t", subsequent_indent="\t"
+        )
         print ""
+    print "* = intermediate.  Intermediate Fates will not create new Labors."
 
 
 def create_fate(args):
@@ -624,6 +627,8 @@ def list_quests(args):
 
     print "OPEN QUESTS:"
     for quest in quests:
+        if args.user and quest["creator"] != args.user:
+            continue
         embark_time = parser.parse(quest["embarkTime"])
         embark_time = embark_time.replace(tzinfo=tz.tzutc())
         embark_time = embark_time.astimezone(tz.tzlocal())
@@ -859,14 +864,17 @@ def parse_cli_args():
 
     subparsers = parser.add_subparsers()
 
+    # EVENT-TYPE COMMANDS
     # event type command line parser
     event_type_parser = subparsers.add_parser(
         "event-type", help="Create and list event types"
     )
     event_type_subparser = event_type_parser.add_subparsers()
+
     # event type list command line parser
     event_type_list_parser = event_type_subparser.add_parser("list")
     event_type_list_parser.set_defaults(func=list_event_types)
+
     # event type create command line parser
     event_type_create_parser = event_type_subparser.add_parser("create")
     event_type_create_parser.add_argument(
@@ -883,14 +891,17 @@ def parse_cli_args():
     )
     event_type_create_parser.set_defaults(func=create_event_type)
 
+    # FATE COMMANDS
     # fate command line parser
     fate_parser = subparsers.add_parser(
         "fate", help="Create and list fates"
     )
+
     # fate list parser
     fate_subparser = fate_parser.add_subparsers()
     fate_list_subparser = fate_subparser.add_parser("list")
     fate_list_subparser.set_defaults(func=list_fates)
+
     # fate create parser
     fate_create_subparser = fate_subparser.add_parser("create")
     fate_create_subparser.add_argument(
@@ -928,21 +939,26 @@ def parse_cli_args():
     )
     fate_create_subparser.set_defaults(func=create_fate)
 
+    # HOST COMMANDS
     # Add host command line parser
     host_parser = subparsers.add_parser("host", help="Host level operations")
     host_subparser = host_parser.add_subparsers()
+
     # Host list parser
     host_list_parsers = host_subparser.add_parser("list")
     host_list_parsers.set_defaults(func=list_hosts)
+
     # Host add parser
     host_add_parser = host_subparser.add_parser("add")
     host_add_parser.add_argument("hostname")
     host_add_parser.set_defaults(func=add_host)
+
     # Host rename parser
     host_rename_parser = host_subparser.add_parser("rename")
     host_rename_parser.add_argument("oldname")
     host_rename_parser.add_argument("newname")
     host_rename_parser.set_defaults(func=rename_host)
+
     # Host events parsers
     host_events_parser = host_subparser.add_parser("events")
     host_events_parser.add_argument("hostname")
@@ -951,10 +967,12 @@ def parse_cli_args():
         help="Limit the number of events displayed"
     )
     host_events_parser.set_defaults(func=list_host_events)
+
     # Host last unique events
     host_events_parser = host_subparser.add_parser("last-state")
     host_events_parser.add_argument("hostname")
     host_events_parser.set_defaults(func=list_host_last_state)
+
     # Host labors parser
     host_labors_parser = host_subparser.add_parser("labors")
     host_labors_parser.add_argument("hostname")
@@ -963,11 +981,13 @@ def parse_cli_args():
         help="Limit the number of labors displayed"
     )
     host_labors_parser.set_defaults(func=list_host_labors)
+
     # Host monitoring plugin output
     host_monitoring_parser = host_subparser.add_parser("monitoring")
     host_monitoring_parser.add_argument("hostname")
     host_monitoring_parser.set_defaults(func=list_host_labors_monitoring)
 
+    # LABOR COMMANDS
     # labors command line parser
     labor_parser = subparsers.add_parser(
         "labor", help="List labors"
@@ -988,6 +1008,7 @@ def parse_cli_args():
     )
     labor_list_parser.set_defaults(func=list_labors)
 
+    # EVENTS COMMANDS
     # events command line parser
     event_parser = subparsers.add_parser(
         "event", help="Create and list events"
@@ -1008,25 +1029,33 @@ def parse_cli_args():
         help="Query for Hosts for which to create this Event"
     )
     event_create_parser.add_argument(
-        "--questId", type=str, dest="quest_id",
+        "--quest-id", type=str, dest="quest_id",
         help="Create Events for each of the Hosts in this Quest"
     )
     event_create_parser.set_defaults(func=create_event)
 
+    # PING COMMANDS
     # monitoring ping command line parser
     ping_parser = subparsers.add_parser(
         "ping", help="Perform a ping of the Hermes API server"
     )
     ping_parser.set_defaults(func=ping_server)
 
+    # QUEST COMMANDS
     # quest command line parser
     quest_parser = subparsers.add_parser(
         "quest", help="Create and list Quests"
     )
     quest_subparser = quest_parser.add_subparsers()
+
     # quest list parser
     quest_list_parser = quest_subparser.add_parser("list")
+    quest_list_parser.add_argument(
+        "--user",
+        help="Filter the list of Quests to those created by the given user"
+    )
     quest_list_parser.set_defaults(func=list_quests)
+
     # quest show parser
     quest_show_parser = quest_subparser.add_parser("show")
     quest_show_parser.add_argument("quest_id")
@@ -1044,12 +1073,34 @@ def parse_cli_args():
         help="Only output a list of hostnames with open labors"
     )
     quest_show_parser.set_defaults(func=show_quest)
+
     # quest creation parser
-    quest_create_parser = quest_subparser.add_parser("create")
-    quest_create_parser.add_argument("category")
-    quest_create_parser.add_argument("state")
+    quest_create_parser = quest_subparser.add_parser(
+        "create",
+        description="To create a Hermes Quest, one should first decide two "
+                    "things: (1) what hosts will be part of this Quest, "
+                    "and (2) what the Event Type will be for the Events "
+                    "that start the Quest.\n"
+                    "\n"
+                    "Hosts can be specified by a query string sent to an "
+                    "external source of record.  Check with your Hermes "
+                    "administrator for more information.\n"
+                    "\n"
+                    "To pick the proper Event Type, use `hermes fate list` "
+                    "and pick from the \"created by\" column."
+    )
     quest_create_parser.add_argument(
-        "--due", type=str,
+        "category",
+        help="The Event category for the Event "
+             "that will be created for each Host."
+    )
+    quest_create_parser.add_argument(
+        "state",
+        help="The Event state for the Event "
+             "that will be created for each Host."
+    )
+    quest_create_parser.add_argument(
+        "--due", type=str, metavar='YYYY-MM-DD HH:MM',
         help="Target date as YYYY-MM-DD HH:MM, with hours and minutes optional"
     )
     quest_create_parser.add_argument(
