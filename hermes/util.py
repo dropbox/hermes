@@ -4,6 +4,9 @@ Project-wide utilities.
 
 import logging
 import requests
+import smtplib
+
+from email.mime.text import MIMEText
 
 from .settings import settings
 
@@ -40,3 +43,35 @@ def slack_message(message):
         )
     except Exception as exc:
         log.warn("Error writing to Slack: {}".format(exc.message))
+
+def email_message(recipients, subject, message):
+    """Email a message to a user.
+
+    Args:
+        subject: the subject of the email we wish to send
+        message: the content of the email we wish to send
+        recipients: the email address to whom we wish to send the email
+    """
+    if not settings.email_notifications:
+        return
+
+    if isinstance(recipients, basestring):
+        recipients = recipients.split(",")
+    if isinstance(settings.email_always_copy, basestring):
+        extra_recipients = settings.email_always_copy.split(",")
+
+    msg = MIMEText(message)
+    msg["Subject"] = subject
+    msg["From"] = "hermes@localhost"
+    msg["To"] = ", ".join(recipients)
+    if extra_recipients:
+        msg["Cc"] = ", ".join(extra_recipients)
+
+    try:
+        smtp = smtplib.SMTP("localhost")
+        smtp.sendmail(
+            settings.email_sender_address, recipients, msg.as_string()
+        )
+        smtp.quit()
+    except Exception as exc:
+        log.warn("Error sending email: {}".format(exc.message))
