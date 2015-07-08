@@ -1,8 +1,9 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, division
 
 from datetime import datetime
 import functools
 import logging
+import textwrap
 
 from sqlalchemy import create_engine, or_, union_all, desc, and_
 from sqlalchemy.event import listen
@@ -16,7 +17,7 @@ from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.types import Integer, String, Boolean, BigInteger
 from sqlalchemy.types import DateTime
 
-from .util import slack_message
+from .util import slack_message, email_message
 from .settings import settings
 import exc
 
@@ -1038,6 +1039,27 @@ class Quest(Model):
                 self.description
             ))
 
+            msg = "QUEST {} COMPLETED:\n\n\t\"{}\"\n\n".format(
+                self.id,
+                textwrap.fill(
+                    self.description,
+                    width=60, subsequent_indent="\t "
+                )
+            )
+
+            msg += "Quest was embarked on {} and completed on {}.\n".format(
+                self.embark_time, self.completion_time
+            )
+
+            msg += "There were {} labors in the Quest.".format(
+                len(self.labors)
+            )
+
+            email_message(
+                self.creator, "Quest {} completed".format(self.id),
+                msg
+            )
+
     @classmethod
     def get_open_quests(cls, session):
         """Get a list of open Quests
@@ -1068,6 +1090,69 @@ class Quest(Model):
                 )
             )
         )
+
+    @classmethod
+    def email_quest_updates(cls, quests_updated):
+        for quest in quests_updated.itervalues():
+            msg = "QUEST {} UPDATED:\n\n\t\"{}\"\n\n".format(
+                quest["quest"].id,
+                textwrap.fill(
+                    quest["quest"].description,
+                    width=60, subsequent_indent="\t "
+                )
+            )
+
+            labors_completed = 0;
+            remaining_types = {}
+            for labor in quest["quest"].labors:
+                if labor.completion_time is None:
+                    type_key = "{} {}".format(
+                        labor.creation_event.event_type.category,
+                        labor.creation_event.event_type.state
+                    )
+                    if type_key in remaining_types:
+                        remaining_types[type_key] += 1
+                    else:
+                        remaining_types[type_key] = 1
+                else:
+                    labors_completed += 1
+
+            total_labors = len(quest["quest"].labors)
+            labors_remaining = total_labors - labors_completed
+            if labors_remaining:
+                msg += "\nOPEN LABORS BY TYPE:\n"
+                for type in remaining_types.iterkeys():
+                    msg += "\t{}: {}".format(
+                        type,
+                        remaining_types[type]
+                    )
+            msg += (
+                "\n\nOVERALL STATUS:\n\t{:.2%} complete.  "
+                "{} total labors.  {} remain open.\n\n".format(
+                    labors_completed / total_labors,
+                    total_labors,
+                    labors_remaining
+                )
+            )
+
+            msg += "LABORS UPDATED:\n"
+            for labor in quest["labors"]:
+                msg += (
+                    "\tLabor {} completed.\n\t\t{}: {} {} => {} {}\n\n".format(
+                        labor.id, labor.host.hostname,
+                        labor.creation_event.event_type.category,
+                        labor.creation_event.event_type.state,
+                        labor.completion_event.event_type.category,
+                        labor.completion_event.event_type.state,
+                    )
+                )
+
+            email_message(
+                quest["quest"].creator,
+                "Quest {} updated".format(quest["quest"].id),
+                msg
+            )
+
 
     def href(self, base_uri):
         """Create an HREF value for this object
@@ -1192,8 +1277,18 @@ class Labor(Model):
             labor_dicts: the list of Labors dicts to achieve
                 (with keys labor and event)
         """
-        quests = []
+        # here we will track the quests that need to get checked for victory
+        quests_to_check = []
+
+        # here we will organize the labors into quests so we can send an email
+        # of the updated quests
+        quests_updated = {}
+
+        # here we will create a giant string of the message to send to Slack
         all_messages = ""
+
+        # Let us examine and update the completion of each labor with the given
+        # event, as we were passed in the dict
         for labor_dict in labor_dicts:
             labor = labor_dict["labor"]
             event = labor_dict["event"]
@@ -1202,18 +1297,34 @@ class Labor(Model):
                 flush=False, commit=False
             )
 
-            all_messages += ("*Labor {}* completed.\n\t{}: {} {} => {} {}{}\n".format(
-                labor.id, labor.host.hostname,
-                labor.creation_event.event_type.category,
-                labor.creation_event.event_type.state,
-                labor.completion_event.event_type.category,
-                labor.completion_event.event_type.state,
-                "\n\tPart of Quest [{}] \"{}\"".format(
-                    labor.quest_id, labor.quest.description
-                ) if labor.quest_id else ""
-            ))
-            if labor.quest and labor.quest not in quests:
-                quests.append(labor.quest)
+            # add to the message we will post to Slack
+            all_messages += (
+                "*Labor {}* completed.\n\t{}: {} {} => {} {}{}\n\n".format(
+                    labor.id, labor.host.hostname,
+                    labor.creation_event.event_type.category,
+                    labor.creation_event.event_type.state,
+                    labor.completion_event.event_type.category,
+                    labor.completion_event.event_type.state,
+                    "\n\tPart of Quest [{}] \"{}\"".format(
+                        labor.quest_id, labor.quest.description
+                    ) if labor.quest_id else ""
+                )
+            )
+
+
+            if labor.quest:
+                # If this labor was part of a quest, let's sort it into the
+                # quests_updated dict so we can more easily generate emails
+                if labor.quest_id in quests_updated:
+                    quests_updated[labor.quest_id]["labors"].append(labor)
+                else:
+                    quests_updated[labor.quest_id] = {
+                        "quest": labor.quest,
+                        "labors": [labor]
+                    }
+                if labor.quest not in quests_to_check:
+                    quests_to_check.append(labor.quest)
+
         session.flush()
         session.commit()
 
@@ -1221,9 +1332,12 @@ class Labor(Model):
             slack_message(all_messages)
         else:
             slack_message(
-                "*Labor:* completed {} Labors".format(len(labor_dicts))
+                "*Labors:* completed {} Labors".format(len(labor_dicts))
             )
-        for quest in quests:
+
+        Quest.email_quest_updates(quests_updated)
+
+        for quest in quests_to_check:
             quest.check_for_victory()
 
     @classmethod

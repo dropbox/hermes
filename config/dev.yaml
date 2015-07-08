@@ -42,6 +42,13 @@ query_server: "http://localhost:5353/api/query"
 # slack_webhook:  "https://hooks.slack.com/services/"
 # slack_proxyhost: "proxyserver:port"
 
+# Email notifications
+email_notifications: false
+# email_sender_address: "hermes@localhost"
+
+# Always send email notifications to this comma seperated list
+# email_always_copy: "admin@company.com"
+
 # This is the expiration (in seconds) of auth_tokens used for API calls
 # Type: int
 auth_token_expiry: 600
