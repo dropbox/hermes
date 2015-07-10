@@ -1016,6 +1016,28 @@ class Quest(Model):
                 quest.description
             )
         )
+
+        msg = "QUEST {} STARTED:\n\n\t\"{}\"\n\n".format(
+            quest.id,
+            textwrap.fill(
+                quest.description,
+                width=60, subsequent_indent="\t "
+            )
+        )
+
+        msg += (
+            "There are {} labors in the Quest.  "
+            "They were started with the event \"{} {}.\""
+        ).format(
+            len(quest.labors),
+            creation_event_type.category,
+            creation_event_type.state,
+        )
+
+        email_message(
+            quest.creator, "Quest {} started".format(quest.id),
+            msg
+        )
         return quest
 
     def check_for_victory(self):

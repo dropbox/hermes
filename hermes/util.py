@@ -59,10 +59,12 @@ def email_message(recipients, subject, message):
         recipients = recipients.split(",")
     if isinstance(settings.email_always_copy, basestring):
         extra_recipients = settings.email_always_copy.split(",")
+    else:
+        extra_recipients = [settings.email_always_copy]
 
     msg = MIMEText(message)
     msg["Subject"] = subject
-    msg["From"] = "hermes@localhost"
+    msg["From"] = settings.email_sender_address
     msg["To"] = ", ".join(recipients)
     if extra_recipients:
         msg["Cc"] = ", ".join(extra_recipients)
@@ -70,7 +72,9 @@ def email_message(recipients, subject, message):
     try:
         smtp = smtplib.SMTP("localhost")
         smtp.sendmail(
-            settings.email_sender_address, recipients, msg.as_string()
+            settings.email_sender_address,
+            recipients + extra_recipients,
+            msg.as_string()
         )
         smtp.quit()
     except Exception as exc:
