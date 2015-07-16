@@ -52,3 +52,6 @@ email_notifications: false
 # This is the expiration (in seconds) of auth_tokens used for API calls
 # Type: int
 auth_token_expiry: 600
+
+# Sentry DSN if using Sentry to log exceptions.
+# sentry_dsn:

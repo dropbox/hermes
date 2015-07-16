@@ -14,6 +14,17 @@ from ..settings import settings
 # Logging object
 log = logging.getLogger(__name__)
 
+# If raven library is available, modify the base handler to support Sentry.
+try:
+    from raven.contrib.tornado import SentryMixin
+except ImportError:
+    pass
+else:
+    class SentryHandler(SentryMixin, RequestHandler):
+        pass
+    RequestHandler = SentryHandler
+
+
 
 class PluginHelper(object):
     @classmethod
