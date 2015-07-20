@@ -2,7 +2,7 @@ import logging
 import random
 import re
 import sqlalchemy
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from sqlalchemy.exc import IntegrityError
 import string
 import time
@@ -1493,6 +1493,7 @@ class LaborsHandler(ApiHandler):
                 "labors": [
                     {
                         "id": 23,
+                        "startingLaborId": null,
                         "href": "/api/v1/labors/23",
                         "questId": 5,
                         "hostId": 26,
@@ -1509,6 +1510,7 @@ class LaborsHandler(ApiHandler):
             }
 
         :query string hostname: (*optional*) filter Labors by a particular hostname
+        :query string startingLaborId: (*optional*) get Labors by the Id or the Id of the starting labor
         :query string hostQuery: (*optional*) the query to send to the plugin to come up with the list of hostnames
         :query string userQuest: (*optional*) the user quest to send to the plugin to come up with the list of hostnames
         :query boolean open: if true, filter Labors to those still open
@@ -1521,6 +1523,7 @@ class LaborsHandler(ApiHandler):
         :statuscode 401: The request was made without being logged in.
         """
         hostname = self.get_argument("hostname", None)
+        starting_labor_id = self.get_argument("startingLaborId", None)
         open_flag = self.get_argument("open", None)
         quest_id = self.get_argument("questId", None)
         host_query = self.get_argument("hostQuery", None)
@@ -1535,6 +1538,12 @@ class LaborsHandler(ApiHandler):
 
         if quest_id:
             labors = labors.filter(Labor.quest_id == quest_id)
+
+        if starting_labor_id:
+            labors = labors.filter(or_(
+                Labor.id == starting_labor_id,
+                Labor.starting_labor_id == starting_labor_id
+            ))
 
         if hostname is not None:
             try:
@@ -1647,6 +1656,7 @@ class LaborHandler(ApiHandler):
             {
                 "status": "ok",
                 "id": 23,
+                "startingLaborId": null,
                 "questId": 5,
                 "hostId": 26,
                 "creationTime": timestamp,

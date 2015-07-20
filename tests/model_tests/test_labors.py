@@ -18,6 +18,7 @@ def test_lifecycle(sample_data1):
     host = sample_data1.query(Host).first()
     assert len(host.labors) == 0
 
+    # Create an event which should create a labor
     Event.create(sample_data1, host, "system", fate.creation_event_type)
 
     event = (
@@ -37,6 +38,7 @@ def test_lifecycle(sample_data1):
     assert len(event.created_labors) == 1
     assert len(event.completed_labors) == 0
 
+    # Create an event which should close that labor
     Event.create(
         sample_data1, host, "system", fate.completion_event_type
     )
