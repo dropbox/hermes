@@ -715,6 +715,11 @@ class Fate(Model):
                             if fate["creation_type_id"] == event_type.id:
                                 new_labor_dict = {
                                     "host_id": host.id,
+                                    "starting_labor_id": (
+                                        labor.starting_labor_id
+                                        if labor.starting_labor_id
+                                        else labor.id
+                                    ),
                                     "creation_event_id": event.id,
                                     "quest_id": (
                                         labor.quest.id if labor.quest else None
@@ -1218,6 +1223,7 @@ class Labor(Model):
 
     Attributes:
         id: the unique database id
+        starting_labor_id: the database id of the labor that started chain of intermediate labors
         quest: the Quest to this this Labor belongs
         host: the Host to which this Labor pertains
         creation_time: when this Labor was created
@@ -1235,6 +1241,7 @@ class Labor(Model):
     __tablename__ = "labors"
 
     id = Column(Integer, primary_key=True)
+    starting_labor_id = Column(Integer, nullable=True, index=True)
     quest_id = Column(
         Integer, ForeignKey("quests.id"), nullable=True, index=True
     )
@@ -1333,7 +1340,6 @@ class Labor(Model):
                 )
             )
 
-
             if labor.quest:
                 # If this labor was part of a quest, let's sort it into the
                 # quests_updated dict so we can more easily generate emails
@@ -1425,6 +1431,7 @@ class Labor(Model):
         """
         out = {
             "id": self.id,
+            "startingLaborId": self.starting_labor_id,
             "questId": self.quest_id,
             "hostId": self.host_id,
             "creationTime": str(self.creation_time),

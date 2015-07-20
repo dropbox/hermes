@@ -79,6 +79,7 @@ def test_creation(sample_data1_server):
                         "hostId": 1,
                         "href": "/api/v1/labors/1",
                         "id": 1,
+                        "startingLaborId": None,
                         "questId": 1},
                        {"ackTime": None,
                         "ackUser": None,
@@ -88,6 +89,7 @@ def test_creation(sample_data1_server):
                         "hostId": 2,
                         "href": "/api/v1/labors/2",
                         "id": 2,
+                        "startingLaborId": None,
                         "questId": 1},
                        {"ackTime": None,
                         "ackUser": None,
@@ -97,6 +99,7 @@ def test_creation(sample_data1_server):
                         "hostId": 3,
                         "href": "/api/v1/labors/3",
                         "id": 3,
+                        "startingLaborId": None,
                         "questId": 1}],
         },
         strip=["creationTime", "completionTime"]
@@ -118,7 +121,7 @@ def test_update(sample_data1_server):
         "/api/v1/quests/1"
     )
 
-    # make sure a labor was created for this quest
+    # make sure 3 labors was created for this quest
     assert_success(
         client.get("/labors"),
         {
@@ -154,6 +157,7 @@ def test_update(sample_data1_server):
             "creationEventId": 6,
             "hostId": 1,
             "id": 4,
+            "startingLaborId": None,
             "questId": None
         },
         strip=["creationTime"]
@@ -178,6 +182,7 @@ def test_update(sample_data1_server):
             "targetTime": None,
             "hostId": 1,
             "id": 4,
+            "startingLaborId": None,
             "questId": 1
         },
         strip=["creationTime", "ackTime"]
