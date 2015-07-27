@@ -2197,3 +2197,58 @@ class QuestHandler(ApiHandler):
         *Not supported*
         """
         self.not_supported()
+
+
+class ExtQueryHandler(ApiHandler):
+    def get(self):
+        """**Get results from the external query services**
+
+        The frontend will need to run queries against the external query server
+        so that users can validate the results before working with a particular
+        query.  This handler acts as a passthrough so users can do exactly that.
+
+        **Example Request:**
+
+        .. sourcecode:: http
+
+            GET /api/v1/query?hostQuery=server HTTP/1.1
+            Host: localhost
+
+        **Example response:**
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                "results": [
+                    {
+                        "id": 1,
+                        "href": "/api/v1/hosts/server1",
+                        "hostname": "server1",
+                    },
+                    ...
+                ]
+            }
+
+        :query string hostQuery: the query to send to the plugin to come up with the list of hostnames
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
+        """
+        host_query = self.get_argument("hostQuery", None)
+
+        response = PluginHelper.request_get(params={"query": host_query})
+        if (
+            response.status_code == 200
+            and response.json()["status"] == "ok"
+        ):
+            json = {
+                "results": response.json()["results"],
+            }
+        else:
+            raise exc.BadRequest("Bad host query: {}".format(host_query))
+
+        self.success(json)
