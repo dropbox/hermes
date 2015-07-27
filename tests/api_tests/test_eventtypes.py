@@ -17,7 +17,6 @@ def test_creation(tornado_server):
     client = Client(tornado_server)
     assert_success(client.get("/eventtypes"), {
         "eventTypes": [],
-        "href": "/api/v1/eventtypes",
         "limit": 10,
         "offset": 0,
         "totalEventTypes": 0,
@@ -43,13 +42,11 @@ def test_creation(tornado_server):
     assert_success(
         client.get("/eventtypes"),
         {
-            "href": "/api/v1/eventtypes",
             "eventTypes": [{
                           "id": 1,
                           "category": "foo",
                           "state": "bar",
                           "description": "This is a test",
-                          "href": "/api/v1/eventtypes/1"
                       }],
             "limit": 10,
             "offset": 0,
@@ -64,7 +61,6 @@ def test_creation(tornado_server):
             "category": "foo",
             "state": "bar",
             "description": "This is a test",
-            "href": "/api/v1/eventtypes/1",
             "events": [],
             "fates": [],
             "limit": 10,
@@ -83,13 +79,11 @@ def test_creation(tornado_server):
     assert_success(
         client.get("/eventtypes", params={"category": "foo", "state": "baz"}),
         {
-            "href": "/api/v1/eventtypes?category=foo&state=baz",
             "eventTypes": [{
                           "id": 2,
                           "category": "foo",
                           "state": "baz",
                           "description": "This is a second test",
-                          "href": "/api/v1/eventtypes/2",
                       }],
             "limit": 10,
             "offset": 0,
@@ -101,7 +95,6 @@ def test_create_multiple(tornado_server):
     client = Client(tornado_server)
     assert_success(client.get("/eventtypes"), {
         "eventTypes": [],
-        "href": "/api/v1/eventtypes",
         "limit": 10,
         "offset": 0,
         "totalEventTypes": 0,
@@ -124,7 +117,6 @@ def test_create_multiple(tornado_server):
     )
 
     assert_success(client.get("/eventtypes"), {
-        "href": "/api/v1/eventtypes",
         "limit": 10,
         "offset": 0,
         "totalEventTypes": 2,
@@ -135,7 +127,6 @@ def test_update(tornado_server):
     client = Client(tornado_server)
     assert_success(client.get("/eventtypes"), {
         "eventTypes": [],
-        "href": "/api/v1/eventtypes",
         "limit": 10,
         "offset": 0,
         "totalEventTypes": 0,
@@ -157,7 +148,6 @@ def test_update(tornado_server):
             "category": "foo",
             "state": "bar",
             "description": "new",
-            "href": "/api/v1/eventtypes/1",
         }
     )
 

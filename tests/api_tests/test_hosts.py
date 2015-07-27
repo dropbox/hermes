@@ -17,7 +17,6 @@ def test_creation(tornado_server):
     client = Client(tornado_server)
     assert_success(client.get("/hosts"), {
         "hosts": [],
-        "href": "/api/v1/hosts",
         "limit": 10,
         "offset": 0,
         "totalHosts": 0,
@@ -31,10 +30,8 @@ def test_creation(tornado_server):
     assert_success(
         client.get("/hosts"),
         {
-            "href": "/api/v1/hosts",
             "hosts": [{
                           "id": 1,
-                          "href": "/api/v1/hosts/example",
                           "hostname": "example"
                       }],
             "limit": 10,
@@ -47,7 +44,6 @@ def test_creation(tornado_server):
         client.get("/hosts/example"),
         {
             "id": 1,
-            "href": "/api/v1/hosts/example",
             "hostname": "example",
             "events": [],
             "labors": [],
@@ -62,10 +58,8 @@ def test_creation(tornado_server):
     assert_success(
         client.get("/hosts", params={"hostname": "sample"}),
         {
-            "href": "/api/v1/hosts?hostname=sample",
             "hosts": [{
                           "id": 2,
-                          "href": "/api/v1/hosts/sample",
                           "hostname": "sample"
                       }],
             "limit": 10,
@@ -78,7 +72,6 @@ def test_create_multiple(tornado_server):
     client = Client(tornado_server)
     assert_success(client.get("/hosts"), {
         "hosts": [],
-        "href": "/api/v1/hosts",
         "limit": 10,
         "offset": 0,
         "totalHosts": 0,
@@ -94,7 +87,6 @@ def test_create_multiple(tornado_server):
     )
 
     assert_success(client.get("/hosts"), {
-        "href": "/api/v1/hosts",
         "limit": 10,
         "offset": 0,
         "totalHosts": 3,
@@ -110,7 +102,6 @@ def test_update(tornado_server):
         client.update("/hosts/testname", hostname="newname"),
         {
             "id": 1,
-            "href": "/api/v1/hosts/newname",
             "hostname": "newname"
         }
     )

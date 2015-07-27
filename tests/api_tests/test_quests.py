@@ -25,17 +25,14 @@ def test_creation(sample_data1_server):
         {
             "events": [{"eventTypeId": 1,
                         "hostId": 1,
-                        "href": "/api/v1/events/1",
                         "id": 1,
                         "note": "example needs a reboot",
                         "user": "system@example.com"},
                        {"eventTypeId": 2,
                         "hostId": 1,
-                        "href": "/api/v1/events/2",
                         "id": 2,
                         "note": "example needs a rebooted",
                         "user": "system@example.com"}],
-            "href": "/api/v1/events",
             "limit": 10,
             "offset": 0,
             "totalEvents": 2
@@ -47,7 +44,6 @@ def test_creation(sample_data1_server):
     assert_success(
         client.get("/quests"),
         {
-            "href": "/api/v1/quests",
             "limit": 10,
             "offset": 0,
             "totalQuests": 0,
@@ -72,7 +68,6 @@ def test_creation(sample_data1_server):
     assert_success(
         client.get("/quests"),
         {
-            "href": "/api/v1/quests",
             "limit": 10,
             "offset": 0,
             "totalQuests": 1
@@ -83,7 +78,6 @@ def test_creation(sample_data1_server):
     assert_success(
         client.get("/quests/1"),
         {
-            "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "johnny@example.com",
             "targetTime": str(target_time),
@@ -96,7 +90,6 @@ def test_creation(sample_data1_server):
     assert_success(
         client.get("/events"),
         {
-            "href": "/api/v1/events",
             "limit": 10,
             "offset": 0,
             "totalEvents": 5
@@ -130,7 +123,6 @@ def test_update(sample_data1_server):
             creator="betsy@example.com"
         ),
         {
-            "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "betsy@example.com",
             "targetTime": str(target_time),
@@ -144,7 +136,6 @@ def test_update(sample_data1_server):
     assert_success(
         client.get("/quests/1"),
         {
-            "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "betsy@example.com",
             "targetTime": str(target_time),
@@ -161,7 +152,6 @@ def test_update(sample_data1_server):
             description="New desc"
         ),
         {
-            "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "betsy@example.com",
             "targetTime": str(target_time),
@@ -175,7 +165,6 @@ def test_update(sample_data1_server):
     assert_success(
         client.get("/quests/1"),
         {
-            "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "betsy@example.com",
             "targetTime": str(target_time),
@@ -193,7 +182,6 @@ def test_update(sample_data1_server):
             creator="tommy@example.com"
         ),
         {
-            "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "tommy@example.com",
             "targetTime": str(target_time),
@@ -207,7 +195,6 @@ def test_update(sample_data1_server):
     assert_success(
         client.get("/quests/1"),
         {
-            "href": "/api/v1/quests/1",
             "id": 1,
             "creator": "tommy@example.com",
             "targetTime": str(target_time),
@@ -226,17 +213,14 @@ def test_quest_lifecycle(sample_data1_server):
         {
             "events": [{"eventTypeId": 1,
                         "hostId": 1,
-                        "href": "/api/v1/events/1",
                         "id": 1,
                         "note": "example needs a reboot",
                         "user": "system@example.com"},
                        {"eventTypeId": 2,
                         "hostId": 1,
-                        "href": "/api/v1/events/2",
                         "id": 2,
                         "note": "example needs a rebooted",
                         "user": "system@example.com"}],
-            "href": "/api/v1/events",
             "limit": 10,
             "offset": 0,
             "totalEvents": 2
@@ -248,7 +232,6 @@ def test_quest_lifecycle(sample_data1_server):
     assert_success(
         client.get("/quests"),
         {
-            "href": "/api/v1/quests",
             "limit": 10,
             "offset": 0,
             "totalQuests": 0,
@@ -276,7 +259,6 @@ def test_quest_lifecycle(sample_data1_server):
     assert_success(
         client.get("/events"),
         {
-            "href": "/api/v1/events",
             "limit": 10,
             "offset": 0,
             "totalEvents": 5
@@ -288,7 +270,6 @@ def test_quest_lifecycle(sample_data1_server):
     assert_success(
         client.get("/labors"),
         {
-            "href": "/api/v1/labors",
             "limit": 10,
             "offset": 0,
             "totalLabors": 3,
@@ -298,7 +279,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 3,
                         "targetTime": str(target_time),
                         "hostId": 1,
-                        "href": "/api/v1/labors/1",
                         "id": 1,
                         "startingLaborId": None,
                         "questId": 1},
@@ -308,7 +288,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 4,
                         "targetTime": str(target_time),
                         "hostId": 2,
-                        "href": "/api/v1/labors/2",
                         "id": 2,
                         "startingLaborId": None,
                         "questId": 1},
@@ -318,7 +297,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 5,
                         "targetTime": str(target_time),
                         "hostId": 3,
-                        "href": "/api/v1/labors/3",
                         "id": 3,
                         "startingLaborId": None,
                         "questId": 1}],
@@ -340,7 +318,6 @@ def test_quest_lifecycle(sample_data1_server):
     assert_success(
         client.get("/events"),
         {
-            "href": "/api/v1/events",
             "limit": 10,
             "offset": 0,
             "totalEvents": 8
@@ -352,7 +329,6 @@ def test_quest_lifecycle(sample_data1_server):
     assert_success(
         client.get("/labors"),
         {
-            "href": "/api/v1/labors",
             "limit": 10,
             "offset": 0,
             "totalLabors": 6,
@@ -362,7 +338,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 3,
                         "targetTime": str(target_time),
                         "hostId": 1,
-                        "href": "/api/v1/labors/1",
                         "id": 1,
                         "startingLaborId": None,
                         "questId": 1},
@@ -372,7 +347,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 4,
                         "targetTime": str(target_time),
                         "hostId": 2,
-                        "href": "/api/v1/labors/2",
                         "id": 2,
                         "startingLaborId": None,
                         "questId": 1},
@@ -382,7 +356,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 5,
                         "targetTime": str(target_time),
                         "hostId": 3,
-                        "href": "/api/v1/labors/3",
                         "id": 3,
                         "startingLaborId": None,
                         "questId": 1},
@@ -392,7 +365,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 6,
                         "targetTime": str(target_time),
                         "hostId": 1,
-                        "href": "/api/v1/labors/4",
                         "id": 4,
                         "startingLaborId": 1,
                         "questId": 1},
@@ -402,7 +374,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 7,
                         "targetTime": str(target_time),
                         "hostId": 2,
-                        "href": "/api/v1/labors/5",
                         "id": 5,
                         "startingLaborId": 2,
                         "questId": 1},
@@ -412,7 +383,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 8,
                         "targetTime": str(target_time),
                         "hostId": 3,
-                        "href": "/api/v1/labors/6",
                         "id": 6,
                         "startingLaborId": 3,
                         "questId": 1}]
@@ -426,7 +396,6 @@ def test_quest_lifecycle(sample_data1_server):
         {
             "creator": "johnny@example.com",
             "description": "This is a quest almighty",
-            "href": "/api/v1/quests/1",
             "id": 1,
             "completionTime": None,
             "targetTime": str(target_time),
@@ -447,7 +416,6 @@ def test_quest_lifecycle(sample_data1_server):
     assert_success(
         client.get("/events"),
         {
-            "href": "/api/v1/events",
             "limit": 10,
             "offset": 0,
             "totalEvents": 11
@@ -459,7 +427,6 @@ def test_quest_lifecycle(sample_data1_server):
     assert_success(
         client.get("/labors"),
         {
-            "href": "/api/v1/labors",
             "limit": 10,
             "offset": 0,
             "totalLabors": 6,
@@ -469,7 +436,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 3,
                         "targetTime": str(target_time),
                         "hostId": 1,
-                        "href": "/api/v1/labors/1",
                         "id": 1,
                         "startingLaborId": None,
                         "questId": 1},
@@ -479,7 +445,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 4,
                         "targetTime": str(target_time),
                         "hostId": 2,
-                        "href": "/api/v1/labors/2",
                         "id": 2,
                         "startingLaborId": None,
                         "questId": 1},
@@ -489,7 +454,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 5,
                         "targetTime": str(target_time),
                         "hostId": 3,
-                        "href": "/api/v1/labors/3",
                         "id": 3,
                         "startingLaborId": None,
                         "questId": 1},
@@ -499,7 +463,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 6,
                         "targetTime": str(target_time),
                         "hostId": 1,
-                        "href": "/api/v1/labors/4",
                         "id": 4,
                         "startingLaborId": 1,
                         "questId": 1},
@@ -509,7 +472,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 7,
                         "targetTime": str(target_time),
                         "hostId": 2,
-                        "href": "/api/v1/labors/5",
                         "id": 5,
                         "startingLaborId": 2,
                         "questId": 1},
@@ -519,7 +481,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 8,
                         "targetTime": str(target_time),
                         "hostId": 3,
-                        "href": "/api/v1/labors/6",
                         "id": 6,
                         "startingLaborId": 3,
                         "questId": 1}]
@@ -535,7 +496,6 @@ def test_quest_lifecycle(sample_data1_server):
     assert_success(
         client.get("/labors/?startingLaborId=3"),
         {
-            "href": "/api/v1/labors/?startingLaborId=3",
             "limit": 10,
             "offset": 0,
             "totalLabors": 2,
@@ -545,7 +505,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 5,
                         "targetTime": str(target_time),
                         "hostId": 3,
-                        "href": "/api/v1/labors/3",
                         "id": 3,
                         "startingLaborId": None,
                         "questId": 1},
@@ -555,7 +514,6 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 8,
                         "targetTime": str(target_time),
                         "hostId": 3,
-                        "href": "/api/v1/labors/6",
                         "id": 6,
                         "startingLaborId": 3,
                         "questId": 1}]

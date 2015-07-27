@@ -37,8 +37,11 @@ def assert_error(response, code):
 
 def assert_success(response, data=None, ignore_order=True, strip=[]):
     output = response.json()
-    if len(strip) > 0:
-        output = _stripper(output, strip)
+    if isinstance(strip, basestring):
+        strip = [strip, "href"]
+    else:
+        strip.append("href")
+    output = _stripper(output, strip)
     assert response.status_code == 200
     assert output["status"] == "ok"
 

@@ -25,6 +25,7 @@ else:
     RequestHandler = SentryHandler
 
 
+API_VER = "/api/v1"
 
 class PluginHelper(object):
     @classmethod
@@ -106,6 +107,7 @@ class ApiHandler(BaseHandler):
     def initialize(self):
         BaseHandler.initialize(self)
         self._jbody = None
+        self.href_prefix = None
 
     @property
     def jbody(self):
@@ -155,6 +157,13 @@ class ApiHandler(BaseHandler):
             "application/json"
         )
 
+        logging.debug(self.request.uri)
+        self.href_prefix = "{}://{}{}".format(
+            self.request.protocol,
+            self.request.host,
+            API_VER
+        )
+
         logging.debug("Added headers")
 
     def not_supported(self):
@@ -193,7 +202,11 @@ class ApiHandler(BaseHandler):
         """200 OK"""
         data['status'] = "ok"
         if 'href' not in data:
-            data['href'] = self.request.uri
+            data['href'] = "{}://{}{}".format(
+                self.request.protocol,
+                self.request.host,
+                self.request.uri
+            )
         self.write(data)
         self.finish()
 

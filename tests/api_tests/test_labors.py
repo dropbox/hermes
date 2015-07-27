@@ -20,7 +20,6 @@ def test_creation(sample_data1_server):
     assert_success(
         client.get("/events"),
         {
-            "href": "/api/v1/events",
             "limit": 10,
             "offset": 0,
             "totalEvents": 2
@@ -31,7 +30,6 @@ def test_creation(sample_data1_server):
     assert_success(
         client.get("/quests"),
         {
-            "href": "/api/v1/quests",
             "limit": 10,
             "offset": 0,
             "totalQuests": 0,
@@ -42,7 +40,6 @@ def test_creation(sample_data1_server):
     assert_success(
         client.get("/labors"),
         {
-            "href": "/api/v1/labors",
             "limit": 10,
             "offset": 0,
             "totalLabors": 0,
@@ -67,7 +64,6 @@ def test_creation(sample_data1_server):
     assert_success(
         client.get("/labors"),
         {
-            "href": "/api/v1/labors",
             "limit": 10,
             "offset": 0,
             "totalLabors": 3,
@@ -77,7 +73,6 @@ def test_creation(sample_data1_server):
                         "creationEventId": 3,
                         "targetTime": str(target_time),
                         "hostId": 1,
-                        "href": "/api/v1/labors/1",
                         "id": 1,
                         "startingLaborId": None,
                         "questId": 1},
@@ -87,7 +82,6 @@ def test_creation(sample_data1_server):
                         "creationEventId": 4,
                         "targetTime": str(target_time),
                         "hostId": 2,
-                        "href": "/api/v1/labors/2",
                         "id": 2,
                         "startingLaborId": None,
                         "questId": 1},
@@ -97,7 +91,6 @@ def test_creation(sample_data1_server):
                         "creationEventId": 5,
                         "targetTime": str(target_time),
                         "hostId": 3,
-                        "href": "/api/v1/labors/3",
                         "id": 3,
                         "startingLaborId": None,
                         "questId": 1}],
@@ -125,7 +118,6 @@ def test_update(sample_data1_server):
     assert_success(
         client.get("/labors"),
         {
-            "href": "/api/v1/labors",
             "limit": 10,
             "offset": 0,
             "totalLabors": 3
@@ -149,7 +141,6 @@ def test_update(sample_data1_server):
     assert_success(
         client.get("/labors/4"),
         {
-            "href": "/api/v1/labors/4",
             "ackTime": None,
             "ackUser": None,
             "completionEventId": None,
@@ -174,7 +165,6 @@ def test_update(sample_data1_server):
     assert_success(
         response,
         {
-            "href": "/api/v1/labors/4",
             "ackUser": "johnny@example.com",
             "completionEventId": None,
             "completionTime": None,
