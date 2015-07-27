@@ -18,7 +18,6 @@ def test_creation(sample_data1_server):
     assert_success(
         client.get("/eventtypes"),
         {
-            "href": "/api/v1/eventtypes",
             "limit": 10,
             "offset": 0,
             "totalEventTypes": 7,
@@ -41,7 +40,6 @@ def test_creation(sample_data1_server):
         client.get("/fates/4"),
         {
             "id": 4,
-            "href": "/api/v1/fates/4",
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "intermediate": False,
@@ -67,7 +65,6 @@ def test_update(sample_data1_server):
         client.get("/fates/4"),
         {
             "id": 4,
-            "href": "/api/v1/fates/4",
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "intermediate": False,
@@ -82,7 +79,6 @@ def test_update(sample_data1_server):
         ),
         {
             "id": 4,
-            "href": "/api/v1/fates/4",
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "intermediate": True,
@@ -97,7 +93,6 @@ def test_update(sample_data1_server):
         ),
         {
             "id": 4,
-            "href": "/api/v1/fates/4",
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "intermediate": True,
@@ -113,7 +108,6 @@ def test_update(sample_data1_server):
         ),
         {
             "id": 4,
-            "href": "/api/v1/fates/4",
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "intermediate": False,
@@ -125,7 +119,6 @@ def test_update(sample_data1_server):
         client.get("/fates/4"),
         {
             "id": 4,
-            "href": "/api/v1/fates/4",
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "intermediate": False,

@@ -20,8 +20,6 @@ log = logging.getLogger(__name__)
 
 EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
-API_VER = "/api/v1"
-
 class HostsHandler(ApiHandler):
 
     def post(self):
@@ -124,7 +122,7 @@ class HostsHandler(ApiHandler):
             hosts = []
             for hostname in hostnames:
                 host = Host.create(self.session, hostname["hostname"])
-                hosts.append(host.to_dict(API_VER))
+                hosts.append(host.to_dict(self.href_prefix))
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
         except exc.ValidationError as err:
@@ -207,7 +205,7 @@ class HostsHandler(ApiHandler):
             "limit": limit,
             "offset": offset,
             "totalHosts": total,
-            "hosts": [host.to_dict(API_VER) for host in hosts.all()],
+            "hosts": [host.to_dict(self.href_prefix) for host in hosts.all()],
         }
 
         self.success(json)
@@ -260,7 +258,7 @@ class HostHandler(ApiHandler):
         if not host:
             raise exc.NotFound("No such Host {} found".format(hostname))
 
-        json = host.to_dict(API_VER)
+        json = host.to_dict(self.href_prefix)
         json["limit"] = limit
         json["offset"] = offset
 
@@ -272,26 +270,26 @@ class HostHandler(ApiHandler):
                 .from_self().order_by(Labor.creation_time).all()
         ):
             if "labors" in expand:
-                labor_json = labor.to_dict(API_VER)
+                labor_json = labor.to_dict(self.href_prefix)
                 if "events" in expand:
                     labor_json["creationEvent"] = (
-                        labor.creation_event.to_dict(API_VER)
+                        labor.creation_event.to_dict(self.href_prefix)
                     )
                     if "eventtypes" in expand:
                         labor_json["creationEvent"]["eventType"] = (
-                            labor.creation_event.event_type.to_dict(API_VER)
+                            labor.creation_event.event_type.to_dict(self.href_prefix)
                         )
                 labors.append(labor_json)
             else:
-                labors.append({"id": labor.id, "href": labor.href(API_VER)})
+                labors.append({"id": labor.id, "href": labor.href(self.href_prefix)})
 
             if labor.quest and "quests" in expand:
-                quests.append(labor.quest.to_dict(API_VER))
+                quests.append(labor.quest.to_dict(self.href_prefix))
             elif labor.quest:
                 quests.append(
                     {
                         "id": labor.quest.id,
-                        "href": labor.quest.href(API_VER)
+                        "href": labor.quest.href(self.href_prefix)
                     }
                 )
         json["labors"] = labors
@@ -305,15 +303,15 @@ class HostHandler(ApiHandler):
                 .from_self().order_by(Event.timestamp).all()
         ):
             if "events" in expand:
-                event_json = event.to_dict(API_VER)
+                event_json = event.to_dict(self.href_prefix)
                 if "eventtypes" in expand:
                     event_json["eventType"] = (
-                        event.event_type.to_dict(API_VER)
+                        event.event_type.to_dict(self.href_prefix)
                     )
                 events.append(event_json)
             else:
                 events.append({
-                    "id": event.id, "href": event.href(API_VER)
+                    "id": event.id, "href": event.href(self.href_prefix)
                 })
 
         if last_event:
@@ -386,7 +384,7 @@ class HostHandler(ApiHandler):
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))
 
-        json = host.to_dict(API_VER)
+        json = host.to_dict(self.href_prefix)
 
         self.success(json)
 
@@ -531,7 +529,7 @@ class EventTypesHandler(ApiHandler):
                     event_types[x]["state"],
                     description=event_types[x]["description"]
                 )
-                created_types.append(created_type.to_dict(API_VER))
+                created_types.append(created_type.to_dict(self.href_prefix))
         except IntegrityError as err:
             if "Duplicate" in err.message:
                 raise exc.Conflict("Cannot create duplicate event type")
@@ -616,7 +614,7 @@ class EventTypesHandler(ApiHandler):
             "totalEventTypes": total,
             "eventTypes": (
                 [
-                    event_type.to_dict(API_VER)
+                    event_type.to_dict(self.href_prefix)
                     for event_type in event_types.all()
                 ]
             ),
@@ -673,7 +671,7 @@ class EventTypeHandler(ApiHandler):
         if not event_type:
             raise exc.NotFound("No such EventType {} found".format(id))
 
-        json = event_type.to_dict(API_VER)
+        json = event_type.to_dict(self.href_prefix)
         json["limit"] = limit
         json["offset"] = offset
 
@@ -684,10 +682,10 @@ class EventTypeHandler(ApiHandler):
                 .from_self().order_by(Event.timestamp).all()
         ):
             if "events" in expand:
-                events.append(event.to_dict(API_VER))
+                events.append(event.to_dict(self.href_prefix))
             else:
                 events.append({
-                    "id": event.id, "href": event.href(API_VER)
+                    "id": event.id, "href": event.href(self.href_prefix)
                 })
         json["events"] = events
 
@@ -697,10 +695,10 @@ class EventTypeHandler(ApiHandler):
             event_type.get_associated_fates().all()
         ):
             if "fates" in expand:
-                fates.append(fate.to_dict(API_VER))
+                fates.append(fate.to_dict(self.href_prefix))
             else:
                 fates.append({
-                    "id": fate.id, "href": fate.href(API_VER)
+                    "id": fate.id, "href": fate.href(self.href_prefix)
                 })
         json["fates"] = fates
 
@@ -772,7 +770,7 @@ class EventTypeHandler(ApiHandler):
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))
 
-        json = event_type.to_dict(API_VER)
+        json = event_type.to_dict(self.href_prefix)
 
         self.success(json)
 
@@ -981,7 +979,7 @@ class EventsHandler(ApiHandler):
         self.session.commit()
 
         if len(hosts) == 1:
-            json = event.to_dict(API_VER)
+            json = event.to_dict(self.href_prefix)
             json["href"] = "/api/v1/events/{}".format(event.id)
             self.created(
                 "/api/v1/events/{}".format(event.id), json
@@ -993,7 +991,7 @@ class EventsHandler(ApiHandler):
             self.created(
                 data={
                     "events": (
-                        [event.to_dict(API_VER) for event in created_events]
+                        [event.to_dict(self.href_prefix) for event in created_events]
                     ),
                     "totalEvents": len(created_events)
                 }
@@ -1077,7 +1075,7 @@ class EventsHandler(ApiHandler):
             "limit": limit,
             "offset": offset,
             "totalEvents": total,
-            "events": [event.to_dict(API_VER) for event in events.all()],
+            "events": [event.to_dict(self.href_prefix) for event in events.all()],
         }
 
         self.success(json)
@@ -1125,13 +1123,13 @@ class EventHandler(ApiHandler):
         if not event:
             raise exc.NotFound("No such Event {} found".format(id))
 
-        json = event.to_dict(API_VER)
+        json = event.to_dict(self.href_prefix)
 
         if "hosts" in expand:
-            json["host"] = event.host.to_dict(API_VER)
+            json["host"] = event.host.to_dict(self.href_prefix)
 
         if "eventtypes" in expand:
-            json["eventType"] = event.event_type.to_dict(API_VER)
+            json["eventType"] = event.event_type.to_dict(self.href_prefix)
 
         self.success(json)
 
@@ -1241,7 +1239,7 @@ class FatesHandler(ApiHandler):
 
         self.session.commit()
 
-        json = fate.to_dict(API_VER)
+        json = fate.to_dict(self.href_prefix)
         json["href"] = "/api/v1/fates/{}".format(fate.id)
 
         self.created("/api/v1/fates/{}".format(fate.id), json)
@@ -1295,13 +1293,13 @@ class FatesHandler(ApiHandler):
 
         fates_json = []
         for fate in fates.all():
-            fate_json = fate.to_dict(API_VER)
+            fate_json = fate.to_dict(self.href_prefix)
             if "eventtypes" in expand:
                 fate_json["creationEventType"] = (
-                    fate.creation_event_type.to_dict(API_VER)
+                    fate.creation_event_type.to_dict(self.href_prefix)
                 )
                 fate_json["completionEventType"] = (
-                    fate.completion_event_type.to_dict(API_VER)
+                    fate.completion_event_type.to_dict(self.href_prefix)
                 )
             fates_json.append(fate_json)
 
@@ -1357,14 +1355,14 @@ class FateHandler(ApiHandler):
         if not fate:
             raise exc.NotFound("No such Fate {} found".format(id))
 
-        json = fate.to_dict(API_VER)
+        json = fate.to_dict(self.href_prefix)
 
         if "eventtypes" in expand:
             json["creationEventType"] = (
-                fate.creation_event_type.to_dict(API_VER)
+                fate.creation_event_type.to_dict(self.href_prefix)
             )
             json["competionEventType"] = (
-                fate.completion_event_type.to_dict(API_VER)
+                fate.completion_event_type.to_dict(self.href_prefix)
             )
 
         self.success(json)
@@ -1447,7 +1445,7 @@ class FateHandler(ApiHandler):
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))
 
-        json = fate.to_dict(API_VER)
+        json = fate.to_dict(self.href_prefix)
 
         self.success(json)
 
@@ -1602,25 +1600,25 @@ class LaborsHandler(ApiHandler):
 
         labor_dicts = []
         for labor in labors:
-            labor_dict = labor.to_dict(API_VER)
+            labor_dict = labor.to_dict(self.href_prefix)
             if "quests" in expand:
                 labor_dict["quest"] = (
-                    labor.quest.to_dict(API_VER) if labor.quest else None
+                    labor.quest.to_dict(self.href_prefix) if labor.quest else None
                 )
             if "hosts" in expand:
-                labor_dict["host"] = labor.host.to_dict(API_VER)
+                labor_dict["host"] = labor.host.to_dict(self.href_prefix)
             if "events" in expand:
-                event_dict = labor.creation_event.to_dict(API_VER)
+                event_dict = labor.creation_event.to_dict(self.href_prefix)
                 if "eventtypes" in expand:
                     event_dict["eventType"] = (
-                        labor.creation_event.event_type.to_dict(API_VER)
+                        labor.creation_event.event_type.to_dict(self.href_prefix)
                     )
                 labor_dict["creationEvent"] = event_dict
                 if labor.completion_event:
-                    event_dict = labor.completion_event.to_dict(API_VER)
+                    event_dict = labor.completion_event.to_dict(self.href_prefix)
                     if "eventtypes" in expand:
                         event_dict["eventType"] = (
-                            labor.completion_event.event_type.to_dict(API_VER)
+                            labor.completion_event.event_type.to_dict(self.href_prefix)
                         )
                     labor_dict["completionEvent"] = event_dict
             labor_dicts.append(labor_dict)
@@ -1682,16 +1680,16 @@ class LaborHandler(ApiHandler):
         if not labor:
             raise exc.NotFound("No such Labor {} found".format(id))
 
-        json = labor.to_dict(API_VER)
+        json = labor.to_dict(self.href_prefix)
 
         if "hosts" in expand:
-            json["host"] = labor.host.to_dict(API_VER)
+            json["host"] = labor.host.to_dict(self.href_prefix)
 
         if "eventtypes" in expand:
-            json["creationEvent"] = labor.creation_event.to_dict(API_VER)
+            json["creationEvent"] = labor.creation_event.to_dict(self.href_prefix)
             if labor.completion_event:
                 json["competionEvent"] = (
-                    labor.completion_event.to_dict(API_VER)
+                    labor.completion_event.to_dict(self.href_prefix)
                 )
 
         self.success(json)
@@ -1786,7 +1784,7 @@ class LaborHandler(ApiHandler):
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))
 
-        json = labor.to_dict(API_VER)
+        json = labor.to_dict(self.href_prefix)
 
         self.success(json)
 
@@ -1933,10 +1931,10 @@ class QuestsHandler(ApiHandler):
         self.session.flush()
         self.session.commit()
 
-        json = quest.to_dict(API_VER)
+        json = quest.to_dict(self.href_prefix)
 
         json["labors"] = (
-            [labor.to_dict(API_VER)
+            [labor.to_dict(self.href_prefix)
              for labor in quest.get_open_labors()]
         )
 
@@ -2004,10 +2002,10 @@ class QuestsHandler(ApiHandler):
 
         quests_json = []
         for quest in quests.all():
-            quest_json = quest.to_dict(API_VER)
+            quest_json = quest.to_dict(self.href_prefix)
             if "labors" in expand:
                 quest_json["labors"] = [
-                    labor.to_dict(API_VER)
+                    labor.to_dict(self.href_prefix)
                     for labor in quest.labors
                 ]
             quests_json.append(quest_json)
@@ -2068,29 +2066,29 @@ class QuestHandler(ApiHandler):
         if not quest:
             raise exc.NotFound("No such Quest {} found".format(id))
 
-        json = quest.to_dict(API_VER)
+        json = quest.to_dict(self.href_prefix)
 
         if "labors" in expand:
             json["labors"] = []
             for labor in quest.labors:
-                labor_json = labor.to_dict(API_VER)
+                labor_json = labor.to_dict(self.href_prefix)
                 if "hosts" in expand:
-                    labor_json["host"] = labor.host.to_dict(API_VER)
+                    labor_json["host"] = labor.host.to_dict(self.href_prefix)
                 if "events" in expand:
                     labor_json["creationEvent"] = (
-                        labor.creation_event.to_dict(API_VER)
+                        labor.creation_event.to_dict(self.href_prefix)
                     )
                     if "eventtypes" in expand:
                         labor_json["creationEvent"]["eventType"] = (
-                            labor.creation_event.event_type.to_dict(API_VER)
+                            labor.creation_event.event_type.to_dict(self.href_prefix)
                         )
                         if labor.completion_event:
                             labor_json["completionEvent"] = (
-                                labor.completion_event.to_dict(API_VER)
+                                labor.completion_event.to_dict(self.href_prefix)
                             )
                             labor_json["completionEvent"]["eventType"] = (
                                 labor.completion_event
-                                .event_type.to_dict(API_VER)
+                                .event_type.to_dict(self.href_prefix)
                             )
                         else:
                             labor_json["completionEvent"] = None
@@ -2100,7 +2098,7 @@ class QuestHandler(ApiHandler):
             for labor in quest.labors:
                 json["labors"].append({
                     "id": labor.id,
-                    "href": labor.href(API_VER)
+                    "href": labor.href(self.href_prefix)
                 })
 
         self.success(json)
@@ -2187,7 +2185,7 @@ class QuestHandler(ApiHandler):
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))
 
-        json = quest.to_dict(API_VER)
+        json = quest.to_dict(self.href_prefix)
 
         self.success(json)
 
