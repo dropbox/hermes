@@ -83,11 +83,6 @@ Quests will eventually contain information to outside references, such as Jira t
 Status
 ======
 
-Development is in the early phases.  The first production roll-out of Hermes will offer:
-
- * **Hermes server:** a central server, run by SysEng, with a REST API
- * **Hermes CLI:** a command line interface to the Hermes server available on any and all necessary servers
-
 Development can be tracked at GitHub_ and Travis_CI_
 
 .. _GitHub: https://github.com/dropbox/hermes
