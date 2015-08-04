@@ -14,6 +14,8 @@ import hermes
 from hermes import version
 from hermes.app import Application
 from hermes.settings import settings
+from hermes.plugin import get_hooks
+from hermes import models
 
 
 from sqlalchemy.exc import OperationalError
@@ -68,6 +70,12 @@ def main():
         "xsrf_cookies": False,
         "cookie_secret": settings.secret_key,
     }
+
+    # load and register any hooks we have
+    hooks = get_hooks([settings.plugin_dir])
+    for hook in hooks:
+        logging.debug("registering hook {}".format(hook))
+        models.register_hook(hook)
 
     my_settings = {
         "db_uri": settings.database,

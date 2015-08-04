@@ -55,3 +55,6 @@ auth_token_expiry: 600
 
 # Sentry DSN if using Sentry to log exceptions.
 # sentry_dsn:
+
+# Additional plugin directory (full path)
+# plugin_dir:

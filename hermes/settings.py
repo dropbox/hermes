@@ -62,4 +62,5 @@ settings = Settings({
     "secret_key": "SECRET_KEY",
     "auth_token_expiry": 600,  # 10 minutes
     "sentry_dsn": None,
+    "plugin_dir": "plugins ",
 })
