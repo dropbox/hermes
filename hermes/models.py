@@ -23,6 +23,11 @@ import exc
 
 log = logging.getLogger(__name__)
 
+_HOOKS = []
+
+def register_hook(hook):
+    _HOOKS.append(hook)
+
 
 class Session(_Session):
     """ Custom session meant to utilize add on the model.
@@ -827,6 +832,8 @@ class Event(Model):
         Returns:
             a newly created Event
         """
+        log.debug("Event.create()")
+
         if host is None:
             raise exc.ValidationError(
                 "Host cannot be null for an event"
@@ -851,12 +858,11 @@ class Event(Model):
             session.rollback()
             raise
 
-        # slack_message("*Event:* {} = {} {}".format(
-        #     event.host.hostname,
-        #     event.event_type.category,
-        #     event.event_type.state
-        # ))
+        # if we have any hooks defined, call the on_event method on each
+        for hook in _HOOKS:
+            hook.on_event(event)
 
+        # refer to fates to see if this event should close or open any labors
         Fate.question_the_fates(session, [event], quest=quest)
 
         return event
@@ -872,6 +878,8 @@ class Event(Model):
             quest: optional if events tied to quests
             flush: indicate if we should flush after we are done
         """
+        log.debug("Event.create_many()")
+
         session.execute(
             Event.__table__.insert(), events
         )
@@ -879,11 +887,13 @@ class Event(Model):
         events = session.query(Event).filter(Event.tx == tx).all()
         log.info("Created {} events".format(len(events)))
 
+        for event in events:
+            # if we have any hooks defined, call the on_event method on each
+            for hook in _HOOKS:
+                hook.on_event(event)
 
-        # slack_message("*Events:* created {} events".format(len(events)))
-
+        # refer to fates to see if these events should close or open any labors
         Fate.question_the_fates(session, events, quest=quest)
-
 
     def href(self, base_uri):
         """Create an HREF value for this object
