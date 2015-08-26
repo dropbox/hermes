@@ -21,10 +21,10 @@ def test_creation(sample_data1):
 
     fates = sample_data1.query(models.Fate).all()
 
-    # the total number of fates should be 4 now.  We care about the new one
-    assert len(fates) == 4
-    fate = fates[3]
-    assert fate.id == 4
+    # the total number of fates should be 5 now.  We care about the new one
+    assert len(fates) == 5
+    fate = fates[4]
+    assert fate.id == 5
     assert fate.creation_event_type == event_type6
     assert fate.completion_event_type == event_type7
     assert fate.description == "New fate"

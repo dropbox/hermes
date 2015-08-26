@@ -479,34 +479,45 @@ class Fate(Model):
         creation_type: the EventType that creates an Labor based on this Fate
         completion_type: the EventType that closes an Labor created by this
             Fate
-        intermediate: if True, this Fate only creates a Labor if also
-            closing a previous Labor
+        follows: indicates that this Fate only comes into affect if fulfilling
+            the Fate with this specified id
+        precedes: indicates which Fates are chained to come after this Fate
         description: the optional human readable description of this Fate
         _all_fates: cached list of all Fates
-        _intermediate_fates = cached list of all intermediate Fates
+        _intermediate_fates = cached list of all intermediate Fates (Fates that follow other Fates)
         _starting_fates = cached list of all non-intermediate Fates
     """
 
     __tablename__ = "fates"
 
     id = Column(Integer, primary_key=True)
+
     creation_type_id = Column(
         Integer, ForeignKey("event_types.id"), nullable=False, index=True
     )
+
     creation_event_type = relationship(
         EventType, lazy="joined", backref="auto_creates",
         foreign_keys=[creation_type_id]
-        )
+    )
+
     completion_type_id = Column(
         Integer, ForeignKey("event_types.id"), nullable=False, index=True
     )
+
     completion_event_type = relationship(
         EventType, lazy="joined", backref="auto_completes",
         foreign_keys=[completion_type_id]
     )
-    intermediate = Column(
-        Boolean, nullable=False, default=False
+
+    follows_id = Column(
+        Integer, ForeignKey("fates.id"), nullable=True, index=True
     )
+
+    follows = relationship(
+        "Fate", lazy="joined", backref="precedes", remote_side=[id]
+    )
+
     description = Column(String(2048), nullable=True)
     __table_args__ = (
         UniqueConstraint(
@@ -523,7 +534,7 @@ class Fate(Model):
     @classmethod
     def create(
             cls, session,
-            creation_event_type, completion_event_type, intermediate=False,
+            creation_event_type, completion_event_type, follows_id=None,
             description=None
     ):
         """Create a Fate
@@ -533,7 +544,7 @@ class Fate(Model):
                 an labor creation
             completion_event_type: an EventType that will trigger
                 an labor completion
-            intermediate: if True, this is a mid-workflow Fate
+            follows_id: id of the Fate this new Fate will follow; None if non-intermediate
             description: optional description for display
 
         Returns:
@@ -548,7 +559,7 @@ class Fate(Model):
             obj = cls(
                 creation_event_type=creation_event_type,
                 completion_event_type=completion_event_type,
-                intermediate=intermediate,
+                follows_id=follows_id,
                 description=description
             )
             obj.add(session)
@@ -580,10 +591,13 @@ class Fate(Model):
                 "id": fate.id,
                 "completion_type_id": fate.completion_type_id,
                 "creation_type_id": fate.creation_type_id,
-                "intermediate": fate.intermediate
+                "follows_id": fate.follows_id,
+                "precedes_ids": [
+                    linked_fate.id for linked_fate in fate.precedes
+                ]
             }
             Fate._all_fates.append(fate_dict)
-            if fate.intermediate:
+            if fate.follows_id:
                 Fate._intermediate_fates.append(fate_dict)
             else:
                 Fate._starting_fates.append(fate_dict)
@@ -659,9 +673,9 @@ class Fate(Model):
         all_new_labors = []
         all_achieved_labors = []
 
+        # Get all the fates, in various categories, for easy reference
         all_fates = Fate.get_all_fates(session)
         starting_fates = Fate.get_starting_fates(session)
-        intermediate_fates = Fate.get_intermediate_fates(session)
 
         # Query the database for open labors for hosts of which we have an event
         open_labors = (
@@ -672,13 +686,16 @@ class Fate(Model):
                 )
             ).all()
         )
-        host_labors = {}
-        for labor in open_labors:
-            if labor.host_id in host_labors:
-                host_labors[labor.host_id].append(labor)
-            else:
-                host_labors[labor.host_id] = [labor]
 
+        # Let's sort and file the open labors by the host id
+        labors_by_hostid = {}
+        for labor in open_labors:
+            if labor.host_id in labors_by_hostid:
+                labors_by_hostid[labor.host_id].append(labor)
+            else:
+                labors_by_hostid[labor.host_id] = [labor]
+
+        # Now let's process each of the events and see what we need to do
         for event in events:
             host = event.host
             event_type = event.event_type
@@ -696,28 +713,35 @@ class Fate(Model):
                         all_new_labors.append(new_labor_dict)
 
             # Now, let's look at all the Fates that this EventType fulfills
-            # and let's make a list of the matching creation EventTypes
-            labor_types_fulfilled = []
+            # and pull them into an array for quicker processing
+            relevant_fates = []
             for fate in all_fates:
                 if (
                     fate["completion_type_id"] == event_type.id
                 ):
-                    labor_types_fulfilled.append(fate["creation_type_id"])
+                    relevant_fates.append(fate)
 
-            # And with that list of fulfilled EventTypes, we can look for
-            # open Labors created by that kind of EventType and collect if
-            # for batch achievement
-            if host.id in host_labors:
-                for labor in host_labors[host.id]:
-                    if labor.creation_event.event_type.id in labor_types_fulfilled:
-                        all_achieved_labors.append({
-                            "labor": labor,
-                            "event": event
-                        })
-                        # Since are closing a Labor, we are free to see if an
-                        # intermediate Fate is applicable
-                        for fate in intermediate_fates:
-                            if fate["creation_type_id"] == event_type.id:
+            # And with that list of relevant Fates, we can look for
+            # open Labors where the Labor's EventType matches the Fate's
+            # creation EventType.  We will collect the matching Labors into
+            # and array for batch achievement
+            if host.id in labors_by_hostid:
+                for labor in labors_by_hostid[host.id]:
+                    for fate in relevant_fates:
+                        if (
+                            labor.creation_event.event_type.id
+                            == fate["creation_type_id"]
+                        ):
+                            all_achieved_labors.append({
+                                "labor": labor,
+                                "event": event
+                            })
+
+                            # Since this Fate closes this Labor, let's see
+                            # if this Fate also precedes other Fates.  If so,
+                            # we can make the assumption that a new Labor
+                            # should be created
+                            if fate["precedes_ids"]:
                                 new_labor_dict = {
                                     "host_id": host.id,
                                     "starting_labor_id": (
@@ -763,9 +787,10 @@ class Fate(Model):
         """
         out = {
             "id": self.id,
-            "intermediate": True if self.intermediate else False,
             "creationEventTypeId": self.creation_type_id,
             "completionEventTypeId": self.completion_type_id,
+            "follows_id": self.follows_id,
+            "precedes_ids": [labor.id for labor in self.precedes],
             "description": self.description,
         }
 

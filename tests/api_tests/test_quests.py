@@ -390,7 +390,7 @@ def test_quest_lifecycle(sample_data1_server):
         strip=["creationTime", "completionTime"]
     )
 
-    # Ensure that the quest dopesn't have a completion time yet
+    # Ensure that the quest doesn't have a completion time yet
     assert_success(
         client.get("/quests/1"),
         {

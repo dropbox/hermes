@@ -368,20 +368,23 @@ def test_complex_chaining1(sample_data2):
 def test_complex_chaining2(sample_data2):
     """This test works on testing some complex chaining of fates:
 
-    ET: sys-audit, sys-needed, sys-ready, sys-complete, reboot-needed, reboot-complete, puppet-restart
+    ET: sys-audit, sys-needed, sys-ready, sys-complete, reboot-needed,
+        reboot-complete, puppet-restart
 
     Fates:
     system-maintenance-audit => system-maintenance-needed
-    system-maintenance-needed => system-maintenance-ready
-    system-maintenance-ready => system-maintenance-complete
-    system-maintenance-needed => system-reboot-complete
-    system-reboot-needed => system-reboot-complete
-    system-reboot-complete => puppet-restart
+        => system-maintenance-ready => system-maintenance-completed
+
+    system-maintenance-audit => system-maintenance-needed
+        => system-reboot-completed
+
+    system-reboot-needed => system-reboot-completed => puppet-restart
 
     Quests:
     Bravo: servers need sys-needed
     Charlie: servers need reboot-needed
-    On reboot-complete event, create new labor for reboot-complete and add to both quests
+
+    We test that one event will complete bravo quest while progressing charlie quest
     """
     event_types = sample_data2.query(EventType).all()
     assert len(event_types) == 7
@@ -389,11 +392,7 @@ def test_complex_chaining2(sample_data2):
     fates = sample_data2.query(Fate).all()
     assert len(fates) == 6
 
-    hosts = [
-        sample_data2.query(Host).filter(
-            Host.hostname == 'example.dropbox.com'
-        ).one()
-    ]
+    hosts = [sample_data2.query(Host).get(1)]
 
     target_time1 = datetime.now() + timedelta(days=2)
     target_time2 = datetime.now() + timedelta(days=7)
@@ -417,57 +416,163 @@ def test_complex_chaining2(sample_data2):
     assert charlie_quest
     assert len(bravo_quest.labors) == 1
     assert len(charlie_quest.labors) == 1
+    assert bravo_quest.completion_time is None
+    assert charlie_quest.completion_time is None
 
-    # now we create the reboot-complete events and ensure new labors
-    # are created for both events
-    found_hosts = sample_data2.query(Host).filter(
-        Host.hostname == "example.dropbox.com"
-    ).all()
-    assert len(found_hosts) == 1
-    assert len(found_hosts[0].events) == 2
+    assert len(hosts[0].events) == 2
 
+    # Now we want to progress the bravo quest by throwing the sys-maint needed event
     print "\nevent 1"
     event1 = Event.create(
-        sample_data2, found_hosts[0], "system",
+        sample_data2, hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-maintenance", "needed")
     )
     assert bravo_quest.get_open_labors().all()[0].creation_event == event1
+    assert bravo_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[0].id
+    assert len(bravo_quest.labors) == 2
 
+    # Now we progress the charlie quest and complete the bravo quest with
+    # the system-reboot-completed event
     print "\nevent 2"
     event2 = Event.create(
-        sample_data2, found_hosts[0], "system",
+        sample_data2, hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")
     )
+    assert bravo_quest.completion_time is not None
+    assert len(bravo_quest.labors) == 2
+    assert charlie_quest.get_open_labors().all()[0].creation_event == event2
+    assert charlie_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[1].id
+    assert charlie_quest.completion_time is None
+    assert len(charlie_quest.labors) == 2
+
     # since the previous event progressed the workflow, this one below
     # shouldn't create a labor since system-reboot-completed labors are
     # intermediates
     print "\nevent 3"
     event3 = Event.create(
-        sample_data2, found_hosts[0], "system",
+        sample_data2, hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-reboot", "completed")
     )
 
     # we will have a 5th event here due to event3
-    assert len(found_hosts[0].events) == 5
+    assert len(hosts[0].events) == 5
 
-    assert len(bravo_quest.labors) == 3
-    assert len(bravo_quest.get_open_labors().all()) == 1
     assert len(charlie_quest.labors) == 2
     assert len(charlie_quest.get_open_labors().all()) == 1
 
-    assert bravo_quest.get_open_labors().all()[0].creation_event == event2
     assert charlie_quest.get_open_labors().all()[0].creation_event == event2
-
-    assert bravo_quest.get_open_labors().all()[0].quest == bravo_quest
     assert charlie_quest.get_open_labors().all()[0].quest == charlie_quest
 
-    # despite event3, we should only have 5 total labors b/c event 2 progressed
-    # both bravo and charlie quests
+    assert len(sample_data2.query(Labor).all()) == 4
+
+
+def test_complex_chaining3(sample_data2):
+    """This test works on testing some complex chaining of fates:
+
+    ET: sys-audit, sys-needed, sys-ready, sys-complete, reboot-needed,
+        reboot-complete, puppet-restart
+
+    Fates:
+    system-maintenance-audit => system-maintenance-needed
+        => system-maintenance-ready => system-maintenance-completed
+
+    system-maintenance-audit => system-maintenance-needed
+        => system-reboot-completed
+
+    system-reboot-needed => system-reboot-completed => puppet-restart
+
+    Quests:
+    Bravo: servers need sys-needed
+    Charlie: servers need reboot-needed
+    """
+    event_types = sample_data2.query(EventType).all()
+    assert len(event_types) == 7
+
+    fates = sample_data2.query(Fate).all()
+    assert len(fates) == 6
+
+    hosts = [sample_data2.query(Host).get(1)]
+
+    target_time1 = datetime.now() + timedelta(days=2)
+    target_time2 = datetime.now() + timedelta(days=7)
+
+    print "\nbravo quest"
+    bravo_quest = Quest.create(
+        sample_data2, "testman", hosts,
+        EventType.get_event_type(sample_data2, "system-maintenance", "audit"),
+        target_time1,
+        description="System maintenance is needed"
+    )
+
+    print "\ncharlie quest"
+    charlie_quest = Quest.create(
+        sample_data2, "testman", hosts,
+        EventType.get_event_type(sample_data2, "system-reboot", "needed"),
+        target_time2,
+        description="Systems need a reboot"
+    )
+    assert bravo_quest
+    assert charlie_quest
+    assert len(bravo_quest.labors) == 1
+    assert len(charlie_quest.labors) == 1
+    assert bravo_quest.completion_time is None
+    assert charlie_quest.completion_time is None
+
+    assert len(hosts[0].events) == 2
+
+    # Now we want to progress the bravo quest by throwing the sys-maint needed event
+    print "\nevent 1"
+    event1 = Event.create(
+        sample_data2, hosts[0], "system",
+        EventType.get_event_type(sample_data2, "system-maintenance", "needed")
+    )
+    assert bravo_quest.get_open_labors().all()[0].creation_event == event1
+    assert bravo_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[0].id
+    assert len(bravo_quest.labors) == 2
+
+    # Now we progress the bravo quest again by throwing sys-maint-ready
+    print "\nevent 1b"
+    event1b = Event.create(
+        sample_data2, hosts[0], "system",
+        EventType.get_event_type(sample_data2, "system-maintenance", "ready")
+    )
+    assert bravo_quest.get_open_labors().all()[0].creation_event == event1b
+    assert bravo_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[0].id
+    assert len(bravo_quest.labors) == 3
+
+    # Now we progress the charlie quest with the system-reboot-completed event
+    # but bravo quest stays put
+    print "\nevent 2"
+    event2 = Event.create(
+        sample_data2, hosts[0], "system",
+        EventType.get_event_type(sample_data2, "system-reboot", "completed")
+    )
+    assert bravo_quest.completion_time is None
+    assert len(bravo_quest.labors) == 3
+    assert charlie_quest.get_open_labors().all()[0].creation_event == event2
+    assert charlie_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[1].id
+    assert charlie_quest.completion_time is None
+    assert len(charlie_quest.labors) == 2
+
+    # since the previous event progressed the workflow, this one below
+    # shouldn't create a labor since system-reboot-completed labors are
+    # intermediates
+    print "\nevent 3"
+    event3 = Event.create(
+        sample_data2, hosts[0], "system",
+        EventType.get_event_type(sample_data2, "system-reboot", "completed")
+    )
+
+    # we will have a 6th event here due to event3
+    assert len(hosts[0].events) == 6
+
+    assert len(charlie_quest.labors) == 2
+    assert len(charlie_quest.get_open_labors().all()) == 1
+
+    assert charlie_quest.get_open_labors().all()[0].creation_event == event2
+    assert charlie_quest.get_open_labors().all()[0].quest == charlie_quest
+
     assert len(sample_data2.query(Labor).all()) == 5
-
-
-
-
 
 
 

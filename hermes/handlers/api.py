@@ -1163,8 +1163,8 @@ class FatesHandler(ApiHandler):
             {
                 "creationEventTypeId": 1,
                 "completionEventTypeId": 2,
-                "intermediate": false,
-                "description": "This is a fate"
+                "description": "This is a fate",
+                "follows_id": 1,
             }
 
         **Example response:**
@@ -1176,16 +1176,17 @@ class FatesHandler(ApiHandler):
 
             {
                 "status": "created",
-                "href": "/api/v1/fates/1",
+                "href": "/api/v1/fates/3",
+                "id": 3,
                 "creationEventTypeId": 1,
                 "completionEventTypeId": 2,
-                "intermediate": false,
+                "follows": 1,
                 "description": "This is a fate"
             }
 
         :reqjson int creationEventTypeId: the ID of the EventType that triggers this Fate
         :regjson int completionEventTypeId: the ID of the EventType that closes Labors created by this Fate
-        :regjson boolean intermediate: If true, this Fate only creates Labors if simultaneously closing an existing Labor
+        :regjson int follows: (*optional*) The ID of the Fate this Fate must come after, or null
         :regjson string description: (*optional*) The human readable description this Fate
 
         :reqheader Content-Type: The server expects a json body specified with
@@ -1202,7 +1203,7 @@ class FatesHandler(ApiHandler):
         try:
             creation_event_type_id = self.jbody["creationEventTypeId"]
             completion_event_type_id = self.jbody["completionEventTypeId"]
-            intermediate = self.jbody["intermediate"]
+            follows_id = self.jbody.get("follows_id")
             description = self.jbody["description"]
         except KeyError as err:
             raise exc.BadRequest(
@@ -1230,7 +1231,7 @@ class FatesHandler(ApiHandler):
         try:
             fate = Fate.create(
                 self.session, creation_event_type, completion_event_type,
-                intermediate=intermediate, description=description
+                follows_id=follows_id, description=description
             )
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
@@ -1271,7 +1272,8 @@ class FatesHandler(ApiHandler):
                         "href": "/api/v1/fates/1",
                         "creationEventTypeId": 1,
                         "completionEventType": 2,
-                        "intermediate": true|false,
+                        "follows_id": null,
+                        "precedes_ids": [3, 5],
                         "description": "This is a fate",
                     },
                     ...
@@ -1374,13 +1376,13 @@ class FateHandler(ApiHandler):
 
         .. sourcecode:: http
 
-            PUT /api/v1/fates/1 HTTP/1.1
+            PUT /api/v1/fates/3 HTTP/1.1
             Host: localhost
             Content-Type: application/json
 
             {
                 "description": "New desc",
-                "intermediate: true
+                "follows_id": 1
             }
 
         **Example response:**
@@ -1392,11 +1394,11 @@ class FateHandler(ApiHandler):
 
             {
                 "status": "ok",
-                "id": 1,
-                "href": "/api/v1/fates/1",
+                "id": 3,
+                "href": "/api/v1/fates/3",
                 "creationEventTypeId": 1,
                 "completionEventType": 2,
-                "intermediate": true,
+                "follows_id": 1,
                 "description": "New desc"
             }
 
@@ -1420,27 +1422,11 @@ class FateHandler(ApiHandler):
         if not fate:
             raise exc.NotFound("No such Fate {} found".format(id))
 
-        new_desc = None
-        new_intermediate = None
         try:
             if "description" in self.jbody:
-                new_desc = self.jbody["description"]
-            if "intermediate" in self.jbody:
-                new_intermediate = self.jbody['intermediate']
-        except KeyError as err:
-            raise exc.BadRequest(
-                "Missing Required Argument: {}".format(err.message)
-            )
-
-        try:
-            if new_desc:
-                fate = fate.update(
-                    description=new_desc
-                )
-            if new_intermediate is not None:
-                fate = fate.update(
-                    intermediate=new_intermediate
-                )
+                fate = fate.update(description=self.jbody["description"])
+            if "follows_id" in self.jbody:
+                fate = fate.update(follows_id=self.jbody['follows_id'])
 
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))

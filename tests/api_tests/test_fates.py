@@ -30,7 +30,7 @@ def test_creation(sample_data1_server):
             "/fates/",
             creationEventTypeId=6,
             completionEventTypeId=7,
-            intermediate=False,
+            precedes_ids=[],
             description="New fate"
         ),
         "/api/v1/fates/4"
@@ -42,7 +42,8 @@ def test_creation(sample_data1_server):
             "id": 4,
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
-            "intermediate": False,
+            "follows_id": None,
+            "precedes_ids": [],
             "description": "New fate"
         }
     )
@@ -55,7 +56,6 @@ def test_update(sample_data1_server):
             "/fates/",
             creationEventTypeId=6,
             completionEventTypeId=7,
-            intermediate=False,
             description="New fate"
         ),
         "/api/v1/fates/4"
@@ -67,7 +67,8 @@ def test_update(sample_data1_server):
             "id": 4,
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
-            "intermediate": False,
+            "follows_id": None,
+            "precedes_ids": [],
             "description": "New fate"
         }
     )
@@ -75,13 +76,14 @@ def test_update(sample_data1_server):
     assert_success(
         client.update(
             "/fates/4",
-            intermediate=True
+            follows_id=1
         ),
         {
             "id": 4,
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
-            "intermediate": True,
+            "follows_id": 1,
+            "precedes_ids": [],
             "description": "New fate"
         }
     )
@@ -95,7 +97,8 @@ def test_update(sample_data1_server):
             "id": 4,
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
-            "intermediate": True,
+            "follows_id": 1,
+            "precedes_ids": [],
             "description": "New desc"
         }
     )
@@ -103,14 +106,15 @@ def test_update(sample_data1_server):
     assert_success(
         client.update(
             "/fates/4",
-            intermediate=False,
+            follows_id=None,
             description="Another desc"
         ),
         {
             "id": 4,
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
-            "intermediate": False,
+            "follows_id": None,
+            "precedes_ids": [],
             "description": "Another desc"
         }
     )
@@ -121,7 +125,8 @@ def test_update(sample_data1_server):
             "id": 4,
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
-            "intermediate": False,
+            "follows_id": None,
+            "precedes_ids": [],
             "description": "Another desc"
         }
     )
