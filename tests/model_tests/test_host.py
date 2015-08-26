@@ -73,7 +73,7 @@ def test_get_labors(sample_data1):
 
     assert len(all_labors) == 3
     assert len(host.labors) == 3
-    assert len(open_labors) == 2
+    assert len(open_labors) == 1
 
     assert all_labors[0].completion_time is None
     assert all_labors[0].completion_event is None

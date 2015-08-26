@@ -82,7 +82,7 @@ def test_get_associated_fates(sample_data1):
     fates_with_et4 = event_type4.get_associated_fates().all()
 
     assert len(fates_with_et3) == 1
-    assert len(fates_with_et4) == 2
+    assert len(fates_with_et4) == 3
 
     assert fates_with_et3[0].description == 'A system that needs maintenance made ready before maintenance can occur.'
     assert fates_with_et4[0].description == 'Maintenance must be performed on a system that is prepped.'

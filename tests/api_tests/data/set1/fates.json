@@ -2,19 +2,17 @@
   "fate1": {
     "creationEventTypeId": 1,
     "completionEventTypeId": 2,
-    "intermediate": false,
     "description": "A system that needs a reboot can be cleared by rebooting the machine."
   },
   "fate2": {
     "creationEventTypeId": 3,
     "completionEventTypeId": 4,
-    "intermediate": false,
     "description": "A system that needs maintenance made ready before maintenance can occur."
   },
   "fate3": {
     "creationEventTypeId": 4,
     "completionEventTypeId": 5,
-    "intermediate": true,
+    "follows_id": 2,
     "description": "Maintenance must be performed on a system that is prepped."
   }
 }
