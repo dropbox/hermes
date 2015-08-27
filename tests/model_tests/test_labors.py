@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from hermes import exc
 from hermes.models import Event, EventType, Fate, Host, Labor
 
-from .fixtures import db_engine, session, sample_data1
+from .fixtures import db_engine, session, sample_data1, sample_data2
 
 
 def test_lifecycle1(sample_data1):
@@ -245,10 +245,10 @@ def test_cannot_start_in_midworkflow(sample_data1):
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
 
-    fate = sample_data1.query(Fate).get(3)
+    event_type_d = sample_data1.query(EventType).get(4)
     host = sample_data1.query(Host).get(1)
 
-    Event.create(sample_data1, host, "system", fate.creation_event_type)
+    Event.create(sample_data1, host, "system", event_type_d)
 
     event = (
         sample_data1.query(Event)
@@ -256,10 +256,60 @@ def test_cannot_start_in_midworkflow(sample_data1):
     )
 
     assert event.host == host
-    assert event.event_type == fate.creation_event_type
+    assert event.event_type == event_type_d
 
     labors = Labor.get_open_unacknowledged(sample_data1)
     assert len(labors) == 0
+
+
+def test_longer_chain(sample_data2):
+    """Test chained labors A->B->C->D"""
+    labors = sample_data2.query(Labor).all()
+    assert len(labors) == 0
+
+    event_type_a = sample_data2.query(EventType).get(1)
+    event_type_b = sample_data2.query(EventType).get(2)
+    event_type_c = sample_data2.query(EventType).get(3)
+    event_type_d = sample_data2.query(EventType).get(4)
+
+    host = sample_data2.query(Host).get(1)
+
+    event_a = Event.create(sample_data2, host, "system", event_type_a)
+
+    # We will aggressively validate the events created only for event A
+    event = (
+        sample_data2.query(Event)
+        .order_by(desc(Event.id)).first()
+    )
+    assert event == event_a
+    assert event.host == host
+    assert event.event_type == event_type_a
+
+    labors = Labor.get_open_unacknowledged(sample_data2)
+    assert len(labors) == 1
+    assert len(host.labors) == 1
+    assert labors[0].starting_labor_id is None
+    starting_labor_id = labors[0].id
+
+    event_b = Event.create(sample_data2, host, "system", event_type_b)
+    labors = Labor.get_open_unacknowledged(sample_data2)
+    assert len(labors) == 1
+    assert len(host.labors) == 2
+    assert labors[0].starting_labor_id == starting_labor_id
+
+    event_c = Event.create(sample_data2, host, "system", event_type_c)
+    labors = Labor.get_open_unacknowledged(sample_data2)
+    assert len(labors) == 1
+    assert len(host.labors) == 3
+    assert labors[0].starting_labor_id == starting_labor_id
+
+    # This last event closes the final labor but does not create a new labor
+    event_d = Event.create(sample_data2, host, "system", event_type_d)
+    labors = Labor.get_open_unacknowledged(sample_data2)
+    assert len(labors) == 0
+    assert len(host.labors) == 3
+
+
 
 
 

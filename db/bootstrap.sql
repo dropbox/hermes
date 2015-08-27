@@ -18,11 +18,11 @@ UNLOCK TABLES;
 
 LOCK TABLES `fates` WRITE;
 
-INSERT INTO `fates` (`id`, `creation_type_id`, `completion_type_id`, `follows`, `description`)
+INSERT INTO `fates` (`id`, `creation_type_id`, `completion_type_id`, `follows_id`, `description`)
 VALUES
-	(1,1,2, 0, 'A system that needs a reboot can be cleared by rebooting the machine.'),
-	(2,3,4, 0, 'A system that needs maintenance made ready before maintenance can occur.'),
-	(3,4,5, 2, 'Maintenance must be performed on a system that is prepped.'),
-	(4,1,4, 1, 'A system that needs a reboot can be released instead.');
+	(1,1,2,NULL, 'A system that needs a reboot can be cleared by rebooting the machine.'),
+	(2,3,4,NULL, 'System must be released using "cloudbox release" so maintenance can be carried out.'),
+	(3,4,5,2, 'Maintenance must be performed on a system that is prepped.'),
+	(4,1,4,NULL, 'A system that needs a reboot can be released instead.');
 
 UNLOCK TABLES;

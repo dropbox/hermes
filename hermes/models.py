@@ -521,10 +521,12 @@ class Fate(Model):
     description = Column(String(2048), nullable=True)
     __table_args__ = (
         UniqueConstraint(
-            creation_type_id, completion_type_id,
+            creation_type_id, completion_type_id, follows_id,
             name='_creation_completion_uc'
         ),
-        Index("fate_idx", id, creation_type_id, completion_type_id),
+        Index(
+            "fate_idx", id, creation_type_id, completion_type_id, follows_id
+        ),
     )
 
     _all_fates = None
@@ -554,6 +556,19 @@ class Fate(Model):
             raise exc.ValidationError(
                 "Creation EventType and completion EventType are required"
             )
+
+        if follows_id:
+            preceding_fate = session.query(Fate).get(follows_id)
+            if not preceding_fate:
+                raise exc.ValidationError(
+                    "Fate cannot follow a non-existent Fate {}".format(follows_id)
+                )
+
+            if preceding_fate.completion_event_type != creation_event_type:
+                raise exc.ValidationError(
+                    "Creation EventType for this Fate and the completion "
+                    "EventType for the preceding Fate do not match"
+                )
 
         try:
             obj = cls(
