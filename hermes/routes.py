@@ -1,4 +1,6 @@
 from .handlers import frontends, api
+from tornado import web
+import os
 
 HANDLERS = [
     # Hosts
@@ -29,5 +31,8 @@ HANDLERS = [
     (r"/api/v1/extquery\/?", api.ExtQueryHandler),
 
     # Frontend Handlers
-    (r"/.*", frontends.AppHandler),
+    (r"/(.*)",
+        web.StaticFileHandler,
+        dict(path=os.path.join(os.path.dirname(__file__), "webapp/build/"),
+         default_filename="index.html"))
 ]

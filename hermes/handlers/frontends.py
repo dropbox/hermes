@@ -1,8 +1,16 @@
-import tornado.web
+import os
+import logging
 
-from hermes.handlers.util import FeHandler
+from tornado import web
+
+# Logging object
+log = logging.getLogger(__name__)
 
 
-class AppHandler(FeHandler):
-    def get(self):
-        return self.render("app.html")
+class AppHandler(web.RequestHandler):
+    """Our generic handler to serve out the root of our AngularJS app."""
+    def get(self, filename):
+        logging.info("REQ: {}".format(filename))
+        self.render(
+            os.path.join(os.path.dirname(__file__), "../webapp/build/{}".format(filename))
+        )

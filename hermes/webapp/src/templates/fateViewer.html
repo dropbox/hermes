@@ -1,0 +1,6 @@
+<div ng-controller="FateCtrl as fateCtrl">
+    <div ng-repeat="fate in fateCtrl.fates track by fate.id">
+        <div>{{fate.creationEventType.category}} {{fate.creationEventType.state}} &gt;&gt; {{fate.completionEventType.category}} {{fate.completionEventType.state}}
+        </div>
+    </div>
+</div>
