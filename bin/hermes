@@ -249,13 +249,18 @@ def list_fates(args):
 
     print "FATES:  \n[id] created by => completed by\n"
     for fate in fates:
-        print "[{}]{} {} => {}".format(
+        if not fate.get("follows_id"):
+            created_by_str = (
+                fate["creationEventType"]["category"] + " "
+                + fate["creationEventType"]["state"]
+            )
+        else:
+            created_by_str = (
+                "(follows Fate {})".format(fate["follows_id"])
+            )
+        print "[{}] {} => {}".format(
             fate["id"],
-            "*" if fate["intermediate"] else " ",
-            (
-                fate["creationEventType"]["category"]
-                + " " + fate["creationEventType"]["state"]
-            ),
+            created_by_str,
             (
                 fate["completionEventType"]["category"]
                 + " " + fate["completionEventType"]["state"]
@@ -266,7 +271,6 @@ def list_fates(args):
             initial_indent="\t", subsequent_indent="\t"
         )
         print ""
-    print "* = intermediate.  Intermediate Fates will not create new Labors."
 
 
 def create_fate(args):
@@ -289,18 +293,18 @@ def create_fate(args):
 
     creation_event_type = None
     completion_event_type = None
-    for event_type in event_types:
 
+    for event_type in event_types:
         if args.cc == event_type["category"] \
                 and args.cs == event_type["state"]:
             creation_event_type = event_type
-        elif args.ct == event_type["id"]:
+        elif args.ct == str(event_type["id"]):
             creation_event_type = event_type
 
         if args.xc == event_type["category"] \
                 and args.xs == event_type["state"]:
             completion_event_type = event_type
-        elif args.xt == event_type["id"]:
+        elif args.xt == str(event_type["id"]):
             completion_event_type = event_type
 
     if not creation_event_type:
@@ -314,7 +318,7 @@ def create_fate(args):
     json = {
         "creationEventTypeId": creation_event_type["id"],
         "completionEventTypeId": completion_event_type["id"],
-        "intermediate": args.intermediate,
+        "follows_id": args.follows_id,
         "description": args.description
     }
 
@@ -930,8 +934,8 @@ def parse_cli_args():
         dest="xt", type=str
     )
     fate_create_subparser.add_argument(
-        "-i", "--intermediate", action="store_true",
-        help="When flagged, this fate only creates a new labor if closing an existing one"
+        "--follows", type=int, default=None, dest="follows_id",
+        help="This Fate follows the Fate identified by ID here."
     )
     fate_create_subparser.add_argument(
         "--description", help="The human readable description of this fate",

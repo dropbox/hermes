@@ -1288,10 +1288,10 @@ class FatesHandler(ApiHandler):
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
         """
-        fates = self.session.query(Fate)
+        fates = self.session.query(Fate).order_by(Fate.id)
 
         offset, limit, expand = self.get_pagination_values()
-        hosts, total = self.paginate_query(fates, offset, limit)
+        fates, total = self.paginate_query(fates, offset, limit)
 
         fates_json = []
         for fate in fates.all():
