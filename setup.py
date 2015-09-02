@@ -19,7 +19,7 @@ def get_package_data(package, base_dir):
         for dirname in dirnames:
             get_package_data(package, dirname)
 
-get_package_data("hermes", "hermes/static")
+get_package_data("hermes", "hermes/webapp/build")
 get_package_data("hermes", "hermes/templates")
 
 kwargs = {

@@ -84,11 +84,18 @@ class FeHandler(BaseHandler):
         # Need to access token to set Cookie.
         # self.xsrf_token
 
+    def render_template(self, template_name, **kwargs):
+        template = self.application.my_settings["template_env"].get_template(
+            template_name
+        )
+        content = template.render(kwargs)
+        return content
+
     def render(self, template_name, **kwargs):
         context = {}
         context.update(self.get_template_namespace())
         context.update(kwargs)
-        self.write("Nothing to see here.")
+        self.write(self.render_template(template_name, **context))
 
     def write_error(self, status_code, **kwargs):
         message = "An unknown problem has occured :("

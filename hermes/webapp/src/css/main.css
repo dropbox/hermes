@@ -1,0 +1,105 @@
+@font-face {
+    font-family: "Open Sans";
+    font-style: normal;
+    font-weight: 400;
+    src: local("Open Sans"), local("OpenSans"), url("//fonts.gstatic.com/s/opensans/v10/cJZKeOuBrn4kERxqtaUH3aCWcynf_cDxXwCLxiixG1c.ttf") format("truetype");
+}
+
+.container-fluid {
+    padding: 0px;
+}
+
+body {
+    font-family: "Open Sans";
+    margin: 0;
+    padding: 0;
+    font-size: 2em;
+}
+
+h1 {
+    margin: 0px;
+    padding: 0px;
+}
+
+#header {
+    background-color: #007EE5;
+    color: #f7f9fa;
+    font-size: 2em;
+    padding: 10px;
+}
+
+#headerTitle {
+    /*position: absolute;*/
+    /*bottom: 5px;*/
+    /*color: #B2D6F4;*/
+    color: #f7f9fa;
+    font-size: 2em;
+}
+
+#headerTitle a {
+    color: #f7f9fa;
+    text-decoration: none;
+}
+#headerTitle a:hover {
+    text-decoration: underline;
+}
+
+.barGraphDiv {
+    max-height: 300px;
+    overflow: hidden;
+    opacity: 1;
+}
+.barGraphDiv.ng-hide-add.ng-hide-add-active,
+.barGraphDiv.ng-hide-remove.ng-hide-remove-active {
+    -webkit-transition: all linear 0.1s;
+    -webkit-animation-timing-function: ease-in-out;
+    transition: all linear 0.1s;
+    animation-timing-function: ease-in-out;
+
+}
+
+.barGraphDiv.ng-hide {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* D3 styles */
+
+.label {
+    font-family: "Open Sans";
+    fill: #47525d;
+}
+
+.value {
+    font-weight: normal;
+    lengthAdjust: spacing;
+    text-anchor: middle;
+}
+
+.axis path {
+    display: none;
+}
+
+.axis line {
+    shape-rendering: crispEdges;
+    stroke: #d0d4d9;
+}
+
+.axis .minor line {
+    stroke: #d0d4d9;
+    stroke-dasharray: 2, 2;
+}
+
+.axis text, .axis .minor text {
+    font-family: "Open Sans";
+    fill: #d0d4d9;
+    text-anchor: end !important;
+}
+
+.thresholdLine path {
+    stroke: #fcbdbd;
+    stroke-width: 4px;
+    /*stroke-dasharray: 2,2;*/
+    opacity: 0.5;
+    fill: none
+}

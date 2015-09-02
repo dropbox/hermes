@@ -46,3 +46,7 @@ nosetests.xml
 
 docs/_build
 .*sw?
+
+# Node
+/npm-debug.log
+/node_modules
