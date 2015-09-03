@@ -29,6 +29,7 @@ var mainBowerFiles = require('main-bower-files');
 var bower = require('gulp-bower');
 var sort = require('gulp-sort');
 var del = require('del');
+var watch = require('gulp-watch');
 
 var SRC_ROOT = './hermes/webapp/src/';
 var BUILD_DEST = './hermes/webapp/build/';
@@ -155,4 +156,9 @@ gulp.task('build', ['build:revisions']);
  */
 gulp.task('clean', function(cb) {
     del([BUILD_DEST], cb);
+});
+
+
+gulp.task('watch', ['build'], function() {
+    gulp.watch([JS_MAIN_SRC, JS_SRC, STYLE_SRC, IMAGE_SRC, HTML_SRC], ['build']);
 });
