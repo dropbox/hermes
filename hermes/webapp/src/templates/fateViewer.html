@@ -1,6 +1,7 @@
 <div ng-controller="FateCtrl as fateCtrl">
-    <div ng-repeat="fate in fateCtrl.fates track by fate.id">
-        <div>{{fate.creationEventType.category}} {{fate.creationEventType.state}} &gt;&gt; {{fate.completionEventType.category}} {{fate.completionEventType.state}}
-        </div>
-    </div>
+    <div id="fatesView" style="width: 100%; height: 600px; border: 1px #000 dotted"></div>
+    <!--<div ng-repeat="fate in fateCtrl.fates track by fate.id">-->
+        <!--<div>{{fate.creationEventType.category}} {{fate.creationEventType.state}} &gt;&gt; {{fate.completionEventType.category}} {{fate.completionEventType.state}}-->
+        <!--</div>-->
+    <!--</div>-->
 </div>

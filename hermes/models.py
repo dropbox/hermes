@@ -737,9 +737,9 @@ class Fate(Model):
                     relevant_fates.append(fate)
 
             # And with that list of relevant Fates, we can look for
-            # open Labors where the Labor's EventType matches the Fate's
-            # creation EventType.  We will collect the matching Labors into
-            # and array for batch achievement
+            # open Labors where the Labor's creation EventType matches
+            # the Fate's creation EventType.  We will collect the matching
+            # Labors into and array for batch achievement
             if host.id in labors_by_hostid:
                 for labor in labors_by_hostid[host.id]:
                     for fate in relevant_fates:
