@@ -8,6 +8,9 @@
         $routeProvider.when('/', {
             templateUrl: '/templates/fateViewer.html',
             reloadOnSearch: false
+        }).when('/fates', {
+            templateUrl: '/templates/fateViewer.html',
+            reloadOnSearch: false
         }).otherwise({redirectTo: '/'});
 
         // use the HTML5 History API

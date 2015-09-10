@@ -6,11 +6,9 @@ from tornado import web
 # Logging object
 log = logging.getLogger(__name__)
 
-
-class AppHandler(web.RequestHandler):
+class NgApp(web.RequestHandler):
     """Our generic handler to serve out the root of our AngularJS app."""
-    def get(self, filename):
-        logging.info("REQ: {}".format(filename))
+    def get(self):
         self.render(
-            os.path.join(os.path.dirname(__file__), "../webapp/build/{}".format(filename))
+            os.path.join(os.path.dirname(__file__), "../webapp/build/index.html")
         )
