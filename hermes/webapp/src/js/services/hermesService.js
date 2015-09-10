@@ -146,8 +146,6 @@
              * display
              */
             function layoutGraph(baseX, node) {
-                console.log(baseX + ", " + baseY);
-
                 // update the x and y coords of this node
                 node["x"] = baseX;
                 node["y"] = baseY;
@@ -189,6 +187,8 @@
     }
 
     angular.module('hermesApp')
-        .factory('HermesService', ["$http", "$q", HermesService]);
+        .factory('HermesService',HermesService);
+
+    HermesService.$inject = ["$http", "$q"];
 
 })();

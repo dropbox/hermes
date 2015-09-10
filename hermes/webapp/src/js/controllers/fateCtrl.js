@@ -182,7 +182,6 @@
                 var pathStr = "M" + x1 + "," + y1
                     + " C" + (x1 + indent) + "," + y1 + "," + x1 + "," + y2 + "," + (x1 + indent) + "," + y2
                     + " L" + x2 + "," + y2;
-                console.log(pathStr);
                 paper.path(pathStr).attr({'stroke': '#000'});
 
                 addEdgeLabel(paper, settings, edge, (x1 + indent), y2);
@@ -243,6 +242,7 @@
         }
     }
 
-    angular.module('hermesApp').controller('FateCtrl', ['HermesService', FateCtrl]);
+    angular.module('hermesApp').controller('FateCtrl', FateCtrl);
+    FateCtrl.$inject = ['HermesService'];
 
 })();

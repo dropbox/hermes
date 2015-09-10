@@ -31,8 +31,17 @@ HANDLERS = [
     (r"/api/v1/extquery\/?", api.ExtQueryHandler),
 
     # Frontend Handlers
-    (r"/(.*)",
+    (
+        r"/((?:css|js|vendor|templates)/.*)",
         web.StaticFileHandler,
-        dict(path=os.path.join(os.path.dirname(__file__), "webapp/build/"),
-         default_filename="index.html"))
+        dict(
+            path=os.path.join(os.path.dirname(__file__), "webapp/build")
+        )
+    ),
+
+    # Frontend Handlers
+    (
+        r"/.*",
+        frontends.NgApp
+    )
 ]
