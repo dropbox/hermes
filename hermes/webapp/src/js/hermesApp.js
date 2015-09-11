@@ -6,7 +6,7 @@
 
     app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
         $routeProvider.when('/', {
-            templateUrl: '/templates/fateViewer.html',
+            templateUrl: '/templates/questCreation.html',
             reloadOnSearch: false
         }).when('/fates', {
             templateUrl: '/templates/fateViewer.html',
