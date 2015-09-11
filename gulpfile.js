@@ -30,9 +30,12 @@ var bower = require('gulp-bower');
 var sort = require('gulp-sort');
 var del = require('del');
 var watch = require('gulp-watch');
+var less = require('gulp-less');
+var path = require('path');
 
 var SRC_ROOT = './hermes/webapp/src/';
 var BUILD_DEST = './hermes/webapp/build/';
+var VENDOR_ROOT = "./_bc/";
 
 var JS_MAIN_SRC = SRC_ROOT + 'js/hermesApp.js';
 var JS_SRC = SRC_ROOT + 'js/**/*.js';
@@ -111,6 +114,17 @@ gulp.task('build:style', function() {
         .pipe(gulp.dest((BUILD_DEST + 'css')));
 });
 
+/**
+ * Task to process less files for bootstrap
+ */
+gulp.task('build:bsless', function() {
+    return gulp.src('_bc/bootstrap/less/bootstrap.less')
+        .pipe(less({
+            paths: [ path.join(__dirname, 'less', 'includes') ]
+        }))
+        .pipe(gulp.dest(BUILD_DEST + 'css'));
+});
+
 
 /**
  * Task to "build" images. While we're not doing anything interesting
@@ -139,7 +153,7 @@ gulp.task('build:3rdparty', ['bower'], function() {
  * Create a hashed version of all built files. This is currently
  * just a placeholder and hasn't been finished yet.
  */
-gulp.task('build:revisions', ['build:html', 'build:js', 'build:style', 'build:images', 'build:3rdparty'], function() {
+gulp.task('build:revisions', ['build:html', 'build:js', 'build:bsless', 'build:style', 'build:images', 'build:3rdparty'], function() {
     // TODO(gary): Do.
     return gulp.src(BUILD_DEST);
 });
