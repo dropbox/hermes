@@ -21,6 +21,10 @@ h1 {
     padding: 0px;
 }
 
+.navbar {
+    background-color: #007EE5;
+}
+
 #header {
     background-color: #007EE5;
     color: #f7f9fa;
@@ -28,78 +32,60 @@ h1 {
     padding: 10px;
 }
 
-#headerTitle {
+.navbar-brand {
     /*position: absolute;*/
     /*bottom: 5px;*/
     /*color: #B2D6F4;*/
-    color: #f7f9fa;
+    color: #fff !important;
     font-size: 2em;
+    font-weight: bold;
 }
 
-#headerTitle a {
-    color: #f7f9fa;
+.navbar a {
+    color: #fff;
     text-decoration: none;
 }
-#headerTitle a:hover {
-    text-decoration: underline;
+.navbar a:hover {
+    color: #fff !important;
+    text-decoration: underline !important;
 }
 
-.barGraphDiv {
-    max-height: 300px;
-    overflow: hidden;
-    opacity: 1;
-}
-.barGraphDiv.ng-hide-add.ng-hide-add-active,
-.barGraphDiv.ng-hide-remove.ng-hide-remove-active {
-    -webkit-transition: all linear 0.1s;
-    -webkit-animation-timing-function: ease-in-out;
-    transition: all linear 0.1s;
-    animation-timing-function: ease-in-out;
-
+.main-container {
+    padding-top: 60px;
+    padding-bottom: 20px;
 }
 
-.barGraphDiv.ng-hide {
-    max-height: 0;
-    opacity: 0;
+.quest-list {
+    background: #d0d4d9;
+    padding: 0px;
+    -webkit-border-radius: 0px 5px 5px 0px;
+    -moz-border-radius: 0px 5px 5px 0px;
+    border-radius: 0px 5px 5px 0px;
 }
 
-/* D3 styles */
-
-.label {
-    font-family: "Open Sans";
-    fill: #47525d;
+.quest-list h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 10px;
 }
 
-.value {
-    font-weight: normal;
-    lengthAdjust: spacing;
-    text-anchor: middle;
+.quest-list-header {
+    border-bottom: 2px #000 solid;
 }
 
-.axis path {
-    display: none;
+.quest-list-entry {
+    padding: 10px 10px 20px 10px;
 }
 
-.axis line {
-    shape-rendering: crispEdges;
-    stroke: #d0d4d9;
+.quest-list-entry:hover:not(.selected) {
+    background: #f6f9fc;
+    cursor: pointer;
 }
 
-.axis .minor line {
-    stroke: #d0d4d9;
-    stroke-dasharray: 2, 2;
+.quest-list-entry.selected {
+    background: #f6f9fc;
 }
 
-.axis text, .axis .minor text {
-    font-family: "Open Sans";
-    fill: #d0d4d9;
-    text-anchor: end !important;
-}
-
-.thresholdLine path {
-    stroke: #fcbdbd;
-    stroke-width: 4px;
-    /*stroke-dasharray: 2,2;*/
-    opacity: 0.5;
-    fill: none
+.quest-list .progbar {
+    padding: 5px 0px 0px 0px;
 }

@@ -1,0 +1,22 @@
+<div class="col-md-2 quest-list" ng-controller="QuestStatusCtrl as questCtrl">
+    <div class="quest-list-header"><h1>Open Quests</h1></div>
+    <div class="quest-list-entry selected" ng-if="questCtrl.selectedQuest">
+        <div>
+            <strong>Quest {{questCtrl.selectedQuest.id}}</strong>
+        </div>
+        <div>{{questCtrl.selectedQuest.description}}</div>
+        <div quest-progress-bar class="progbar" data="questCtrl.selectedQuest"></div>
+        <div><span style="font-size: .8em">Embarked on: {{questCtrl.selectedQuest.embarkTime}}</span></div>
+    </div>
+    <div class="quest-list-entry"
+         ng-repeat="quest in questCtrl.questData track by quest.id"
+         ng-if="questCtrl.selectedQuest.id != quest.id"
+         ng-click="questCtrl.newQuestSelection(quest)">
+        <div>
+            <strong>Quest {{quest.id}}</strong>
+        </div>
+        <div>{{quest.description}}</div>
+        <div quest-progress-bar class="progbar" data="quest"></div>
+        <div><span style="font-size: .8em">Embarked on: {{quest.embarkTime}}</span></div>
+    </div>
+</div>

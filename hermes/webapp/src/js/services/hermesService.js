@@ -7,11 +7,46 @@
         var service = {
             getFates: getFates,
             getFatesSigma: getFatesSigma,
+            getOpenQuests: getOpenQuests,
         };
 
         return service;
 
         /////////////////////////
+
+        function getOpenQuests() {
+            return $http.get("/api/v1/quests?filterClosed=true&limit=all&expand=labors")
+                .then(getQuestsComplete)
+                .catch(getQuestsFailed);
+
+            function getQuestsComplete(response) {
+                var quests = response.data.quests;
+
+                for (var idx in quests) {
+                    var labors = quests[idx]['labors'];
+                    if (!labors) {
+                        continue;
+                    }
+
+                    var totalLabors = labors.length;
+                    var finishedLabors = 0;
+                    for (var ldx in labors) {
+                        var labor = labors[ldx];
+                        if (labor['completionTime']) {
+                            finishedLabors++;
+                        }
+                    }
+                    var percent = +((finishedLabors/totalLabors * 100).toFixed(2));
+                    quests[idx]['percent'] = percent;
+                }
+
+                return response.data.quests;
+            }
+
+            function getQuestsFailed() {
+                console.error("API call to get open Quests failed. " + error.code);
+            }
+        }
 
         function getFates() {
             return $http.get("/api/v1/fates?expand=eventtypes&limit=all")
