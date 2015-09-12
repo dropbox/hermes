@@ -1990,10 +1990,30 @@ class QuestsHandler(ApiHandler):
         for quest in quests.all():
             quest_json = quest.to_dict(self.href_prefix)
             if "labors" in expand:
-                quest_json["labors"] = [
-                    labor.to_dict(self.href_prefix)
-                    for labor in quest.labors
-                ]
+                quest_json["labors"] = []
+                for labor in quest.labors:
+                    labor_json = labor.to_dict(self.href_prefix)
+                    if "hosts" in expand:
+                        labor_json["host"] = labor.host.to_dict(self.href_prefix)
+                    if "events" in expand:
+                        labor_json["creationEvent"] = (
+                            labor.creation_event.to_dict(self.href_prefix)
+                        )
+                        if "eventtypes" in expand:
+                            labor_json["creationEvent"]["eventType"] = (
+                                labor.creation_event.event_type.to_dict(self.href_prefix)
+                            )
+                            if labor.completion_event:
+                                labor_json["completionEvent"] = (
+                                    labor.completion_event.to_dict(self.href_prefix)
+                                )
+                                labor_json["completionEvent"]["eventType"] = (
+                                    labor.completion_event
+                                    .event_type.to_dict(self.href_prefix)
+                                )
+                            else:
+                                labor_json["completionEvent"] = None
+                    quest_json["labors"].append(labor_json)
             quests_json.append(quest_json)
 
         json = {
