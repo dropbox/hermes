@@ -34,10 +34,28 @@ class PluginHelper(object):
 
         Args:
             path: the full path to the resource
+            params: the query parameters to send
         Returns:
             the http response
         """
         response = requests.get(settings.query_server + path, params=params)
+
+        return response
+
+    @classmethod
+    def request_post(cls, path="", params={}, json_body={}):
+        """Make an HTTP POST request for the given path
+
+        Args:
+            path: the full path to the resource
+            params: the query params to send
+            json_body: the body of the message in JSON format
+        Returns:
+            the http response
+        """
+        response = requests.post(
+            settings.query_server + path, params=params, json=json_body
+        )
 
         return response
 

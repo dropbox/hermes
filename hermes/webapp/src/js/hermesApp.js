@@ -2,7 +2,7 @@
 
     'use strict';
 
-    var app = angular.module('hermesApp', ['d3', 'ngAnimate', 'ngRoute']);
+    var app = angular.module('hermesApp', ['ngAnimate', 'ngRoute']);
 
     app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
         $routeProvider.when('/', {

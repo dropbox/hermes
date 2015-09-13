@@ -21,7 +21,7 @@
          * @returns {*}
          */
         function getOpenQuests() {
-            return $http.get("/api/v1/quests?filterClosed=true&progressInfo=true&limit=all")
+            return $http.get("/api/v1/quests?filterClosed=true&progressInfo=true&limit=all&expand=hosts&expand=labors")
                 .then(getQuestsComplete)
                 .catch(getQuestsFailed);
 
@@ -39,7 +39,7 @@
          * @param id the id of the quest we care about
          */
         function getQuestDetails(id) {
-            return $http.get("/api/v1/quests/" + id + "/?&limit=all&expand=labors&expand=hosts&expand=events&expand=eventtypes")
+            return $http.get("/api/v1/quests/" + id + "/?onlyOpenLabors=true&progressInfo=true&limit=all&expand=labors&expand=hosts&expand=events&expand=eventtypes")
                 .then(getQuestComplete)
                 .catch(getQuestFailed);
 

@@ -1,34 +1,53 @@
-<div ng-controller="QuestStatusCtrl as questCtrl">
+<div ng-controller="QuestStatusCtrl as qc">
     <div class="col-md-2 quest-list">
         <div class="quest-list-header"><h1>Open Quests</h1></div>
-        <div class="quest-list-entry selected" ng-if="!questCtrl.selectedQuest">
+        <div class="quest-list-entry selected"
+             ng-if="!qc.selectedQuest">
             <div>
-                <img src="/img/loading.gif" />
+                <img src="/img/loading.gif"/>
             </div>
         </div>
-        <div class="quest-list-entry selected" ng-if="questCtrl.selectedQuest">
+        <div class="quest-list-entry selected" ng-if="qc.selectedQuest">
             <div>
-                <strong>Quest {{questCtrl.selectedQuest.id}}</strong>
+                <strong>Quest {{qc.selectedQuest.id}}</strong>
             </div>
-            <div>{{questCtrl.selectedQuest.description}}</div>
-            <div quest-progress-bar class="progbar" data="questCtrl.selectedQuest"></div>
-            <div><span style="font-size: .8em">Embarked on: {{questCtrl.selectedQuest.embarkTime}}</span></div>
+            <div>{{qc.selectedQuest.description}}</div>
+            <div quest-progress-bar class="progbar"
+                 data="qc.selectedQuest"></div>
+            <div><span style="font-size: .8em">Embarked on: {{qc.selectedQuest.embarkTime}}</span>
+            </div>
         </div>
         <div class="quest-list-entry"
-             ng-repeat="quest in questCtrl.questData track by quest.id"
-             ng-if="questCtrl.selectedQuest.id != quest.id"
-             ng-click="questCtrl.newQuestSelection(quest)">
+             ng-repeat="quest in qc.questData track by quest.id"
+             ng-if="qc.selectedQuest.id != quest.id"
+             ng-click="qc.newQuestSelection(quest)">
             <div>
                 <strong>Quest {{quest.id}}</strong>
             </div>
             <div>{{quest.description}}</div>
             <div quest-progress-bar class="progbar" data="quest"></div>
-            <div><span style="font-size: .8em">Embarked on: {{quest.embarkTime}}</span></div>
+            <div><span style="font-size: .8em">Embarked on: {{quest.embarkTime}}</span>
+            </div>
         </div>
     </div>
-    <div class="col-md-10">
-        <div ng-if="!questCtrl.selectedQuestDetails">
-            <img src="/img/loading.gif" />
+    <div class="col-md-9 col-md-offset-1">
+        <div ng-if="!qc.selectedQuestDetails">
+            <img src="/img/loading.gif"/>
+        </div>
+        <div ng-if="qc.selectedQuestDetails" class="quest-details">
+            <div quest-progress-chart
+                 data="qc.selectedQuestDetails"></div>
+            <div class="quest-overview">
+                <span>
+                    {{qc.selectedQuestDetails.totalLabors}} total labors.  {{qc.selectedQuestDetails.openLabors}} remain open.
+                </span>
+            </div>
+            <div class="quest-hosts">
+                <div class="col-md-6">Host</div><div class="col-md-6">Labor</div>
+                <div ng-repeat="(laborType, details) in qc.laborAnalysis">
+                    <div ng-repeat="host in details.hosts"><div class="col-md-6">{{host}}</div><div class="col-md-6">{{laborType}}</div></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

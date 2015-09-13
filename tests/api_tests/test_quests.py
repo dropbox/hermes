@@ -391,8 +391,9 @@ def test_quest_lifecycle(sample_data1_server):
     )
 
     # Ensure that the quest doesn't have a completion time yet
+    # Also, test two meta features: progress info and filtering to show only open labors
     assert_success(
-        client.get("/quests/1?progressInfo=true"),
+        client.get("/quests/1?progressInfo=true&onlyOpenLabors=true"),
         {
             "creator": "johnny@example.com",
             "description": "This is a quest almighty",
@@ -401,9 +402,12 @@ def test_quest_lifecycle(sample_data1_server):
             "targetTime": str(target_time),
             "openLabors": 3,
             "totalLabors": 6,
-            "percentComplete": 50
+            "percentComplete": 50.0,
+            "labors": [{"id": 4},
+                       {"id": 5},
+                       {"id": 6}]
         },
-        strip=["embarkTime", "labors"]
+        strip=["embarkTime"]
     )
 
     # Throw events that should trigger closing of the intermediate labors

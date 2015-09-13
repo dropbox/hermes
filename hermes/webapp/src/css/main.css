@@ -89,3 +89,9 @@ h1 {
 .quest-list .progbar {
     padding: 5px 0px 0px 0px;
 }
+
+.quest-details .quest-overview {
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+}

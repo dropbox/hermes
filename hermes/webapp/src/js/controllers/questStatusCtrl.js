@@ -38,6 +38,8 @@
 
             var labors = quest['labors'];
             for (var idx in labors) {
+                var hostname = labors[idx]['host']['hostname'];
+                console.log(hostname);
                 if (labors[idx]['completionEvent']) {
                     var completionEventType = labors[idx]['completionEvent']['eventType'];
                     var key = completionEventType['category'] + " " + completionEventType['state'];
