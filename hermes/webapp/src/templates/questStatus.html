@@ -1,22 +1,34 @@
-<div class="col-md-2 quest-list" ng-controller="QuestStatusCtrl as questCtrl">
-    <div class="quest-list-header"><h1>Open Quests</h1></div>
-    <div class="quest-list-entry selected" ng-if="questCtrl.selectedQuest">
-        <div>
-            <strong>Quest {{questCtrl.selectedQuest.id}}</strong>
+<div ng-controller="QuestStatusCtrl as questCtrl">
+    <div class="col-md-2 quest-list">
+        <div class="quest-list-header"><h1>Open Quests</h1></div>
+        <div class="quest-list-entry selected" ng-if="!questCtrl.selectedQuest">
+            <div>
+                <img src="/img/loading.gif" />
+            </div>
         </div>
-        <div>{{questCtrl.selectedQuest.description}}</div>
-        <div quest-progress-bar class="progbar" data="questCtrl.selectedQuest"></div>
-        <div><span style="font-size: .8em">Embarked on: {{questCtrl.selectedQuest.embarkTime}}</span></div>
+        <div class="quest-list-entry selected" ng-if="questCtrl.selectedQuest">
+            <div>
+                <strong>Quest {{questCtrl.selectedQuest.id}}</strong>
+            </div>
+            <div>{{questCtrl.selectedQuest.description}}</div>
+            <div quest-progress-bar class="progbar" data="questCtrl.selectedQuest"></div>
+            <div><span style="font-size: .8em">Embarked on: {{questCtrl.selectedQuest.embarkTime}}</span></div>
+        </div>
+        <div class="quest-list-entry"
+             ng-repeat="quest in questCtrl.questData track by quest.id"
+             ng-if="questCtrl.selectedQuest.id != quest.id"
+             ng-click="questCtrl.newQuestSelection(quest)">
+            <div>
+                <strong>Quest {{quest.id}}</strong>
+            </div>
+            <div>{{quest.description}}</div>
+            <div quest-progress-bar class="progbar" data="quest"></div>
+            <div><span style="font-size: .8em">Embarked on: {{quest.embarkTime}}</span></div>
+        </div>
     </div>
-    <div class="quest-list-entry"
-         ng-repeat="quest in questCtrl.questData track by quest.id"
-         ng-if="questCtrl.selectedQuest.id != quest.id"
-         ng-click="questCtrl.newQuestSelection(quest)">
-        <div>
-            <strong>Quest {{quest.id}}</strong>
+    <div class="col-md-10">
+        <div ng-if="!questCtrl.selectedQuestDetails">
+            <img src="/img/loading.gif" />
         </div>
-        <div>{{quest.description}}</div>
-        <div quest-progress-bar class="progbar" data="quest"></div>
-        <div><span style="font-size: .8em">Embarked on: {{quest.embarkTime}}</span></div>
     </div>
 </div>

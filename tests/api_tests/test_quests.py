@@ -392,13 +392,16 @@ def test_quest_lifecycle(sample_data1_server):
 
     # Ensure that the quest doesn't have a completion time yet
     assert_success(
-        client.get("/quests/1"),
+        client.get("/quests/1?progressInfo=true"),
         {
             "creator": "johnny@example.com",
             "description": "This is a quest almighty",
             "id": 1,
             "completionTime": None,
             "targetTime": str(target_time),
+            "openLabors": 3,
+            "totalLabors": 6,
+            "percentComplete": 50
         },
         strip=["embarkTime", "labors"]
     )

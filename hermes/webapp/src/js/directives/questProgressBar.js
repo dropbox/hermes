@@ -32,7 +32,7 @@
                             var barWidth = width;
                             var barBaseLine = graphHeight * 1;
                             var barHeight = graphHeight * .3;
-                            var percentXLoc = data[0].percent * barWidth / 100;
+                            var percentXLoc = data[0].percentComplete * barWidth / 100;
 
                             // erase everything
                             raphael.clear();
@@ -62,7 +62,7 @@
                             var label = raphael.text(
                                 width/2,
                                 (barBaseLine - (barHeight * 2)),
-                                data[0].percent + "%"
+                                data[0].percentComplete + "%"
                             ).attr({
                                 'font-size': barHeight
                             });

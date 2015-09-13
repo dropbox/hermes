@@ -1,8 +1,10 @@
+from __future__ import division
+
 import logging
 import random
 import re
 import sqlalchemy
-from sqlalchemy import desc, or_
+from sqlalchemy import desc, or_, and_
 from sqlalchemy.exc import IntegrityError
 import string
 import time
@@ -1937,7 +1939,7 @@ class QuestsHandler(ApiHandler):
 
         .. sourcecode:: http
 
-            GET /api/v1/quests HTTP/1.1
+            GET /api/v1/quests?progressInfo=true HTTP/1.1
             Host: localhost
 
         **Example response:**
@@ -1961,6 +1963,9 @@ class QuestsHandler(ApiHandler):
                         "targetTime": timestamp,
                         "completionTime": timestamp,
                         "description": "This is a quest almighty",
+                        "totalLabors": 20,
+                        "openLabors": 10,
+                        "percentComplete": 50,
                         "labors": [],
                     },
                     ...
@@ -1968,6 +1973,7 @@ class QuestsHandler(ApiHandler):
             }
 
         :query boolean filterClosed: if true, filter out completed Quests
+        :query boolean progressInfo: if true, include progress information
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -1975,6 +1981,7 @@ class QuestsHandler(ApiHandler):
         :statuscode 401: The request was made without being logged in.
         """
         filter_closed = self.get_argument("filterClosed", None)
+        progress_info = self.get_argument("progressInfo", None)
 
         quests = self.session.query(Quest).order_by(desc(Quest.embark_time))
 
@@ -1989,6 +1996,24 @@ class QuestsHandler(ApiHandler):
         quests_json = []
         for quest in quests.all():
             quest_json = quest.to_dict(self.href_prefix)
+            if progress_info:
+                labor_count = self.session.query(Labor).filter(
+                    Labor.quest_id == quest.id
+                ).count()
+                open_labors_count = self.session.query(Labor).filter(
+                    and_(
+                        Labor.quest_id == quest.id,
+                        Labor.completion_time == None
+                    )
+                ).count()
+
+                percent_complete = round(
+                    (labor_count - open_labors_count) / labor_count * 100,
+                    2
+                )
+                quest_json['totalLabors'] = labor_count
+                quest_json['openLabors'] = open_labors_count
+                quest_json['percentComplete'] = percent_complete
             if "labors" in expand:
                 quest_json["labors"] = []
                 for labor in quest.labors:
@@ -2060,6 +2085,7 @@ class QuestHandler(ApiHandler):
         :type id: int
 
         :query string expand: (*optional*) supports labors, hosts, events, eventtypes
+        :query boolean progressInfo: if true, include progress information
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
@@ -2067,13 +2093,32 @@ class QuestHandler(ApiHandler):
         """
         offset, limit, expand = self.get_pagination_values()
 
+        progress_info = self.get_argument("progressInfo", None)
+
         quest = self.session.query(Quest).filter_by(id=id).scalar()
 
         if not quest:
             raise exc.NotFound("No such Quest {} found".format(id))
 
         json = quest.to_dict(self.href_prefix)
+        if progress_info:
+            labor_count = self.session.query(Labor).filter(
+                Labor.quest_id == quest.id
+            ).count()
+            open_labors_count = self.session.query(Labor).filter(
+                and_(
+                    Labor.quest_id == quest.id,
+                    Labor.completion_time == None
+                )
+            ).count()
 
+            percent_complete = round(
+                (labor_count - open_labors_count) / labor_count * 100,
+                2
+            )
+            json['totalLabors'] = labor_count
+            json['openLabors'] = open_labors_count
+            json['percentComplete'] = percent_complete
         if "labors" in expand:
             json["labors"] = []
             for labor in quest.labors:

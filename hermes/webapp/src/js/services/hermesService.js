@@ -8,43 +8,47 @@
             getFates: getFates,
             getFatesSigma: getFatesSigma,
             getOpenQuests: getOpenQuests,
+            getQuestDetails: getQuestDetails,
         };
 
         return service;
 
         /////////////////////////
 
+        /**
+         * Get a list of all the open quests but not all the details --
+         * just enough to give overview information.
+         * @returns {*}
+         */
         function getOpenQuests() {
-            return $http.get("/api/v1/quests?filterClosed=true&limit=all&expand=labors")
+            return $http.get("/api/v1/quests?filterClosed=true&progressInfo=true&limit=all")
                 .then(getQuestsComplete)
                 .catch(getQuestsFailed);
 
             function getQuestsComplete(response) {
-                var quests = response.data.quests;
-
-                for (var idx in quests) {
-                    var labors = quests[idx]['labors'];
-                    if (!labors) {
-                        continue;
-                    }
-
-                    var totalLabors = labors.length;
-                    var finishedLabors = 0;
-                    for (var ldx in labors) {
-                        var labor = labors[ldx];
-                        if (labor['completionTime']) {
-                            finishedLabors++;
-                        }
-                    }
-                    var percent = +((finishedLabors/totalLabors * 100).toFixed(2));
-                    quests[idx]['percent'] = percent;
-                }
-
                 return response.data.quests;
             }
 
             function getQuestsFailed() {
                 console.error("API call to get open Quests failed. " + error.code);
+            }
+        }
+
+        /**
+         * Grab all the details for a given quest (labors, events and eventtypes)
+         * @param id the id of the quest we care about
+         */
+        function getQuestDetails(id) {
+            return $http.get("/api/v1/quests/" + id + "/?&limit=all&expand=labors&expand=hosts&expand=events&expand=eventtypes")
+                .then(getQuestComplete)
+                .catch(getQuestFailed);
+
+            function getQuestComplete(response) {
+                return response.data;
+            }
+
+            function getQuestFailed() {
+                console.error("API call to get details of Quest " + id + " failed: " + error.code);
             }
         }
 
