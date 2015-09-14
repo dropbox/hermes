@@ -9,6 +9,10 @@
     padding: 0px;
 }
 
+.container {
+    /*width: 960px;*/
+}
+
 body {
     font-family: "Open Sans";
     margin: 0;
@@ -26,8 +30,7 @@ h1 {
 }
 
 #header {
-    background-color: #007EE5;
-    color: #f7f9fa;
+    color: #121212;
     font-size: 3em;
     padding: 10px;
 }
@@ -51,12 +54,12 @@ h1 {
 }
 
 .main-container {
-    padding-top: 60px;
+    padding-top: 0px;
     padding-bottom: 20px;
 }
 
 .quest-list {
-    background: #d0d4d9;
+    background: #fff5cc;
     padding: 0px;
     -webkit-border-radius: 0px 5px 5px 0px;
     -moz-border-radius: 0px 5px 5px 0px;
@@ -74,12 +77,11 @@ h1 {
 }
 
 .quest-list .overviews {
-    height: 500px;
-    overflow: scroll;
+    /*height: 500px;*/
+    /*overflow: scroll;*/
 }
 
 .quest-list-header {
-    border-bottom: 2px #000 solid;
 }
 
 .quest-list-entry {
@@ -87,19 +89,23 @@ h1 {
 }
 
 .quest-list-entry:hover:not(.selected) {
-    background: #f6f9fc;
+    background: #ffffff;
     cursor: pointer;
 }
 
 .quest-list-entry.selected {
-    background: #f6f9fc;
+    background: #fffdec;
 }
 
 .quest-details .quest-overview {
     text-align: center;
-    font-size: 1.2em;
+    font-size: 1.5em;
     font-weight: bold;
     padding: 20px 0px 20px 0px;
+}
+
+.quest-labors {
+    font-size: 1.2em;
 }
 
 .quest-labors .header {

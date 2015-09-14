@@ -33,13 +33,17 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-9 col-md-offset-1">
+        <div class="col-md-10">
+            <div class="row"  style="margin-left: 20px">
+            <div class="col-md-12">
             <div ng-if="!qc.labors">
                 <img src="/img/loading.gif"/>
             </div>
             <div ng-if="qc.labors" class="quest-details">
                 <div quest-progress-chart
-                     data="qc.labors"></div>
+                     colors="qc.colors"
+                     types="qc.types"
+                     data="qc.selectedQuestDetails"></div>
                 <div class="quest-overview">
                     <span>
                         {{qc.selectedQuestDetails.totalLabors}} total labors.  {{qc.selectedQuestDetails.openLabors}} remain open.
@@ -57,6 +61,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            </div>
             </div>
         </div>
     </div>
