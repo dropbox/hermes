@@ -9,6 +9,7 @@
             getFatesSigma: getFatesSigma,
             getOpenQuests: getOpenQuests,
             getQuestDetails: getQuestDetails,
+            getOwnerInformation: getOwnerInformation
         };
 
         return service;
@@ -49,6 +50,20 @@
 
             function getQuestFailed() {
                 console.error("API call to get details of Quest " + id + " failed: " + error.code);
+            }
+        }
+
+        function getOwnerInformation(hostnames) {
+            return $http.post("/api/v1/extquery", {"hostnames": hostnames})
+                .then(getOwnersComplete)
+                .catch(getOwnersFailed);
+
+            function getOwnersComplete(response) {
+                return response.data.results;
+            }
+
+            function getOwnersFailed() {
+                console.error("API to get owners failed: " + error.code);
             }
         }
 

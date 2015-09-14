@@ -69,6 +69,15 @@ h1 {
     padding: 10px;
 }
 
+.quest-list .progbar {
+    padding: 5px 0px 0px 0px;
+}
+
+.quest-list .overviews {
+    height: 500px;
+    overflow: scroll;
+}
+
 .quest-list-header {
     border-bottom: 2px #000 solid;
 }
@@ -86,12 +95,34 @@ h1 {
     background: #f6f9fc;
 }
 
-.quest-list .progbar {
-    padding: 5px 0px 0px 0px;
-}
-
 .quest-details .quest-overview {
     text-align: center;
     font-size: 1.2em;
     font-weight: bold;
+    padding: 20px 0px 20px 0px;
+}
+
+.quest-labors .header {
+    font-weight: bold;
+}
+
+.quest-labors .labor-entry:hover {
+    background: #cce6fa;
+}
+
+.quest-labors .owner-group {
+    margin-left: -15px;
+    margin-right: -15px;
+    margin-bottom: 5px;
+}
+
+.quest-labors .owner-group:nth-child(odd) {
+    background: #f6f9fc;
+}
+
+.quest-labors .owner-group .type-group {
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
