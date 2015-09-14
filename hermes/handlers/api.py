@@ -1,8 +1,11 @@
+from __future__ import division
+
+import json
 import logging
 import random
 import re
 import sqlalchemy
-from sqlalchemy import desc, or_
+from sqlalchemy import desc, or_, and_
 from sqlalchemy.exc import IntegrityError
 import string
 import time
@@ -1937,7 +1940,7 @@ class QuestsHandler(ApiHandler):
 
         .. sourcecode:: http
 
-            GET /api/v1/quests HTTP/1.1
+            GET /api/v1/quests?progressInfo=true HTTP/1.1
             Host: localhost
 
         **Example response:**
@@ -1961,6 +1964,9 @@ class QuestsHandler(ApiHandler):
                         "targetTime": timestamp,
                         "completionTime": timestamp,
                         "description": "This is a quest almighty",
+                        "totalLabors": 20,
+                        "openLabors": 10,
+                        "percentComplete": 50,
                         "labors": [],
                     },
                     ...
@@ -1968,6 +1974,7 @@ class QuestsHandler(ApiHandler):
             }
 
         :query boolean filterClosed: if true, filter out completed Quests
+        :query boolean progressInfo: if true, include progress information
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -1975,6 +1982,7 @@ class QuestsHandler(ApiHandler):
         :statuscode 401: The request was made without being logged in.
         """
         filter_closed = self.get_argument("filterClosed", None)
+        progress_info = self.get_argument("progressInfo", None)
 
         quests = self.session.query(Quest).order_by(desc(Quest.embark_time))
 
@@ -1989,11 +1997,49 @@ class QuestsHandler(ApiHandler):
         quests_json = []
         for quest in quests.all():
             quest_json = quest.to_dict(self.href_prefix)
+            if progress_info:
+                labor_count = self.session.query(Labor).filter(
+                    Labor.quest_id == quest.id
+                ).count()
+                open_labors_count = self.session.query(Labor).filter(
+                    and_(
+                        Labor.quest_id == quest.id,
+                        Labor.completion_time == None
+                    )
+                ).count()
+
+                percent_complete = round(
+                    (labor_count - open_labors_count) / labor_count * 100,
+                    2
+                )
+                quest_json['totalLabors'] = labor_count
+                quest_json['openLabors'] = open_labors_count
+                quest_json['percentComplete'] = percent_complete
             if "labors" in expand:
-                quest_json["labors"] = [
-                    labor.to_dict(self.href_prefix)
-                    for labor in quest.labors
-                ]
+                quest_json["labors"] = []
+                for labor in quest.labors:
+                    labor_json = labor.to_dict(self.href_prefix)
+                    if "hosts" in expand:
+                        labor_json["host"] = labor.host.to_dict(self.href_prefix)
+                    if "events" in expand:
+                        labor_json["creationEvent"] = (
+                            labor.creation_event.to_dict(self.href_prefix)
+                        )
+                        if "eventtypes" in expand:
+                            labor_json["creationEvent"]["eventType"] = (
+                                labor.creation_event.event_type.to_dict(self.href_prefix)
+                            )
+                            if labor.completion_event:
+                                labor_json["completionEvent"] = (
+                                    labor.completion_event.to_dict(self.href_prefix)
+                                )
+                                labor_json["completionEvent"]["eventType"] = (
+                                    labor.completion_event
+                                    .event_type.to_dict(self.href_prefix)
+                                )
+                            else:
+                                labor_json["completionEvent"] = None
+                    quest_json["labors"].append(labor_json)
             quests_json.append(quest_json)
 
         json = {
@@ -2040,6 +2086,8 @@ class QuestHandler(ApiHandler):
         :type id: int
 
         :query string expand: (*optional*) supports labors, hosts, events, eventtypes
+        :query boolean progressInfo: (*optional*) if true, include progress information
+        :query boolean onlyOpenLabors: (*optional*) if true, only return open labors
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
@@ -2047,16 +2095,45 @@ class QuestHandler(ApiHandler):
         """
         offset, limit, expand = self.get_pagination_values()
 
+        progress_info = self.get_argument("progressInfo", False)
+        only_open_labors = self.get_argument("onlyOpenLabors", False)
+
         quest = self.session.query(Quest).filter_by(id=id).scalar()
 
         if not quest:
             raise exc.NotFound("No such Quest {} found".format(id))
 
         json = quest.to_dict(self.href_prefix)
+        if progress_info:
+            labor_count = self.session.query(Labor).filter(
+                Labor.quest_id == quest.id
+            ).count()
+            open_labors_count = self.session.query(Labor).filter(
+                and_(
+                    Labor.quest_id == quest.id,
+                    Labor.completion_time == None
+                )
+            ).count()
 
+            percent_complete = round(
+                (labor_count - open_labors_count) / labor_count * 100,
+                2
+            )
+            json['totalLabors'] = labor_count
+            json['openLabors'] = open_labors_count
+            json['percentComplete'] = percent_complete
+        if only_open_labors:
+            labors = self.session.query(Labor).filter(
+                and_(
+                    Labor.quest_id == quest.id,
+                    Labor.completion_event_id == None
+                )
+            ).all()
+        else:
+            labors = quest.labors
         if "labors" in expand:
             json["labors"] = []
-            for labor in quest.labors:
+            for labor in labors:
                 labor_json = labor.to_dict(self.href_prefix)
                 if "hosts" in expand:
                     labor_json["host"] = labor.host.to_dict(self.href_prefix)
@@ -2081,7 +2158,7 @@ class QuestHandler(ApiHandler):
                 json["labors"].append(labor_json)
         else:
             json["labors"] = []
-            for labor in quest.labors:
+            for labor in labors:
                 json["labors"].append({
                     "id": labor.id,
                     "href": labor.href(self.href_prefix)
@@ -2195,7 +2272,7 @@ class ExtQueryHandler(ApiHandler):
 
         .. sourcecode:: http
 
-            GET /api/v1/query?hostQuery=server HTTP/1.1
+            GET /api/v1/query?query=server HTTP/1.1
             Host: localhost
 
         **Example response:**
@@ -2217,22 +2294,41 @@ class ExtQueryHandler(ApiHandler):
                 ]
             }
 
-        :query string hostQuery: the query to send to the plugin to come up with the list of hostnames
-
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
         """
-        host_query = self.get_argument("hostQuery", None)
 
-        response = PluginHelper.request_get(params={"query": host_query})
+        response = PluginHelper.request_get(params=self.request.arguments)
         if (
             response.status_code == 200
             and response.json()["status"] == "ok"
         ):
-            json = {
+            result_json = {
                 "results": response.json()["results"],
             }
         else:
-            raise exc.BadRequest("Bad host query: {}".format(host_query))
+            raise exc.BadRequest("Bad host query: {}".format(
+                self.request.arguments
+            ))
 
-        self.success(json)
+        self.success(result_json)
+
+    def post(self):
+        """
+        Pass through post to the external query handler
+        """
+        json_data = json.loads(self.request.body)
+        response = PluginHelper.request_post(json_body=json_data)
+        if (
+            response.status_code == 200
+            and response.json()["status"] == "ok"
+        ):
+            result_json = {
+                "results": response.json()["results"],
+            }
+        else:
+            raise exc.BadRequest("Bad host query: {}".format(
+                self.request.body
+            ))
+
+        self.success(result_json)

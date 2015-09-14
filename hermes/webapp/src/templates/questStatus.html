@@ -1,0 +1,69 @@
+<div ng-controller="QuestStatusCtrl as qc">
+    <div class="row">
+        <div class="col-md-2 quest-list">
+            <div class="quest-list-header"><h1>Open Quests</h1></div>
+            <div class="quest-list-entry selected"
+                 ng-if="!qc.selectedQuest">
+                <div>
+                    <img src="/img/loading.gif"/>
+                </div>
+            </div>
+            <div class="quest-list-entry selected" ng-if="qc.selectedQuest">
+                <div>
+                    <strong>Quest {{qc.selectedQuest.id}}</strong>
+                </div>
+                <div>{{qc.selectedQuest.description}}</div>
+                <div quest-progress-bar class="progbar"
+                     data="qc.selectedQuest"></div>
+                <div><span style="font-size: .8em">Embarked on: {{qc.selectedQuest.embarkTime}}</span>
+                </div>
+            </div>
+            <div class="overviews">
+                <div class="quest-list-entry"
+                     ng-repeat="quest in qc.questData track by quest.id"
+                     ng-if="qc.selectedQuest.id != quest.id"
+                     ng-click="qc.newQuestSelection(quest)">
+                    <div>
+                        <strong>Quest {{quest.id}}</strong>
+                    </div>
+                    <div>{{quest.description}}</div>
+                    <div quest-progress-bar class="progbar" data="quest"></div>
+                    <div><span style="font-size: .8em">Embarked on: {{quest.embarkTime}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10">
+            <div class="row"  style="margin-left: 20px">
+            <div class="col-md-12">
+            <div ng-if="!qc.labors">
+                <img src="/img/loading.gif"/>
+            </div>
+            <div ng-if="qc.labors" class="quest-details">
+                <div quest-progress-chart
+                     colors="qc.colors"
+                     types="qc.types"
+                     data="qc.selectedQuestDetails"></div>
+                <div class="quest-overview">
+                    <span>
+                        {{qc.selectedQuestDetails.totalLabors}} total labors.  {{qc.selectedQuestDetails.openLabors}} remain open.
+                    </span>
+                </div>
+                <div class="quest-labors">
+                    <div class="header row">
+                        <div class="col-md-4">Owner</div><div class="col-md-4">Host</div><div class="col-md-4">Labor</div>
+                    </div>
+                    <div class="owner-group" ng-repeat="(owner, labors) in qc.labors">
+                        <div class="type-group" ng-repeat="(laborType, details) in labors">
+                            <div class="labor-entry row" ng-repeat="host in details.hosts">
+                                <div class="col-md-4"><span ng-if="$parent.$first && $first">{{owner}}</span></div><div class="col-md-4">{{host}}</div><div class="col-md-4">{{laborType}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>

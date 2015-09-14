@@ -32,7 +32,7 @@ HANDLERS = [
 
     # Frontend Handlers
     (
-        r"/((?:css|js|vendor|templates)/.*)",
+        r"/((?:css|img|js|vendor|templates)/.*)",
         web.StaticFileHandler,
         dict(
             path=os.path.join(os.path.dirname(__file__), "webapp/build")

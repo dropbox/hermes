@@ -9,6 +9,10 @@
     padding: 0px;
 }
 
+.container {
+    /*width: 960px;*/
+}
+
 body {
     font-family: "Open Sans";
     margin: 0;
@@ -21,85 +25,110 @@ h1 {
     padding: 0px;
 }
 
-#header {
+.navbar {
     background-color: #007EE5;
-    color: #f7f9fa;
+}
+
+#header {
+    color: #121212;
     font-size: 3em;
     padding: 10px;
 }
 
-#headerTitle {
+.navbar-brand {
     /*position: absolute;*/
     /*bottom: 5px;*/
     /*color: #B2D6F4;*/
-    color: #f7f9fa;
+    color: #fff !important;
     font-size: 2em;
+    font-weight: bold;
 }
 
-#headerTitle a {
-    color: #f7f9fa;
+.navbar a {
+    color: #fff;
     text-decoration: none;
 }
-#headerTitle a:hover {
-    text-decoration: underline;
+.navbar a:hover {
+    color: #fff !important;
+    text-decoration: underline !important;
 }
 
-.barGraphDiv {
-    max-height: 300px;
-    overflow: hidden;
-    opacity: 1;
-}
-.barGraphDiv.ng-hide-add.ng-hide-add-active,
-.barGraphDiv.ng-hide-remove.ng-hide-remove-active {
-    -webkit-transition: all linear 0.1s;
-    -webkit-animation-timing-function: ease-in-out;
-    transition: all linear 0.1s;
-    animation-timing-function: ease-in-out;
-
+.main-container {
+    padding-top: 0px;
+    padding-bottom: 20px;
 }
 
-.barGraphDiv.ng-hide {
-    max-height: 0;
-    opacity: 0;
+.quest-list {
+    background: #fff5cc;
+    padding: 0px;
+    -webkit-border-radius: 0px 5px 5px 0px;
+    -moz-border-radius: 0px 5px 5px 0px;
+    border-radius: 0px 5px 5px 0px;
 }
 
-/* D3 styles */
-
-.label {
-    font-family: "Open Sans";
-    fill: #47525d;
+.quest-list h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 10px;
 }
 
-.value {
-    font-weight: normal;
-    lengthAdjust: spacing;
-    text-anchor: middle;
+.quest-list .progbar {
+    padding: 5px 0px 0px 0px;
 }
 
-.axis path {
-    display: none;
+.quest-list .overviews {
+    /*height: 500px;*/
+    /*overflow: scroll;*/
 }
 
-.axis line {
-    shape-rendering: crispEdges;
-    stroke: #d0d4d9;
+.quest-list-header {
 }
 
-.axis .minor line {
-    stroke: #d0d4d9;
-    stroke-dasharray: 2, 2;
+.quest-list-entry {
+    padding: 10px 10px 20px 10px;
 }
 
-.axis text, .axis .minor text {
-    font-family: "Open Sans";
-    fill: #d0d4d9;
-    text-anchor: end !important;
+.quest-list-entry:hover:not(.selected) {
+    background: #ffffff;
+    cursor: pointer;
 }
 
-.thresholdLine path {
-    stroke: #fcbdbd;
-    stroke-width: 4px;
-    /*stroke-dasharray: 2,2;*/
-    opacity: 0.5;
-    fill: none
+.quest-list-entry.selected {
+    background: #fffdec;
+}
+
+.quest-details .quest-overview {
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 20px 0px 20px 0px;
+}
+
+.quest-labors {
+    font-size: 1.2em;
+}
+
+.quest-labors .header {
+    font-weight: bold;
+}
+
+.quest-labors .labor-entry:hover {
+    background: #cce6fa;
+}
+
+.quest-labors .owner-group {
+    margin-left: -15px;
+    margin-right: -15px;
+    margin-bottom: 5px;
+}
+
+.quest-labors .owner-group:nth-child(odd) {
+    background: #f6f9fc;
+}
+
+.quest-labors .owner-group .type-group {
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }

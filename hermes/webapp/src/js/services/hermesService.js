@@ -7,11 +7,65 @@
         var service = {
             getFates: getFates,
             getFatesSigma: getFatesSigma,
+            getOpenQuests: getOpenQuests,
+            getQuestDetails: getQuestDetails,
+            getOwnerInformation: getOwnerInformation
         };
 
         return service;
 
         /////////////////////////
+
+        /**
+         * Get a list of all the open quests but not all the details --
+         * just enough to give overview information.
+         * @returns {*}
+         */
+        function getOpenQuests() {
+            return $http.get("/api/v1/quests?filterClosed=true&progressInfo=true&limit=all&expand=hosts&expand=labors")
+                .then(getQuestsComplete)
+                .catch(getQuestsFailed);
+
+            function getQuestsComplete(response) {
+                return response.data.quests;
+            }
+
+            function getQuestsFailed() {
+                console.error("API call to get open Quests failed. " + error.code);
+            }
+        }
+
+        /**
+         * Grab all the details for a given quest (labors, events and eventtypes)
+         * @param id the id of the quest we care about
+         */
+        function getQuestDetails(id) {
+            return $http.get("/api/v1/quests/" + id + "/?progressInfo=true&limit=all&expand=labors&expand=hosts&expand=events&expand=eventtypes")
+                .then(getQuestComplete)
+                .catch(getQuestFailed);
+
+            function getQuestComplete(response) {
+                return response.data;
+            }
+
+            function getQuestFailed() {
+                console.error("API call to get details of Quest " + id + " failed: " + error.code);
+            }
+        }
+
+        function getOwnerInformation(hostnames) {
+            return $http.post("/api/v1/extquery", {"hostnames": hostnames})
+                .then(getOwnersComplete)
+                .catch(getOwnersFailed);
+
+            function getOwnersComplete(response) {
+                return response.data.results;
+            }
+
+            function getOwnersFailed() {
+                console.error("API to get owners failed: " + error.code);
+            }
+        }
 
         function getFates() {
             return $http.get("/api/v1/fates?expand=eventtypes&limit=all")

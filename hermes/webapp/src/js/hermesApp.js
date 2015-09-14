@@ -2,11 +2,11 @@
 
     'use strict';
 
-    var app = angular.module('hermesApp', ['d3', 'ngAnimate', 'ngRoute']);
+    var app = angular.module('hermesApp', ['ngAnimate', 'ngRoute']);
 
     app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
         $routeProvider.when('/', {
-            templateUrl: '/templates/questCreation.html',
+            templateUrl: '/templates/questStatus.html',
             reloadOnSearch: false
         }).when('/fates', {
             templateUrl: '/templates/fateViewer.html',
