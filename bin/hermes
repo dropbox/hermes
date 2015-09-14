@@ -505,6 +505,12 @@ def list_host_labors_monitoring(args):
         json = response.json()
         labors = json["labors"]
 
+        # FIXME: we need a better way to detect alertable labors
+        alert = False
+        for labor in labors:
+            if labor['creationEvent']['eventType']['state'] == "required":
+                alert = True
+
     except HermesException as exc:
         # FIXME -- add error codes to Hermes API and test for that
         if exc.message.startswith("Error: No host"):
@@ -526,7 +532,7 @@ def list_host_labors_monitoring(args):
     response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
     fates = response.json()["fates"]
 
-    if labors:
+    if alert:
         print "WARNING: {} open labor{} for this host".format(
             len(labors),
             "s" if len(labors) > 1 else ""
