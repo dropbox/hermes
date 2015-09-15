@@ -17,6 +17,8 @@
                     var graphHeight = 300;
                     var legendFontSize = graphHeight * .04;
                     var legendSpacing = graphHeight * .06;
+                    var titleFontSize = graphHeight * .08;
+
 
                     var renderTimeout;
                     var types = null;
@@ -51,6 +53,26 @@
                         if (!data) return;
                         if (renderTimeout) clearTimeout(renderTimeout);
 
+                        function wrapText(text, textEle, maxWidth) {
+                            text = text.replace('\n', ' ');
+                            var words = text.split(" ");
+                            var wrappedText = '';
+                            for (var idx in words) {
+                                textEle.attr("text", wrappedText + " " + words[idx]);
+                                if (textEle.getBBox().width > maxWidth) {
+                                    wrappedText += '\n' + words[idx];
+                                } else {
+                                    wrappedText += ' ' + words[idx];
+                                }
+                            }
+
+                            var bb = textEle.getBBox();
+                            var h = Math.abs(bb.y2) - Math.abs(bb.y) + 1;
+                            textEle.attr({
+                                'y': bb.y + h
+                            });
+                        }
+
                         renderTimeout = $timeout(function () {
                             var legendX = width * .75;
                             var legendY = ((graphHeight *.6) + ((numberOfTypes-1)* legendSpacing)) / 2;
@@ -60,6 +82,17 @@
 
                             // erase everything
                             raphael.clear();
+
+                            // add the quest info to the top left
+                            var title = raphael.text(0, titleFontSize, "Quest " + data[0].id)
+                                .attr('text-anchor', 'start')
+                                .attr('font-size', titleFontSize);
+
+                            // add the quest description
+                            var desc = raphael.text(0, legendY)
+                                .attr('text-anchor', 'start')
+                                .attr('font-size', legendFontSize);
+                            wrapText(data[0].description, desc, width *.25);
 
                             // draw out the legend on the right
                             var i = 0;

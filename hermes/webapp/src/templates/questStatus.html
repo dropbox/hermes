@@ -1,6 +1,6 @@
 <div ng-controller="QuestStatusCtrl as qc">
     <div class="row">
-        <div class="col-md-2 quest-list">
+        <div class="col-md-3 quest-list">
             <div class="quest-list-header"><h1>Open Quests</h1></div>
             <div class="quest-list-entry selected"
                  ng-if="!qc.selectedQuest">
@@ -8,20 +8,20 @@
                     <img src="/img/loading.gif"/>
                 </div>
             </div>
-            <div class="quest-list-entry selected" ng-if="qc.selectedQuest">
-                <div>
-                    <strong>Quest {{qc.selectedQuest.id}}</strong>
-                </div>
-                <div>{{qc.selectedQuest.description}}</div>
-                <div quest-progress-bar class="progbar"
-                     data="qc.selectedQuest"></div>
-                <div><span style="font-size: .8em">Embarked on: {{qc.selectedQuest.embarkTime}}</span>
-                </div>
-            </div>
-            <div class="overviews">
+            <!--<div class="quest-list-entry selected" ng-if="qc.selectedQuest">-->
+                <!--<div>-->
+                    <!--<strong>Quest {{qc.selectedQuest.id}}</strong>-->
+                <!--</div>-->
+                <!--<div>{{qc.selectedQuest.description}}</div>-->
+                <!--<div quest-progress-bar class="progbar"-->
+                     <!--data="qc.selectedQuest"></div>-->
+                <!--<div><span style="font-size: .8em">Embarked on: {{qc.selectedQuest.embarkTime}}</span>-->
+                <!--</div>-->
+            <!--</div>-->
+            <div class="overviews" viewport-height padding="120">
                 <div class="quest-list-entry"
                      ng-repeat="quest in qc.questData track by quest.id"
-                     ng-if="qc.selectedQuest.id != quest.id"
+                     ng-class="(qc.selectedQuest.id == quest.id) ? 'selected': ''"
                      ng-click="qc.newQuestSelection(quest)">
                     <div>
                         <strong>Quest {{quest.id}}</strong>
@@ -33,8 +33,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-10">
-            <div class="row"  style="margin-left: 20px">
+        <div class="col-md-9">
+            <div class="row" viewport-height padding="80" style="margin-left: 5px">
             <div class="col-md-12">
             <div ng-if="!qc.labors">
                 <img src="/img/loading.gif"/>
@@ -55,7 +55,7 @@
                     </div>
                     <div class="owner-group" ng-repeat="(owner, labors) in qc.labors">
                         <div class="type-group" ng-repeat="(laborType, details) in labors">
-                            <div class="labor-entry row" ng-repeat="host in details.hosts">
+                            <div class="labor-entry row" ng-repeat="host in details.hosts track by $index">
                                 <div class="col-md-4"><span ng-if="$parent.$first && $first">{{owner}}</span></div><div class="col-md-4">{{host}}</div><div class="col-md-4">{{laborType}}</div>
                             </div>
                         </div>

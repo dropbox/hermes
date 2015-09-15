@@ -9,10 +9,6 @@
     padding: 0px;
 }
 
-.container {
-    /*width: 960px;*/
-}
-
 body {
     font-family: "Open Sans";
     margin: 0;
@@ -25,32 +21,10 @@ h1 {
     padding: 0px;
 }
 
-.navbar {
-    background-color: #007EE5;
-}
-
 #header {
     color: #121212;
     font-size: 3em;
     padding: 10px;
-}
-
-.navbar-brand {
-    /*position: absolute;*/
-    /*bottom: 5px;*/
-    /*color: #B2D6F4;*/
-    color: #fff !important;
-    font-size: 2em;
-    font-weight: bold;
-}
-
-.navbar a {
-    color: #fff;
-    text-decoration: none;
-}
-.navbar a:hover {
-    color: #fff !important;
-    text-decoration: underline !important;
 }
 
 .main-container {
@@ -66,6 +40,7 @@ h1 {
     border-radius: 0px 5px 5px 0px;
 }
 
+
 .quest-list h1 {
     font-size: 1.5em;
     font-weight: bold;
@@ -76,16 +51,17 @@ h1 {
     padding: 5px 0px 0px 0px;
 }
 
-.quest-list .overviews {
-    /*height: 500px;*/
-    /*overflow: scroll;*/
-}
 
 .quest-list-header {
 }
 
 .quest-list-entry {
     padding: 10px 10px 20px 10px;
+    border-bottom: #d0d4d9 1px solid;
+}
+
+.quest-list-entry:last-child {
+    border-bottom: none;
 }
 
 .quest-list-entry:hover:not(.selected) {
