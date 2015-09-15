@@ -8,16 +8,6 @@
                     <img src="/img/loading.gif"/>
                 </div>
             </div>
-            <!--<div class="quest-list-entry selected" ng-if="qc.selectedQuest">-->
-                <!--<div>-->
-                    <!--<strong>Quest {{qc.selectedQuest.id}}</strong>-->
-                <!--</div>-->
-                <!--<div>{{qc.selectedQuest.description}}</div>-->
-                <!--<div quest-progress-bar class="progbar"-->
-                     <!--data="qc.selectedQuest"></div>-->
-                <!--<div><span style="font-size: .8em">Embarked on: {{qc.selectedQuest.embarkTime}}</span>-->
-                <!--</div>-->
-            <!--</div>-->
             <div class="overviews" viewport-height padding="120">
                 <div class="quest-list-entry"
                      ng-repeat="quest in qc.questData track by quest.id"
@@ -30,6 +20,7 @@
                     <div quest-progress-bar class="progbar" data="quest"></div>
                     <div><span style="font-size: .8em">Embarked on: {{quest.embarkTime}}</span>
                     </div>
+                    <div><span style="font-size: .8em">Created by: {{quest.creator}}</span></div>
                 </div>
             </div>
         </div>
