@@ -494,6 +494,7 @@ def list_host_labors_monitoring(args):
     """
     logging.debug("list_host_labors_monitoring(%s)", args.hostname)
 
+    alert = False
     try:
         response = request_get(
             "/api/v1/labors/"
@@ -506,7 +507,6 @@ def list_host_labors_monitoring(args):
         labors = json["labors"]
 
         # FIXME: we need a better way to detect alertable labors
-        alert = False
         for labor in labors:
             if labor['creationEvent']['eventType']['state'] == "required":
                 alert = True
