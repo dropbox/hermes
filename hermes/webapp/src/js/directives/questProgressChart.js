@@ -54,6 +54,7 @@
                         if (renderTimeout) clearTimeout(renderTimeout);
 
                         function wrapText(text, textEle, maxWidth) {
+                            text = text.replace(/\s+/g, ' ').trim();
                             text = text.replace('\n', ' ');
                             var words = text.split(" ");
                             var wrappedText = '';
