@@ -21,6 +21,18 @@ h1 {
     padding: 0px;
 }
 
+.navbar {
+    background: #25282b;
+    border: none;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+}
+
+.navbar-brand {
+    height: 80px;
+}
+
 #header {
     color: #121212;
     font-size: 3em;
@@ -35,9 +47,10 @@ h1 {
 .quest-list {
     background: #fff5cc;
     padding: 0px;
-    -webkit-border-radius: 0px 5px 5px 0px;
-    -moz-border-radius: 0px 5px 5px 0px;
-    border-radius: 0px 5px 5px 0px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    border: #fce897 solid 1px;
 }
 
 
@@ -52,12 +65,30 @@ h1 {
 }
 
 
-.quest-list-header {
+.quest-list-filter {
+    padding: 10px 10px 20px 10px;
+    border-bottom: #fce897 2px dotted;
+}
+
+.quest-list-filter input {
+    width: 100%;
+}
+
+.quest-list-filter button {
+    float: right;
+}
+
+.quest-list-filter .error-message {
+    color: #e82110;
+    font-weight: bold;
+    padding: 5px;
+    border: #e82110 2px solid;
+    margin-top: 5px;
 }
 
 .quest-list-entry {
     padding: 10px 10px 20px 10px;
-    border-bottom: #d0d4d9 1px solid;
+    border-bottom: #fce897 1px solid;
 }
 
 .quest-list-entry:last-child {

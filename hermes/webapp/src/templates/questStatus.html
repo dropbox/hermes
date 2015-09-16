@@ -1,16 +1,47 @@
 <div ng-controller="QuestStatusCtrl as qc">
     <div class="row">
         <div class="col-md-3 quest-list">
-            <div class="quest-list-header"><h1>Open Quests</h1></div>
+            <div class="quest-list-filter">
+                <div>
+                    <label for="creatorFilter">Filter by Creator</label>
+                </div>
+                <div class="row">
+                    <div class="col-md-10">
+                        <input id="creatorFilter" type="text" ng-model="qc.filterByCreator" />
+                    </div>
+                    <div class="col-md-2">
+                        <button ng-click="qc.runNewFilter()">GO</button>
+                    </div>
+                </div>
+                <div style="padding: 5px 0px 5px 0px">
+                    <label>
+                        Limit:
+                        <select ng-model="qc.limitSetting"
+                                ng-model-options="qc.limitOptions"
+                                ng-options="optValue for optValue in qc.limitValues()">
+                        </select>
+                    </label>
+                </div>
+                <div>
+                    <label>
+                        Page:
+                        <select ng-model="qc.pageSetting"
+                                ng-model-options="qc.limitOptions"
+                                ng-options="optValue for optValue in qc.pageValues()">
+                        </select>
+                    </label>
+                </div>
+                <div ng-if="qc.errorMessage" class="error-message" ng-bind="qc.errorMessage"></div>
+            </div>
             <div class="quest-list-entry selected"
                  ng-if="!qc.selectedQuest">
                 <div>
                     <img src="/img/loading.gif"/>
                 </div>
             </div>
-            <div class="overviews" viewport-height padding="120">
+            <div class="overviews">
                 <div class="quest-list-entry"
-                     ng-repeat="quest in qc.questData track by quest.id"
+                     ng-repeat="quest in qc.questData | limitTo:qc.limit:qc.offset track by quest.id"
                      ng-class="(qc.selectedQuest.id == quest.id) ? 'selected': ''"
                      ng-click="qc.newQuestSelection(quest)">
                     <div>
@@ -25,7 +56,7 @@
             </div>
         </div>
         <div class="col-md-9">
-            <div class="row" viewport-height padding="80" style="margin-left: 5px">
+            <div class="row" style="margin-left: 5px">
             <div class="col-md-12">
             <div ng-if="!qc.labors">
                 <img src="/img/loading.gif"/>

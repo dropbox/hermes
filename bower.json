@@ -17,6 +17,7 @@
   "dependencies": {
     "angular": "~1.4.5",
     "angular-animate": "~1.4.5",
+    "angular-location-update": "*",
     "angular-route": "~1.4.5",
     "bootstrap": "~3.3.5",
     "d3": "~3.5.6",

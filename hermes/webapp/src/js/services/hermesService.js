@@ -21,17 +21,23 @@
          * just enough to give overview information.
          * @returns {*}
          */
-        function getOpenQuests() {
-            return $http.get("/api/v1/quests?filterClosed=true&progressInfo=true&limit=all&expand=hosts&expand=labors")
+        function getOpenQuests(options) {
+
+            var url = "/api/v1/quests?filterClosed=true&progressInfo=true&expand=hosts&expand=labors&limit=all";
+
+            if (options['filterByCreator']) {
+                url += "&byCreator=" + options['filterByCreator'];
+            }
+            return $http.get(url)
                 .then(getQuestsComplete)
                 .catch(getQuestsFailed);
 
             function getQuestsComplete(response) {
-                return response.data.quests;
+                return response.data;
             }
 
-            function getQuestsFailed() {
-                console.error("API call to get open Quests failed. " + error.code);
+            function getQuestsFailed(error) {
+                console.error("API call to get open Quests failed. " + error.status + " " + error.statusText);
             }
         }
 
@@ -48,8 +54,8 @@
                 return response.data;
             }
 
-            function getQuestFailed() {
-                console.error("API call to get details of Quest " + id + " failed: " + error.code);
+            function getQuestFailed(error) {
+                console.error("API call to get details of Quest " + id + " failed: "  + error.status + " " + error.statusText);
             }
         }
 
@@ -62,8 +68,8 @@
                 return response.data.results;
             }
 
-            function getOwnersFailed() {
-                console.error("API to get owners failed: " + error.code);
+            function getOwnersFailed(error) {
+                console.error("API to get owners failed: " + error.status + " " + error.statusText);
             }
         }
 
@@ -78,7 +84,7 @@
             }
 
             function getFatesFailed(error) {
-                console.error("API call to get Fates failed. " + error.code)
+                console.error("API call to get Fates failed. "  + error.status + " " + error.statusText)
             }
         }
 
