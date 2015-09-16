@@ -21,6 +21,18 @@ h1 {
     padding: 0px;
 }
 
+.navbar {
+    background: #25282b;
+    border: none;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    border-radius: 0px;
+}
+
+.navbar-brand {
+    height: 80px;
+}
+
 #header {
     color: #121212;
     font-size: 3em;
@@ -52,7 +64,25 @@ h1 {
 }
 
 
-.quest-list-header {
+.quest-list-filter {
+    padding: 10px 10px 20px 10px;
+    border-bottom: #d0d4d9 2px dashed;
+}
+
+.quest-list-filter input {
+    width: 100%;
+}
+
+.quest-list-filter button {
+    float: right;
+}
+
+.quest-list-filter .error-message {
+    color: #e82110;
+    font-weight: bold;
+    padding: 5px;
+    border: #e82110 2px solid;
+    margin-top: 5px;
 }
 
 .quest-list-entry {

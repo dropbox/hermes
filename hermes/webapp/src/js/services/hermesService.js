@@ -21,13 +21,19 @@
          * just enough to give overview information.
          * @returns {*}
          */
-        function getOpenQuests() {
-            return $http.get("/api/v1/quests?filterClosed=true&progressInfo=true&limit=all&expand=hosts&expand=labors")
+        function getOpenQuests(options) {
+
+            var url = "/api/v1/quests?filterClosed=true&progressInfo=true&expand=hosts&expand=labors&limit=all";
+
+            if (options['filterByCreator']) {
+                url += "&byCreator=" + options['filterByCreator'];
+            }
+            return $http.get(url)
                 .then(getQuestsComplete)
                 .catch(getQuestsFailed);
 
             function getQuestsComplete(response) {
-                return response.data.quests;
+                return response.data;
             }
 
             function getQuestsFailed() {

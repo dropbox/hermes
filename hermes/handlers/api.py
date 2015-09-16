@@ -1975,6 +1975,7 @@ class QuestsHandler(ApiHandler):
 
         :query boolean filterClosed: if true, filter out completed Quests
         :query boolean progressInfo: if true, include progress information
+        :query string byCreator: if set, filter the quests by a particular creator
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -1983,11 +1984,18 @@ class QuestsHandler(ApiHandler):
         """
         filter_closed = self.get_argument("filterClosed", None)
         progress_info = self.get_argument("progressInfo", None)
+        by_creator = self.get_argument("byCreator", None)
 
-        quests = self.session.query(Quest).order_by(desc(Quest.embark_time))
+        # We used to sort in reverse embark time so that the default would be
+        # to show the latest quests but we don't want to do that anymore
+        # quests = self.session.query(Quest).order_by(desc(Quest.embark_time))
+        quests = self.session.query(Quest).order_by(Quest.embark_time)
 
         if filter_closed:
             quests = quests.filter(Quest.completion_time == None)
+
+        if by_creator:
+            quests = quests.filter(Quest.creator == by_creator)
 
         offset, limit, expand = self.get_pagination_values()
         quests, total = self.paginate_query(quests, offset, limit)
