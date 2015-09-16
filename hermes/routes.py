@@ -30,6 +30,9 @@ HANDLERS = [
     # Queries to 3rd party tools
     (r"/api/v1/extquery\/?", api.ExtQueryHandler),
 
+    # Query for the current user
+    (r"/api/v1/currentUser", api.CurrentUserHandler),
+
     # Frontend Handlers
     (
         r"/((?:css|img|js|vendor|templates)/.*)",

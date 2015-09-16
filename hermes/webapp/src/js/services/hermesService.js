@@ -9,12 +9,64 @@
             getFatesSigma: getFatesSigma,
             getOpenQuests: getOpenQuests,
             getQuestDetails: getQuestDetails,
-            getOwnerInformation: getOwnerInformation
+            getOwnerInformation: getOwnerInformation,
+            getCurrentUser: getCurrentUser,
+            getStartingEventTypes: getStartingEventTypes,
+            runQuery: runQuery,
+            createQuest: createQuest
         };
 
         return service;
 
         /////////////////////////
+
+        /**
+         * Try to create a quest given the information
+         * @param user the user who is the owner/creator of the quest
+         * @param hosts the list of hosts to which this quest applies
+         * @param eventType the starting event-type
+         * @param description the human readable description for this quest
+         */
+        function createQuest(user, hosts, eventType, description) {
+            return $http.post("/api/v1/quests", {
+                'creator': user,
+                'hostnames': hosts,
+                'eventTypeId': eventType.id,
+                'description': description
+            }).then(createQuestCompleted)
+                .catch(createQuestFailed);
+
+            function createQuestCompleted(response) {
+                return response;
+            }
+
+            function createQuestFailed(error) {
+                console.error("API for creating a quest failed! " + error.status + " " + error.statusText);
+                throw error;
+            }
+        }
+
+
+        /**
+         * Get the current authenticated user
+         */
+        function getCurrentUser() {
+            return $http.get("/api/v1/currentUser")
+                .then(getCurrentUserComplete)
+                .catch(getCurrentUserFailed);
+
+            function getCurrentUserComplete(response) {
+                if (response.data['user']) {
+                    return response.data['user'];
+                } else {
+                    return null;
+                }
+            }
+
+            function getCurrentUserFailed(error) {
+                console.error("API call to get open current user. " + error.status + " " + error.statusText);
+            }
+        }
 
         /**
          * Get a list of all the open quests but not all the details --
@@ -117,7 +169,10 @@
                 return graphData;
             });
 
-
+            /**
+             * Process the fates into a nice node-link map
+             * @param fates fates to process
+             */
             function processFates(fates) {
                 // first, let's graph out the nodes and the edges,
                 // but we won't add positions until afterwards
@@ -144,7 +199,6 @@
              * Create a node that will be the start of a chain
              */
             function createRootNode(creationEventType) {
-                console.debug("Adding root node " + creationEventType["id"])
                 var id = 'r' + creationEventType["id"];
 
                 for (var node_id in graphData.nodes) {
@@ -242,6 +296,44 @@
                 }
 
                 return null;
+            }
+        }
+
+        /**
+         * Get a list of event types that can start non-intermediate labors
+         * @returns {*}
+         */
+        function getStartingEventTypes() {
+            return $http.get("/api/v1/eventtypes?startingTypes=true&limit=all")
+                .then(getStartingEventTypesComplete)
+                .catch(getStartingEventTypesFailed);
+
+            function getStartingEventTypesComplete(response) {
+                return response.data.eventTypes;
+            }
+
+            function getStartingEventTypesFailed(error) {
+                console.error("API call to get starting EventTypes failed. "  + error.status + " " + error.statusText)
+            }
+        }
+
+        /**
+         * Run a given query against the extquery passthrough service
+         * @param queryString the string to run
+         * @returns {*}
+         */
+        function runQuery(queryString) {
+            return $http.get("/api/v1/extquery?query=" + queryString)
+                .then(runQueryComplete)
+                .catch(runQueryFailed);
+
+            function runQueryComplete(response) {
+                return response.data.results.sort();
+            }
+
+            function runQueryFailed(error) {
+                console.error("API call to get run query failed. "  + error.status + " " + error.statusText);
+                throw error;
             }
         }
     }

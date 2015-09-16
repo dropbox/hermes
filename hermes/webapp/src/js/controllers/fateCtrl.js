@@ -5,6 +5,7 @@
         var vm = this;
 
         vm.paper = null;
+        vm.panZoom = null;
         vm.graphData = null;
 
         vm.getGraphingData = getGraphingData;
@@ -28,7 +29,10 @@
                 return data;
             }).then(function(graphData){
                 // create our canvas
-                vm.paper = new Raphael(document.getElementById('fatesView'));
+                var container = document.getElementById('fatesView');
+                var width = container.clientWidth;
+                var height = container.clientHeight;
+                vm.paper = new Raphael(document.getElementById('fatesView'), width, height);
                 redrawGraph();
             });
 
@@ -88,6 +92,8 @@
                 }
 
                 vm.paper.setViewBox(0, 0, vm.paper.width, vm.paper.height, true);
+                vm.panZoom = vm.paper.panzoom({ initialZoom: 1, initialPosition: { x: 0, y: 0} });
+                vm.panZoom.enable();
             }
 
             /**

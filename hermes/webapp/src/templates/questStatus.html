@@ -3,11 +3,16 @@
         <div class="col-md-3 quest-list">
             <div class="quest-list-filter">
                 <div>
+                    <button class="big-button be-positive" style="margin-bottom: 10px;" ng-click="qc.goToCreatePage()">Create Quest</button>
+                </div>
+                <div>
                     <label for="creatorFilter">Filter by Creator</label>
                 </div>
                 <div class="row">
                     <div class="col-md-10">
-                        <input id="creatorFilter" type="text" ng-model="qc.filterByCreator" />
+                        <form ng-submit="qc.runNewFilter()">
+                            <input id="creatorFilter" type="text" ng-model="qc.filterByCreator" />
+                        </form>
                     </div>
                     <div class="col-md-2">
                         <button ng-click="qc.runNewFilter()">GO</button>
@@ -22,19 +27,20 @@
                         </select>
                     </label>
                 </div>
-                <div>
-                    <label>
-                        Page:
-                        <select ng-model="qc.pageSetting"
-                                ng-model-options="qc.limitOptions"
-                                ng-options="optValue for optValue in qc.pageValues()">
-                        </select>
-                    </label>
+                <div class="quest-list-page-selector">
+                    <strong>Page:</strong>
+                    <ul>
+                        <li ng-click="qc.pageSetting(pageVal)"
+                            ng-repeat="pageVal in qc.pageValues()"
+                            ng-class="(qc.pageSetting() == pageVal) ? 'selected' : ''">
+                            {{pageVal}}
+                        </li>
+                    </ul>
                 </div>
                 <div ng-if="qc.errorMessage" class="error-message" ng-bind="qc.errorMessage"></div>
             </div>
             <div class="quest-list-entry selected"
-                 ng-if="!qc.selectedQuest">
+                 ng-if="!qc.selectedQuest && !qc.errorMessage">
                 <div>
                     <img src="/img/loading.gif"/>
                 </div>
@@ -58,7 +64,7 @@
         <div class="col-md-9">
             <div class="row" style="margin-left: 5px">
             <div class="col-md-12">
-            <div ng-if="!qc.labors">
+            <div ng-if="!qc.selectedQuest && !qc.errorMessage">
                 <img src="/img/loading.gif"/>
             </div>
             <div ng-if="qc.labors" class="quest-details">

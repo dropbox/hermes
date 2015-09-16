@@ -8,7 +8,10 @@
         $routeProvider.when('/v1/quests/:questId?', {
             templateUrl: '/templates/questStatus.html',
             reloadOnSearch: false
-        }).when('/fates', {
+        }).when('/v1/quest/new', {
+            templateUrl: '/templates/questCreation.html',
+            reloadOnSearch: false
+        }).when('/v1/fates', {
             templateUrl: '/templates/fateViewer.html',
             reloadOnSearch: false
         }).otherwise({redirectTo: '/v1/quests/'});
