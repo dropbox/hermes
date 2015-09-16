@@ -150,6 +150,11 @@
          * @param quest
          */
         function analyzeLabors(ownerData, questData) {
+            if (!ownerData || !questData) {
+                vm.errorMessage = "Failed to load data.  Please try again.";
+                return;
+            }
+
             // keep the latest labor with an given id or starting_labor_id
             // FIXME: This should all be done by the backend but isn't supported yet
             var laborsUnique  = {};

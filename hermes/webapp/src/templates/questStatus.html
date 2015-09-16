@@ -3,11 +3,11 @@
         <div class="col-md-3 quest-list">
             <div class="quest-list-filter">
                 <div>
-                    <strong>Filtering Options</strong>
+                    <label for="creatorFilter">Filter by Creator</label>
                 </div>
                 <div class="row">
                     <div class="col-md-10">
-                        <input type="text" ng-model="qc.filterByCreator" />
+                        <input id="creatorFilter" type="text" ng-model="qc.filterByCreator" />
                     </div>
                     <div class="col-md-2">
                         <button ng-click="qc.runNewFilter()">GO</button>
