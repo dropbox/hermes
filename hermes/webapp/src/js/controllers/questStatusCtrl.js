@@ -1,28 +1,116 @@
 (function() {
     'use strict';
 
-    function QuestStatusCtrl(hermesService, $q) {
+    function QuestStatusCtrl(hermesService, $q, $routeParams, $location) {
         var vm = this;
+
+        vm.errorMessage = null;
+        vm.filterByCreator = $routeParams.byCreator ? $routeParams.byCreator : null;
 
         vm.questData = null;
         vm.selectedQuest = null;
         vm.selectedQuestDetails = null;
         vm.labors = null;
         vm.types = null;
+        vm.limit = 10;
+        vm.offset = 0;
+        vm.totalQuests = 10;
 
         vm.colors = ['#0071ce', '#72b6ec', '#cce6fa', '#f4faff'];
 
+        vm.runNewFilter = runNewFilter;
         vm.getOpenQuests = getOpenQuests;
         vm.newQuestSelection = newQuestSelection;
 
         getOpenQuests();
 
+
+        //////// FIXME: Move to some kind of control service ///////
+        vm.limitOptions = {
+            updateOn: 'default change blur',
+            getterSetter: true,
+            allowInvalid: true
+        };
+
+        function limitSetting(limit) {
+            if (angular.isDefined(limit)) {
+                vm.limit = limit;
+                vm.offset = 0;
+            } else {
+                return "" + vm.limit;
+            }
+        }
+
+        function limitValues() {
+            return ['10', '20', '50', '100'];
+        }
+
+        function pageSetting(page) {
+            if (angular.isDefined(page)) {
+                vm.offset = (page - 1) * vm.limit;
+                console.log("Page: " + page + " Offset: " + vm.offset);
+            } else {
+                return "" + (vm.offset / vm.limit + 1);
+            }
+        }
+
+        function pageValues() {
+            var maxPage = Math.floor((vm.totalQuests - 1) / vm.limit);
+            var options = [];
+            for (var i = 0; i <= maxPage; i++) {
+                options.push("" + (i + 1));
+            }
+
+            return options;
+        }
+
+        vm.limitSetting = limitSetting;
+        vm.limitValues = limitValues;
+        vm.pageSetting = pageSetting;
+        vm.pageValues = pageValues;
+
         ////////////////////////////////
 
+        function runNewFilter() {
+            $routeParams.questId = null;
+            vm.offset = 0;
+            getOpenQuests();
+        }
+
         function getOpenQuests() {
-            hermesService.getOpenQuests().then(function (questData) {
-                vm.questData = questData;
-                newQuestSelection(questData[0]);
+            vm.errorMessage = null;
+
+            var options = {};
+            if (vm.filterByCreator) {
+                options['filterByCreator'] = vm.filterByCreator;
+            }
+
+            hermesService.getOpenQuests(options).then(function (questData) {
+                console.log("Got new data: total is " + questData['totalQuests']);
+
+                if (!questData
+                    || !questData['quests']
+                    || questData['quests'].length == 0) {
+                    vm.errorMessage = "No Quests found matching criteria.  Please refine.";
+                    return;
+                }
+
+                vm.questData = questData['quests'];
+                vm.limit = questData['limit'] || vm.limit;
+                vm.offset = questData['offset'] || vm.offset;
+                vm.totalQuests = questData['totalQuests'] || vm.totalQuests;
+
+                // find the quest requested and make that the selection
+                var index = 0;
+                for (var idx in vm.questData) {
+                    if (vm.questData[idx]['id'] == $routeParams.questId) {
+                        index = idx;
+                    }
+                }
+
+                vm.offset = index - (index % vm.limit);
+                console.log(vm.offset);
+                newQuestSelection(vm.questData[index]);
             });
         }
 
@@ -52,6 +140,7 @@
             ]).then(function(data) {
                 vm.hostOwners = data[0];
                 vm.selectedQuestDetails = data[1];
+                $location.update_path('/v1/quests/' + quest.id, true);
                 analyzeLabors(data[0], data[1]);
             });
         }
@@ -126,5 +215,5 @@
     }
 
     angular.module('hermesApp').controller('QuestStatusCtrl', QuestStatusCtrl);
-    QuestStatusCtrl.$inject = ['HermesService', '$q'];
+    QuestStatusCtrl.$inject = ['HermesService', '$q', '$routeParams', '$location'];
 })();
