@@ -594,12 +594,14 @@ class EventTypesHandler(ApiHandler):
         :query string state: (*optional*) Filter EventTypes by state.
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
+        :query boolean startingTypes: (*optional*) Return the event types that can create non-intermediate Labors
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
         """
         category = self.get_argument("category", None)
         state = self.get_argument("state", None)
+        starting_types = self.get_argument("startingTypes", False);
 
         event_types = self.session.query(EventType)
         if category is not None:
@@ -607,6 +609,10 @@ class EventTypesHandler(ApiHandler):
 
         if state is not None:
             event_types = event_types.filter_by(state=state)
+
+        if starting_types:
+            starting_event_types = self.session.query(Fate).filter(Fate.follows_id == None).group_by(Fate.creation_type_id).all()
+            event_types = event_types.filter(EventType.id.in_(type.creation_type_id for type in starting_event_types))
 
         offset, limit, expand = self.get_pagination_values()
         event_types, total = self.paginate_query(event_types, offset, limit)
@@ -2340,3 +2346,44 @@ class ExtQueryHandler(ApiHandler):
             ))
 
         self.success(result_json)
+
+
+class CurrentUserHandler(ApiHandler):
+    def get(self):
+        """ **Get a current authenticated user**
+
+        **Example Request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/currentUser HTTP/1.1
+            Host: localhost
+            X-NSoT-Email: user@localhost
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                "user": "user@example.com"
+            }
+
+        :statuscode 200: The request was successful.
+        :statuscode 401: The request was made without being logged in.
+        :statuscode 403: The request was made with insufficient permissions.
+        :statuscode 404: The User was not found.
+        """
+
+        user = None
+        if self.request.headers.get('X-Pp-User'):
+            user = self.request.headers['X-Pp-User']
+
+        result_json = {
+            "user": user
+        }
+
+        self.success(result_json);

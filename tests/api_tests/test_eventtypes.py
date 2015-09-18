@@ -2,7 +2,7 @@ import json
 import pytest
 import requests
 
-from .fixtures import tornado_server, tornado_app
+from .fixtures import tornado_server, tornado_app, sample_data1_server
 from .util import (
     assert_error, assert_success, assert_created, assert_deleted, Client
 )
@@ -152,3 +152,14 @@ def test_update(tornado_server):
     )
 
     assert_error(client.update("/eventtypes/1"), 400)
+
+def test_filter_by_creating_types(sample_data1_server):
+    client = sample_data1_server
+
+    assert_success(
+        client.get("/eventtypes?startingTypes=true"),{
+        "limit": 10,
+        "offset": 0,
+        "totalEventTypes": 2
+    }, strip=['eventTypes']
+    )

@@ -182,7 +182,6 @@ class ApiHandler(BaseHandler):
             "application/json"
         )
 
-        logging.debug(self.request.uri)
         self.href_prefix = "{}://{}{}".format(
             self.request.protocol,
             self.request.host,

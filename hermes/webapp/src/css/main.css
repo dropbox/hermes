@@ -19,6 +19,59 @@ body {
 h1 {
     margin: 0px;
     padding: 0px;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+select {
+    margin-left: 10px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    padding: 0px 5px;
+    border: 1px #fce897 solid;
+}
+
+input {
+    width: 100%;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    padding-left: 5px;
+    border: 1px #fce897 solid;
+}
+
+textarea {
+    width: 100%;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    padding: 5px;
+    border: 1px #fce897 solid;
+}
+
+button {
+    float: right;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    background: #ffffff;
+    border: 1px #fce897 solid;
+}
+
+button:hover {
+    box-shadow: 2px 2px 3px #25282b;
+}
+
+.big-button {
+    font-size: 1.5em;
+    font-weight: bold;
+    width: 100%;
+}
+
+.be-positive {
+    background: #ddf0e2 !important;
+    border-color: #48ac68 !important;
 }
 
 .navbar {
@@ -44,6 +97,23 @@ h1 {
     padding-bottom: 20px;
 }
 
+.mini-description {
+    border: #d0d4d9 1px solid;
+    background: #f6f9fc;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.error-message {
+    color: #e82110;
+    font-weight: bold;
+    padding: 5px;
+    border: #e82110 2px solid;
+    margin: 5px 0px;
+}
+
 .quest-list {
     background: #fff5cc;
     padding: 0px;
@@ -66,24 +136,40 @@ h1 {
 
 
 .quest-list-filter {
-    padding: 10px 10px 20px 10px;
+    padding: 10px;
     border-bottom: #fce897 2px dotted;
 }
 
-.quest-list-filter input {
-    width: 100%;
+.quest-list-page-selector {
+    clear: both;
+    overflow: auto;
 }
 
-.quest-list-filter button {
-    float: right;
+.quest-list-page-selector ul {
+    padding: 5px 0px 5px 0px;
 }
 
-.quest-list-filter .error-message {
-    color: #e82110;
+.quest-list-page-selector li {
+    display: block;
     font-weight: bold;
-    padding: 5px;
-    border: #e82110 2px solid;
-    margin-top: 5px;
+    float: left;
+    padding: 2px 5px 2px 5px;
+    border: 1px #fce897 solid;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin: 4px;
+    background: #fff5cc;
+    cursor: pointer;
+}
+
+.quest-list-page-selector li:hover {
+    background: #FFFFFF;
+    box-shadow: 2px 2px 3px #25282b;
+}
+
+.quest-list-page-selector .selected {
+    background: #FFFFFF;
 }
 
 .quest-list-entry {
@@ -138,4 +224,107 @@ h1 {
     padding-right: 15px;
     padding-top: 5px;
     padding-bottom: 5px;
+}
+
+.quest-creation .helper-panel {
+    background: #fff5cc;
+    padding: 10px;
+    border: #fce897 solid 1px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin: 5px 0px;
+}
+
+.quest-creation .create-panel {
+    padding: 10px;
+}
+
+.quest-creation .host-list {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    border: #fce897 solid 1px;
+    margin: 5px 0px;
+    min-height: 50px;
+    max-height: 200px;
+    overflow: scroll;
+    background: #f6f9fc;
+    padding: 0px 5px 0px 5px;
+}
+
+.remove-img-button {
+    cursor: pointer;
+}
+
+.create-panel input, .create-panel button, .create-panel select, .create-panel .host-list {
+    border: #d0d4d9 1px solid;
+}
+
+.create-panel textarea {
+    border: #d0d4d9 1px solid;
+}
+
+.modal-wrapper {
+    width: 100%;
+    text-align: center;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background: rgba(0,0,0,.6);
+    z-index: 20;
+    opacity: 1;
+}
+
+.modal-wrapper.fade.ng-enter {
+    transition: 0.25s ease-out all;
+    opacity: 0;
+}
+
+.modal-wrapper.fade.ng-enter-active {
+    opacity: 1;
+}
+
+.modal-wrapper.fade.ng-leave {
+    transition: 0.25s ease-out all;
+    opacity: 1;
+}
+
+.modal-wrapper.fade.ng-leave-active {
+    opacity: 0;
+}
+
+.modal-dialog {
+    width: 500px;
+    position: fixed;
+    background: #ffffff;
+    opacity: 1;
+    z-index: 1;
+    padding: 10px;
+
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+
+    top: 100px;
+    left: 50%;
+    margin-left: -250px;
+
+    -webkit-box-shadow: 0 0 20px #000000;
+    -moz-box-shadow: 0 0 20px #000000;
+    box-shadow: 0 0 20px #000000;
+}
+
+#fatesModal {
+    width: 900px;
+    height: 540px;
+    margin-left: -450px;
+}
+
+#successModal {
+    padding: 20px;
+    font-weight: bold;
+    font-size: 1.2em;
 }

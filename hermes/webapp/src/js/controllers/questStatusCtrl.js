@@ -5,7 +5,7 @@
         var vm = this;
 
         vm.errorMessage = null;
-        vm.filterByCreator = $routeParams.byCreator ? $routeParams.byCreator : null;
+        vm.filterByCreator = null;
 
         vm.questData = null;
         vm.selectedQuest = null;
@@ -21,8 +21,21 @@
         vm.runNewFilter = runNewFilter;
         vm.getOpenQuests = getOpenQuests;
         vm.newQuestSelection = newQuestSelection;
+        vm.goToCreatePage = goToCreatePage;
 
-        getOpenQuests();
+        // if user passed a filter-by-creator query param, that takes precedence.
+        // otherwise, the default is to use the authenticate user
+        if ($routeParams.byCreator) {
+            vm.filterByCreator = $routeParams.byCreator;
+            getOpenQuests();
+        } else {
+            hermesService.getCurrentUser().then(function(user){
+                if (user) {
+                    vm.filterByCreator = user;
+                }
+                getOpenQuests();
+            });
+        }
 
 
         //////// FIXME: Move to some kind of control service ///////
@@ -48,7 +61,6 @@
         function pageSetting(page) {
             if (angular.isDefined(page)) {
                 vm.offset = (page - 1) * vm.limit;
-                console.log("Page: " + page + " Offset: " + vm.offset);
             } else {
                 return "" + (vm.offset / vm.limit + 1);
             }
@@ -71,6 +83,10 @@
 
         ////////////////////////////////
 
+        function goToCreatePage() {
+            $location.url("/v1/quest/new");
+        }
+
         function runNewFilter() {
             $routeParams.questId = null;
             vm.offset = 0;
@@ -83,11 +99,10 @@
             var options = {};
             if (vm.filterByCreator) {
                 options['filterByCreator'] = vm.filterByCreator;
+                $location.search('byCreator', vm.filterByCreator, false);
             }
 
             hermesService.getOpenQuests(options).then(function (questData) {
-                console.log("Got new data: total is " + questData['totalQuests']);
-
                 if (!questData
                     || !questData['quests']
                     || questData['quests'].length == 0) {
@@ -109,7 +124,6 @@
                 }
 
                 vm.offset = index - (index % vm.limit);
-                console.log(vm.offset);
                 newQuestSelection(vm.questData[index]);
             });
         }

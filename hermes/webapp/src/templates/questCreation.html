@@ -1,0 +1,125 @@
+<div ng-cloak ng-controller="QuestCreationCtrl as qc">
+    <div class="quest-creation">
+        <div class="row">
+            <div class="col-md-12 create-panel">
+                <div><h1>Create a quest:</h1></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 create-panel">
+                <div><strong>For hosts:</strong></div>
+                <div class="host-list">
+                    <div ng-repeat="host in qc.hostList track by $index">
+                        <img class="remove-img-button" src="/img/remove_10.png"
+                             ng-click="qc.removeHost(host)" />
+                        {{host}}
+                    </div>
+                </div>
+                <div><label for="hostName">Add host:</label></div>
+                <div class="row">
+                    <div class="col-md-10">
+                        <form ng-submit="qc.addHost(qc.hostNameEntry)">
+                            <input style="width: 100%" id="hostName" type="text" ng-model="qc.hostNameEntry" />
+                        </form>
+                    </div>
+                    <div class="col-md-2">
+                        <button ng-click="qc.addHost(qc.hostNameEntry)">Add</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 helper-panel">
+                <div><label for="queryString">Look up hosts by query:</label></div>
+                <div class="error-message" ng-if="qc.queryErrorMessage">{{qc.queryErrorMessage}}</div>
+                <div class="row">
+                    <div class="col-md-10">
+                        <form ng-submit="qc.runQuery()">
+                            <input style="width: 100%" id="queryString" type="text" ng-model="qc.queryString" />
+                        </form>
+                    </div>
+                    <div class="col-md-2">
+                        <button ng-click="qc.runQuery()">Go</button>
+                    </div>
+                </div>
+                <div class="host-list">
+                    <div ng-repeat="host in qc.queriedHosts">
+                        <img class="remove-img-button" src="/img/remove_10.png"
+                             ng-click="qc.removeQueriedHost(host)"/>
+                        {{host}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        &nbsp;
+                    </div>
+                    <div class="col-md-4">
+                        <button ng-click="qc.moveQueriedToQueued()">Add All</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 create-panel">
+                <div><label>Start with event:
+                    <select ng-model="qc.eventTypesSelection"
+                            ng-model-options="qc.selectOptions"
+                            ng-options="optValue.category + ' ' + optValue.state for optValue in qc.startingEventTypes">
+                    </select>
+                </label></div>
+                <div class="mini-description">"{{qc.selectedEventType.description}}"</div>
+            </div>
+            <div class="col-md-4 helper-panel">
+                <div>
+                    <strong>Need help picking a starting event?</strong>
+                    <p>Use the explorer to
+see all the possible events and the chain of labors that
+will satisfy them.</p>
+                    <button type="button" ng-click="qc.showFatesModal = true">Fates Explorer</button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 create-panel">
+                <div><label for="description">With description:</label>
+                    <textarea id="description"  ng-model="qc.description" />
+                </div>
+            </div>
+            <div class="col-md-4 helper-panel">
+                <div>The Quest description is what most users will see so be as
+descriptive as possible.  Let users know what is going on
+and what action they should take.</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 create-panel">
+                <div class="error-message" ng-if="qc.errorMessages" ng-repeat="msg in qc.errorMessages">{{msg}}</div>
+                <div>
+                    <button class="big-button be-positive" ng-click="qc.createQuest()">
+                        <img ng-if="qc.createInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" />
+                        Create Quest
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                &nbsp;
+            </div>
+        </div>
+    </div>
+    <div ng-cloak class="modal-wrapper fade" ng-if="qc.showFatesModal">
+        <div id="fatesModal" class="modal-dialog" role="dialog">
+            <div ng-controller="FateCtrl as fateCtrl">
+                <div id="fatesView" style="width: 100%; height: 500px"></div>
+            </div>
+            <div>
+                <button ng-click="qc.showFatesModal = false">Close</button>
+            </div>
+        </div>
+    </div>
+    <div ng-cloak class="modal-wrapper fade" ng-if="qc.successMessage">
+        <div id="successModal" class="modal-dialog be-positive" role="dialog">
+            <div>{{qc.successMessage}}</div>
+            <div>
+                <button ng-click="qc.successMessage = null">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
