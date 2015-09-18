@@ -309,7 +309,7 @@ class EventType(Model):
         """
         return "{}/eventtypes/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None, expand=[]):
+    def to_dict(self, base_uri=None, expand=None):
         """Translate this object into a dict for serialization
 
         Args:
@@ -319,6 +319,9 @@ class EventType(Model):
         Returns:
             dict representation of this object
         """
+
+        if expand is None:
+            expand = []
 
         if "eventtypes" in expand:
             expand.remove("eventtypes")
@@ -465,7 +468,7 @@ class Host(Model):
         """
         return "{}/hosts/{}".format(base_uri, self.hostname)
 
-    def to_dict(self, base_uri=None, expand=[]):
+    def to_dict(self, base_uri=None, expand=None):
         """Translate this object into a dict for serialization
 
         Args:
@@ -475,6 +478,8 @@ class Host(Model):
         Returns:
             dict representation of this object
         """
+        if expand is None:
+            expand = []
 
         if "hosts" in expand:
             expand.remove("hosts")
@@ -811,7 +816,7 @@ class Fate(Model):
         """
         return "{}/fates/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None, expand=[]):
+    def to_dict(self, base_uri=None, expand=None):
         """Translate this object into a dict for serialization
 
         Args:
@@ -821,6 +826,8 @@ class Fate(Model):
         Returns:
             dict representation of this object
         """
+        if expand is None:
+            expand = []
 
         if "fates" in expand:
             expand.remove("fates")
@@ -979,7 +986,7 @@ class Event(Model):
         """
         return "{}/events/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None, expand=[]):
+    def to_dict(self, base_uri=None, expand=None):
         """Translate this object into a dict for serialization
 
         Args:
@@ -989,6 +996,9 @@ class Event(Model):
         Returns:
             dict representation of this object
         """
+
+        if expand is None:
+            expand = []
 
         if "events" in expand:
             expand.remove("events")
@@ -1291,7 +1301,7 @@ class Quest(Model):
         """
         return "{}/quests/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None, expand=[], only_open_labors=False):
+    def to_dict(self, base_uri=None, expand=None, only_open_labors=False):
         """Translate this object into a dict for serialization
 
         Args:
@@ -1302,6 +1312,9 @@ class Quest(Model):
         Returns:
             dict representation of this object
         """
+
+        if expand is None:
+            expand = []
 
         if "quests" in expand:
             expand.remove("quests")
@@ -1544,7 +1557,7 @@ class Labor(Model):
         """
         return "{}/labors/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None, expand=[]):
+    def to_dict(self, base_uri=None, expand=None):
         """Translate this object into a dict for serialization
 
         Args:
@@ -1554,6 +1567,9 @@ class Labor(Model):
         Returns:
             dict representation of this object
         """
+        if expand is None:
+            expand = []
+
         out = {
             "id": self.id,
             "startingLaborId": self.starting_labor_id,
