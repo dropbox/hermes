@@ -309,21 +309,36 @@ class EventType(Model):
         """
         return "{}/eventtypes/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None):
+    def to_dict(self, base_uri=None, expand=[]):
         """Translate this object into a dict for serialization
 
         Args:
             base_uri: if included, add an href to this resource
+            expand: list of children to expand
 
         Returns:
             dict representation of this object
         """
+
+        if "eventtypes" in expand:
+            expand.remove("eventtypes")
+
         out = {
             "id": self.id,
             "category": self.category,
             "state": self.state,
             "description": self.description,
         }
+
+        if "fates" in expand:
+            out['autoCreates'] = [
+                fate.to_dict(base_uri=base_uri, expand=set(expand))
+                for fate in self.auto_creates
+            ]
+            out['autoCompletes'] = [
+                fate.to_dict(base_uri=base_uri, expand=set(expand))
+                for fate in self.auto_completes
+            ]
 
         if base_uri:
             out['href'] = self.href(base_uri)
@@ -450,15 +465,20 @@ class Host(Model):
         """
         return "{}/hosts/{}".format(base_uri, self.hostname)
 
-    def to_dict(self, base_uri=None):
+    def to_dict(self, base_uri=None, expand=[]):
         """Translate this object into a dict for serialization
 
         Args:
             base_uri: if included, add an href to this resource
+            expand: list of children to expand in the dict
 
         Returns:
             dict representation of this object
         """
+
+        if "hosts" in expand:
+            expand.remove("hosts")
+
         out = {
             "id": self.id,
             "hostname": self.hostname,
@@ -791,15 +811,20 @@ class Fate(Model):
         """
         return "{}/fates/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None):
+    def to_dict(self, base_uri=None, expand=[]):
         """Translate this object into a dict for serialization
 
         Args:
             base_uri: if included, add an href to this resource
+            expand: list of children to expand
 
         Returns:
             dict representation of this object
         """
+
+        if "fates" in expand:
+            expand.remove("fates")
+
         out = {
             "id": self.id,
             "creationEventTypeId": self.creation_type_id,
@@ -808,6 +833,14 @@ class Fate(Model):
             "precedes_ids": [labor.id for labor in self.precedes],
             "description": self.description,
         }
+
+        if "eventtypes" in expand:
+            out['creationEventType'] = self.creation_event_type.to_dict(
+                base_uri=base_uri, expand=set(expand)
+            )
+            out['completionEventType'] = self.completion_event_type.to_dict(
+                base_uri=base_uri, expand=set(expand)
+            )
 
         if base_uri:
             out['href'] = self.href(base_uri)
@@ -946,15 +979,20 @@ class Event(Model):
         """
         return "{}/events/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None):
+    def to_dict(self, base_uri=None, expand=[]):
         """Translate this object into a dict for serialization
 
         Args:
             base_uri: if included, add an href to this resource
+            expand: list of children to expand in the dict
 
         Returns:
             dict representation of this object
         """
+
+        if "events" in expand:
+            expand.remove("events")
+
         out = {
             "id": self.id,
             "hostId": self.host_id,
@@ -963,6 +1001,17 @@ class Event(Model):
             "eventTypeId": self.event_type_id,
             "note": self.note if self.note else "",
         }
+
+        if "host" in expand:
+            out['host'] = self.host.to_dict(
+                base_uri=base_uri, expand=set(expand)
+            )
+
+        if "eventtypes" in expand:
+            out['eventType'] = self.event_type.to_dict(
+                base_uri=base_uri,
+                expand=set(expand)
+            )
 
         if base_uri:
             out['href'] = self.href(base_uri)
@@ -1242,15 +1291,21 @@ class Quest(Model):
         """
         return "{}/quests/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None):
+    def to_dict(self, base_uri=None, expand=[], only_open_labors=False):
         """Translate this object into a dict for serialization
 
         Args:
             base_uri: if included, add an href to this resource
+            expand: children to expand
+            only_open_labors: if True, only include open labors in the output
 
         Returns:
             dict representation of this object
         """
+
+        if "quests" in expand:
+            expand.remove("quests")
+
         out = {
             "id": self.id,
             "embarkTime": str(self.embark_time),
@@ -1261,6 +1316,25 @@ class Quest(Model):
             "targetTime": str(self.target_time) if self.target_time else None,
             "description": self.description,
         }
+
+        if only_open_labors:
+            labors = self.get_open_labors()
+        else:
+            labors = self.labors
+
+        if "labors" in expand:
+            out['labors'] = [
+                labor.to_dict(base_uri=base_uri, expand=set(expand))
+                for labor in labors
+            ]
+        else:
+            labors_json = []
+            for labor in labors:
+                labors_json.append({
+                    "id": labor.id,
+                    "href": labor.href(base_uri)
+                })
+            out['labors'] = labors_json
 
         if base_uri:
             out['href'] = self.href(base_uri)
@@ -1470,11 +1544,12 @@ class Labor(Model):
         """
         return "{}/labors/{}".format(base_uri, self.id)
 
-    def to_dict(self, base_uri=None):
+    def to_dict(self, base_uri=None, expand=[]):
         """Translate this object into a dict for serialization
 
         Args:
             base_uri: if included, add an href to this resource
+            expand: list of children we want expanded in our dict
 
         Returns:
             dict representation of this object
@@ -1497,6 +1572,27 @@ class Labor(Model):
                 if self.ack_time else None
             )
         }
+
+        if "quests" in expand:
+            out['quests'] = [
+                self.quest.to_dict(base_uri=base_uri, expand=set(expand))
+            ]
+
+        if "hosts" in expand:
+            out['host'] = self.host.to_dict(
+                base_uri=base_uri, expand=set(expand)
+            )
+
+        if "events" in expand:
+            out['creationEvent'] = self.creation_event.to_dict(
+                base_uri=base_uri, expand=set(expand)
+            )
+            if self.completion_event:
+                out['completionEvent'] = self.completion_event.to_dict(
+                    base_uri=base_uri, expand=set(expand)
+                )
+            else:
+                out['completionEvent'] = None
 
         if self.quest:
             out['targetTime'] = (
