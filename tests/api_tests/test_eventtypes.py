@@ -62,7 +62,6 @@ def test_creation(tornado_server):
             "state": "bar",
             "description": "This is a test",
             "events": [],
-            "fates": [],
             "limit": 10,
             "offset": 0,
         }

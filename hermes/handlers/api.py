@@ -208,7 +208,11 @@ class HostsHandler(ApiHandler):
             "limit": limit,
             "offset": offset,
             "totalHosts": total,
-            "hosts": [host.to_dict(self.href_prefix) for host in hosts.all()],
+            "hosts": [
+                host.to_dict(
+                    base_uri=self.href_prefix, expand=set(expand)
+                ) for host in hosts.all()
+            ],
         }
 
         self.success(json)
@@ -268,26 +272,28 @@ class HostHandler(ApiHandler):
         # add the labors and quests
         labors = []
         quests = []
+
+        # We will perform labor and quest expansion here b/c we want to apply
+        # limits and offsets
         for labor in (
                 host.get_labors().limit(limit).offset(offset)
                 .from_self().order_by(Labor.creation_time).all()
         ):
             if "labors" in expand:
-                labor_json = labor.to_dict(self.href_prefix)
-                if "events" in expand:
-                    labor_json["creationEvent"] = (
-                        labor.creation_event.to_dict(self.href_prefix)
+                labors.append(
+                    labor.to_dict(
+                        base_uri=self.href_prefix, expand=set(expand)
                     )
-                    if "eventtypes" in expand:
-                        labor_json["creationEvent"]["eventType"] = (
-                            labor.creation_event.event_type.to_dict(self.href_prefix)
-                        )
-                labors.append(labor_json)
+                )
             else:
-                labors.append({"id": labor.id, "href": labor.href(self.href_prefix)})
+                labors.append({
+                    "id": labor.id, "href": labor.href(self.href_prefix)
+                })
 
             if labor.quest and "quests" in expand:
-                quests.append(labor.quest.to_dict(self.href_prefix))
+                quests.append(
+                    labor.quest.to_dict(self.href_prefix, expand=set(expand))
+                )
             elif labor.quest:
                 quests.append(
                     {
@@ -298,7 +304,8 @@ class HostHandler(ApiHandler):
         json["labors"] = labors
         json["quests"] = quests
 
-        # add the events
+        # We will perform the events expansion here b/c we want to apply
+        # limits and offsets
         events = []
         last_event = host.get_latest_events().first()
         for event in (
@@ -306,12 +313,11 @@ class HostHandler(ApiHandler):
                 .from_self().order_by(Event.timestamp).all()
         ):
             if "events" in expand:
-                event_json = event.to_dict(self.href_prefix)
-                if "eventtypes" in expand:
-                    event_json["eventType"] = (
-                        event.event_type.to_dict(self.href_prefix)
+                events.append(
+                    event.to_dict(
+                        base_uri=self.href_prefix, expand=set(expand)
                     )
-                events.append(event_json)
+                )
             else:
                 events.append({
                     "id": event.id, "href": event.href(self.href_prefix)
@@ -611,8 +617,16 @@ class EventTypesHandler(ApiHandler):
             event_types = event_types.filter_by(state=state)
 
         if starting_types:
-            starting_event_types = self.session.query(Fate).filter(Fate.follows_id == None).group_by(Fate.creation_type_id).all()
-            event_types = event_types.filter(EventType.id.in_(type.creation_type_id for type in starting_event_types))
+            starting_event_types = (
+                self.session.query(Fate)
+                    .filter(Fate.follows_id == None)
+                    .group_by(Fate.creation_type_id).all()
+            )
+            event_types = (
+                event_types.filter(EventType.id.in_(
+                    e_type.creation_type_id for e_type in starting_event_types
+                ))
+            )
 
         offset, limit, expand = self.get_pagination_values()
         event_types, total = self.paginate_query(event_types, offset, limit)
@@ -623,7 +637,9 @@ class EventTypesHandler(ApiHandler):
             "totalEventTypes": total,
             "eventTypes": (
                 [
-                    event_type.to_dict(self.href_prefix)
+                    event_type.to_dict(
+                        base_uri=self.href_prefix, expand=set(expand)
+                    )
                     for event_type in event_types.all()
                 ]
             ),
@@ -657,7 +673,8 @@ class EventTypeHandler(ApiHandler):
                 "state": "required",
                 "description": "This system requires a reboot",
                 "events": [],
-                "fates": [],
+                "autoCreates": [],
+                "autoCompletes": []
                 "limit": 10,
                 "offset": 0
             }
@@ -684,32 +701,24 @@ class EventTypeHandler(ApiHandler):
         json["limit"] = limit
         json["offset"] = offset
 
-        # add the events
+        # We will perform expansion of events here b/c we want to apply
+        # limits and offsets
         events = []
         for event in (
                 event_type.get_latest_events().limit(limit).offset(offset)
                 .from_self().order_by(Event.timestamp).all()
         ):
             if "events" in expand:
-                events.append(event.to_dict(self.href_prefix))
+                events.append(
+                    event.to_dict(
+                        base_uri=self.href_prefix, expand=set(expand)
+                    )
+                )
             else:
                 events.append({
                     "id": event.id, "href": event.href(self.href_prefix)
                 })
         json["events"] = events
-
-        # add the associated fates
-        fates = []
-        for fate in (
-            event_type.get_associated_fates().all()
-        ):
-            if "fates" in expand:
-                fates.append(fate.to_dict(self.href_prefix))
-            else:
-                fates.append({
-                    "id": fate.id, "href": fate.href(self.href_prefix)
-                })
-        json["fates"] = fates
 
         self.success(json)
 
@@ -1084,7 +1093,10 @@ class EventsHandler(ApiHandler):
             "limit": limit,
             "offset": offset,
             "totalEvents": total,
-            "events": [event.to_dict(self.href_prefix) for event in events.all()],
+            "events": [
+                event.to_dict(base_uri=self.href_prefix, expand=set(expand))
+                for event in events.all()
+            ],
         }
 
         self.success(json)
@@ -1132,13 +1144,7 @@ class EventHandler(ApiHandler):
         if not event:
             raise exc.NotFound("No such Event {} found".format(id))
 
-        json = event.to_dict(self.href_prefix)
-
-        if "hosts" in expand:
-            json["host"] = event.host.to_dict(self.href_prefix)
-
-        if "eventtypes" in expand:
-            json["eventType"] = event.event_type.to_dict(self.href_prefix)
+        json = event.to_dict(base_uri=self.href_prefix, expand=expand)
 
         self.success(json)
 
@@ -1302,17 +1308,10 @@ class FatesHandler(ApiHandler):
         offset, limit, expand = self.get_pagination_values()
         fates, total = self.paginate_query(fates, offset, limit)
 
-        fates_json = []
-        for fate in fates.all():
-            fate_json = fate.to_dict(self.href_prefix)
-            if "eventtypes" in expand:
-                fate_json["creationEventType"] = (
-                    fate.creation_event_type.to_dict(self.href_prefix)
-                )
-                fate_json["completionEventType"] = (
-                    fate.completion_event_type.to_dict(self.href_prefix)
-                )
-            fates_json.append(fate_json)
+        fates_json = [
+            fate.to_dict(base_uri=self.href_prefix, expand=set(expand))
+            for fate in fates.all()
+        ]
 
         json = {
             "limit": limit,
@@ -1366,15 +1365,7 @@ class FateHandler(ApiHandler):
         if not fate:
             raise exc.NotFound("No such Fate {} found".format(id))
 
-        json = fate.to_dict(self.href_prefix)
-
-        if "eventtypes" in expand:
-            json["creationEventType"] = (
-                fate.creation_event_type.to_dict(self.href_prefix)
-            )
-            json["competionEventType"] = (
-                fate.completion_event_type.to_dict(self.href_prefix)
-            )
+        json = fate.to_dict(base_uri=self.href_prefix, expand=set(expand))
 
         self.success(json)
 
@@ -1593,36 +1584,15 @@ class LaborsHandler(ApiHandler):
 
         labors = labors.from_self().order_by(Labor.creation_time)
 
-        labor_dicts = []
-        for labor in labors:
-            labor_dict = labor.to_dict(self.href_prefix)
-            if "quests" in expand:
-                labor_dict["quest"] = (
-                    labor.quest.to_dict(self.href_prefix) if labor.quest else None
-                )
-            if "hosts" in expand:
-                labor_dict["host"] = labor.host.to_dict(self.href_prefix)
-            if "events" in expand:
-                event_dict = labor.creation_event.to_dict(self.href_prefix)
-                if "eventtypes" in expand:
-                    event_dict["eventType"] = (
-                        labor.creation_event.event_type.to_dict(self.href_prefix)
-                    )
-                labor_dict["creationEvent"] = event_dict
-                if labor.completion_event:
-                    event_dict = labor.completion_event.to_dict(self.href_prefix)
-                    if "eventtypes" in expand:
-                        event_dict["eventType"] = (
-                            labor.completion_event.event_type.to_dict(self.href_prefix)
-                        )
-                    labor_dict["completionEvent"] = event_dict
-            labor_dicts.append(labor_dict)
-
         json = {
             "limit": limit,
             "offset": offset,
             "totalLabors": total,
-            "labors": labor_dicts,
+            "labors": [
+                labor.to_dict(
+                    base_uri=self.href_prefix, expand=set(expand)
+                ) for labor in labors
+            ],
         }
 
         self.success(json)
@@ -1675,19 +1645,9 @@ class LaborHandler(ApiHandler):
         if not labor:
             raise exc.NotFound("No such Labor {} found".format(id))
 
-        json = labor.to_dict(self.href_prefix)
-
-        if "hosts" in expand:
-            json["host"] = labor.host.to_dict(self.href_prefix)
-
-        if "eventtypes" in expand:
-            json["creationEvent"] = labor.creation_event.to_dict(self.href_prefix)
-            if labor.completion_event:
-                json["competionEvent"] = (
-                    labor.completion_event.to_dict(self.href_prefix)
-                )
-
-        self.success(json)
+        self.success(
+            labor.to_dict(base_uri=self.href_prefix, expand=expand)
+        )
 
     def put(self, id):
         """**Update a Labor**
@@ -2010,7 +1970,10 @@ class QuestsHandler(ApiHandler):
 
         quests_json = []
         for quest in quests.all():
-            quest_json = quest.to_dict(self.href_prefix)
+            quest_json = quest.to_dict(
+                base_uri=self.href_prefix,
+                expand=set(expand)
+            )
             if progress_info:
                 labor_count = self.session.query(Labor).filter(
                     Labor.quest_id == quest.id
@@ -2029,31 +1992,6 @@ class QuestsHandler(ApiHandler):
                 quest_json['totalLabors'] = labor_count
                 quest_json['openLabors'] = open_labors_count
                 quest_json['percentComplete'] = percent_complete
-            if "labors" in expand:
-                quest_json["labors"] = []
-                for labor in quest.labors:
-                    labor_json = labor.to_dict(self.href_prefix)
-                    if "hosts" in expand:
-                        labor_json["host"] = labor.host.to_dict(self.href_prefix)
-                    if "events" in expand:
-                        labor_json["creationEvent"] = (
-                            labor.creation_event.to_dict(self.href_prefix)
-                        )
-                        if "eventtypes" in expand:
-                            labor_json["creationEvent"]["eventType"] = (
-                                labor.creation_event.event_type.to_dict(self.href_prefix)
-                            )
-                            if labor.completion_event:
-                                labor_json["completionEvent"] = (
-                                    labor.completion_event.to_dict(self.href_prefix)
-                                )
-                                labor_json["completionEvent"]["eventType"] = (
-                                    labor.completion_event
-                                    .event_type.to_dict(self.href_prefix)
-                                )
-                            else:
-                                labor_json["completionEvent"] = None
-                    quest_json["labors"].append(labor_json)
             quests_json.append(quest_json)
 
         json = {
@@ -2117,7 +2055,11 @@ class QuestHandler(ApiHandler):
         if not quest:
             raise exc.NotFound("No such Quest {} found".format(id))
 
-        json = quest.to_dict(self.href_prefix)
+        json = quest.to_dict(
+            base_uri=self.href_prefix, expand=set(expand),
+            only_open_labors=only_open_labors
+        )
+
         if progress_info:
             labor_count = self.session.query(Labor).filter(
                 Labor.quest_id == quest.id
@@ -2136,47 +2078,6 @@ class QuestHandler(ApiHandler):
             json['totalLabors'] = labor_count
             json['openLabors'] = open_labors_count
             json['percentComplete'] = percent_complete
-        if only_open_labors:
-            labors = self.session.query(Labor).filter(
-                and_(
-                    Labor.quest_id == quest.id,
-                    Labor.completion_event_id == None
-                )
-            ).all()
-        else:
-            labors = quest.labors
-        if "labors" in expand:
-            json["labors"] = []
-            for labor in labors:
-                labor_json = labor.to_dict(self.href_prefix)
-                if "hosts" in expand:
-                    labor_json["host"] = labor.host.to_dict(self.href_prefix)
-                if "events" in expand:
-                    labor_json["creationEvent"] = (
-                        labor.creation_event.to_dict(self.href_prefix)
-                    )
-                    if "eventtypes" in expand:
-                        labor_json["creationEvent"]["eventType"] = (
-                            labor.creation_event.event_type.to_dict(self.href_prefix)
-                        )
-                        if labor.completion_event:
-                            labor_json["completionEvent"] = (
-                                labor.completion_event.to_dict(self.href_prefix)
-                            )
-                            labor_json["completionEvent"]["eventType"] = (
-                                labor.completion_event
-                                .event_type.to_dict(self.href_prefix)
-                            )
-                        else:
-                            labor_json["completionEvent"] = None
-                json["labors"].append(labor_json)
-        else:
-            json["labors"] = []
-            for labor in labors:
-                json["labors"].append({
-                    "id": labor.id,
-                    "href": labor.href(self.href_prefix)
-                })
 
         self.success(json)
 
