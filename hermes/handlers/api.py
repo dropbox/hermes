@@ -885,6 +885,7 @@ class EventsHandler(ApiHandler):
             }
 
         :reqjson string hostname: (*optional*) The hostname of the Host of this Event
+        :regjson string hostnames: (*optional*) The list of hostnames for which we want to throw this Event
         :reqjson string hostQuery: (*optional*) The external query to run to get Hosts for which to create Events
         :regjson int queryId: (*optional*) The Quest ID which has hosts for which we want to create Events
         :regjson string user: The user responsible for throwing this Event
@@ -925,6 +926,9 @@ class EventsHandler(ApiHandler):
             [self.jbody.get("hostname", None)]
             if self.jbody.get("hostname", None) else []
         )
+
+        if "hostnames" in self.jbody:
+            hostnames.extend(self.jbody.get("hostnames"))
 
         # If a host query was specified, we need to talk to the external
         # query server to resolve this into a list of hostnames
@@ -1496,7 +1500,7 @@ class LaborsHandler(ApiHandler):
         :query string hostname: (*optional*) filter Labors by a particular hostname
         :query string startingLaborId: (*optional*) get Labors by the Id or the Id of the starting labor
         :query string hostQuery: (*optional*) the query to send to the plugin to come up with the list of hostnames
-        :query string userQuest: (*optional*) the user quest to send to the plugin to come up with the list of hostnames
+        :query string userQuery: (*optional*) the user query to send to the plugin to come up with the list of hostnames
         :query boolean open: if true, filter Labors to those still open
         :query int questId: the id of the quest we want to filter by
         :query string expand: (*optional*) supports hosts, eventtypes, events, quests
@@ -1551,6 +1555,7 @@ class LaborsHandler(ApiHandler):
                 response.status_code == 200
                 and response.json()["status"] == "ok"
             ):
+                # FIXME -- couldn't this just be hostnames.extend?
                 for hostname in response.json()["results"]:
                     hostnames.append(hostname)
             else:

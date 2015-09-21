@@ -11,6 +11,9 @@
         }).when('/v1/quest/new', {
             templateUrl: '/templates/questCreation.html',
             reloadOnSearch: false
+        }).when('/v1/labors/:laborId?', {
+            templateUrl: '/templates/laborList.html',
+            reloadOnSearch: false
         }).when('/v1/fates', {
             templateUrl: '/templates/fateViewer.html',
             reloadOnSearch: false

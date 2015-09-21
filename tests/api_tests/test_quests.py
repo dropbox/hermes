@@ -393,21 +393,48 @@ def test_quest_lifecycle(sample_data1_server):
     # Ensure that the quest doesn't have a completion time yet
     # Also, test two meta features: progress info and filtering to show only open labors
     assert_success(
-        client.get("/quests/1?progressInfo=true&onlyOpenLabors=true"),
+        client.get("/quests/1?progressInfo=true&onlyOpenLabors=true&expand=labors"),
         {
             "creator": "johnny@example.com",
             "description": "This is a quest almighty",
             "id": 1,
-            "completionTime": None,
-            "targetTime": str(target_time),
             "openLabors": 3,
             "totalLabors": 6,
             "percentComplete": 50.0,
-            "labors": [{"id": 4},
-                       {"id": 5},
-                       {"id": 6}]
+            "labors": [
+                {
+                    "ackTime": None,
+                    "ackUser": None,
+                    "completionEventId": None,
+                    "creationEventId": 6,
+                    "hostId": 1,
+                    "id": 4,
+                    "startingLaborId": 1,
+                    "questId": 1
+                },
+                {
+                    "ackTime": None,
+                    "ackUser": None,
+                    "completionEventId": None,
+                    "creationEventId": 7,
+                    "hostId": 2,
+                    "id": 5,
+                    "startingLaborId": 2,
+                    "questId": 1
+                },
+                {
+                    "ackTime": None,
+                    "ackUser": None,
+                    "completionEventId": None,
+                    "creationEventId": 8,
+                    "hostId": 3,
+                    "id": 6,
+                    "startingLaborId": 3,
+                    "questId": 1
+                }
+            ]
         },
-        strip=["embarkTime"]
+        strip=["embarkTime", "creationTime", "completionTime", "targetTime"]
     )
 
     # Throw events that should trigger closing of the intermediate labors

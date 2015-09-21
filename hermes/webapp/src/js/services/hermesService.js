@@ -7,13 +7,18 @@
         var service = {
             getFates: getFates,
             getFatesSigma: getFatesSigma,
+            getOpenLabors: getOpenLabors,
             getOpenQuests: getOpenQuests,
             getQuestDetails: getQuestDetails,
             getOwnerInformation: getOwnerInformation,
+            getHostTags: getHostTags,
             getCurrentUser: getCurrentUser,
             getStartingEventTypes: getStartingEventTypes,
+            getUserThrowableEventTypes: getUserThrowableEventTypes,
+            getQuestCreatorThrowableEventTypes: getQuestCreatorThrowableEventTypes,
             runQuery: runQuery,
-            createQuest: createQuest
+            createQuest: createQuest,
+            createEvents: createEvents
         };
 
         return service;
@@ -33,6 +38,32 @@
                 'hostnames': hosts,
                 'eventTypeId': eventType.id,
                 'description': description
+            }).then(createQuestCompleted)
+                .catch(createQuestFailed);
+
+            function createQuestCompleted(response) {
+                return response;
+            }
+
+            function createQuestFailed(error) {
+                console.error("API for creating a quest failed! " + error.status + " " + error.statusText);
+                throw error;
+            }
+        }
+
+        /**
+         * Try to create events for the given hsots
+         * @param user the authenticated user creating these events
+         * @param hosts the list of hosts we want to create these events for
+         * @param eventType the eventtype of the event to create
+         * @param note the note to put with the event
+         */
+        function createEvents(user, hosts, eventType, note) {
+            return $http.post("/api/v1/events", {
+                'user': user,
+                'hostnames': hosts,
+                'eventTypeId': eventType.id,
+                'note': note
             }).then(createQuestCompleted)
                 .catch(createQuestFailed);
 
@@ -69,6 +100,30 @@
         }
 
         /**
+         * Get a list of all open labors, along with quest details
+         */
+        function getOpenLabors(options) {
+            var url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes";
+
+            if (options['filterByOwner']) {
+                url += "&userQuery=" + options['filterByOwner'];
+            }
+
+            return $http.get(url)
+                .then(getLaborsComplete)
+                .catch(getLaborsFailed);
+
+            function getLaborsComplete(response) {
+                return response.data;
+            }
+
+            function getLaborsFailed(error) {
+                console.error("API call to get open labors failed. " + error.status + " " + error.statusText);
+                throw error;
+            }
+        }
+
+        /**
          * Get a list of all the open quests but not all the details --
          * just enough to give overview information.
          * @returns {*}
@@ -90,6 +145,7 @@
 
             function getQuestsFailed(error) {
                 console.error("API call to get open Quests failed. " + error.status + " " + error.statusText);
+                throw error;
             }
         }
 
@@ -111,6 +167,11 @@
             }
         }
 
+        /**
+         * Get the owner information for the hosts we care about
+         * @param hostnames the hostnames of the hosts we care about
+         * @returns {*}
+         */
         function getOwnerInformation(hostnames) {
             return $http.post("/api/v1/extquery", {"hostnames": hostnames})
                 .then(getOwnersComplete)
@@ -125,6 +186,29 @@
             }
         }
 
+        /**
+         * Get tags for each of the hosts
+         * @param hostnames the hostnames of the hosts we care about
+         * @returns {*}
+         */
+        function getHostTags(hostnames) {
+            return $http.post("/api/v1/extquery", {"hostnames": hostnames, "operation": "tags"})
+                .then(getTagsComplete)
+                .catch(getTagsFailed);
+
+            function getTagsComplete(response) {
+                return response.data.results;
+            }
+
+            function getTagsFailed(error) {
+                console.error("API to get host tags failed: " + error.status + " " + error.statusText);
+            }
+        }
+
+        /**
+         * Get all fates, for references
+         * @returns {*}
+         */
         function getFates() {
             return $http.get("/api/v1/fates?expand=eventtypes&limit=all")
                 .then(getFatesComplete)
@@ -313,7 +397,52 @@
             }
 
             function getStartingEventTypesFailed(error) {
-                console.error("API call to get starting EventTypes failed. "  + error.status + " " + error.statusText)
+                console.error("API call to get starting EventTypes failed. "
+                    + error.status + " " + error.statusText);
+                throw error;
+            }
+        }
+
+
+        /**
+         * Get all event-types that users are allowed to throw.  Basically,
+         * this is any event-type of state "ready."
+         * @returns {*}
+         */
+        function getUserThrowableEventTypes() {
+            return $http.get("/api/v1/eventtypes?limit=all&state=ready")
+                .then(getCompleted)
+                .catch(getFailed);
+
+            function getCompleted(response) {
+                return response.data.eventTypes;
+            }
+
+            function getFailed(error) {
+                console.error("API call to get user throwable event-types failed. "
+                    + error.status + " " + error.statusText);
+                throw error;
+            }
+        }
+
+        /**
+         * Get all event-types that quest creators are allowed to throw.  Basically,
+         * this is any event-type of state "completed."
+         * @returns {*}
+         */
+        function getQuestCreatorThrowableEventTypes() {
+            return $http.get("/api/v1/eventtypes?limit=all&state=completed")
+                .then(getCompleted)
+                .catch(getFailed);
+
+            function getCompleted(response) {
+                return response.data.eventTypes;
+            }
+
+            function getFailed(error) {
+                console.error("API call to get creator throwable event-types failed. "
+                    + error.status + " " + error.statusText);
+                throw error;
             }
         }
 

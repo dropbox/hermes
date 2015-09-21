@@ -12,8 +12,9 @@
 body {
     font-family: "Open Sans";
     margin: 0;
-    padding: 0;
+    padding: 0px 0px 20px 0px;
     font-size: 1.2em;
+    /*background-color: #25282b;*/
 }
 
 h1 {
@@ -80,10 +81,43 @@ button:hover {
     -webkit-border-radius: 0px;
     -moz-border-radius: 0px;
     border-radius: 0px;
+    height: 60px;
+    box-shadow: 0px 0px 20px #000000;
 }
 
-.navbar-brand {
-    height: 80px;
+.navbar-collapse, .navbar-brand {
+    height: 60px;
+    padding: 5px 0px 0px 0px;
+}
+
+.navbar-nav {
+    height: 60px;
+}
+
+.navbar-nav li {
+    vertical-align: middle;
+    margin-top: 20px;
+    font-size: 1.5em;
+}
+
+.navbar-nav li a {
+    padding: 5px 20px 5px 20px;
+    -webkit-border-radius: 5px 5px 0px 0px;
+    -moz-border-radius: 5px 5px 0px 0px;
+    border-radius: 5px 5px 0px 0px;
+    border-bottom: 5px #25282b solid;
+    color: #7b8994;
+}
+
+.navbar-nav li a:hover, .navbar-nav li a:focus {
+    border-bottom-color: #004c8a;
+    color: #d0d4d9 !important;
+}
+
+.navbar-nav > .active > a {
+    background: none !important;
+    color: #ffffff !important;
+    border-bottom-color: #007ee5 !important;
 }
 
 #header {
@@ -94,7 +128,14 @@ button:hover {
 
 .main-container {
     padding-top: 0px;
-    padding-bottom: 20px;
+    padding-bottom: 0px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    background: #FFFFFF;
+    /*-webkit-box-shadow: 0px 0px 20px #000000;*/
+    /*-moz-box-shadow: 0px 0px 20px #000000;*/
+    /*box-shadow: 0px 0px 20px #000000;*/
 }
 
 .mini-description {
@@ -114,12 +155,21 @@ button:hover {
     margin: 5px 0px;
 }
 
+.success-message {
+    color: #48ac68;
+    font-weight: bold;
+    padding: 5px;
+    border: #48ac68 2px solid;
+    margin: 5px 0px 10px 0px;
+    background: #ddf0e2;
+}
+
 .quest-list {
     background: #fff5cc;
     padding: 0px;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    border-radius: 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+    -moz-border-radius: 5px 5px 5px 5px;
+    border-radius: 5px 5px 5px 5px;
     border: #fce897 solid 1px;
 }
 
@@ -136,7 +186,7 @@ button:hover {
 
 
 .quest-list-filter {
-    padding: 10px;
+    padding: 20px 10px 10px 10px;
     border-bottom: #fce897 2px dotted;
 }
 
@@ -190,6 +240,10 @@ button:hover {
     background: #fffdec;
 }
 
+.quest-details {
+    padding: 20px 0px 20px 0px;
+}
+
 .quest-details .quest-overview {
     text-align: center;
     font-size: 1.5em;
@@ -199,6 +253,10 @@ button:hover {
 
 .quest-labors {
     font-size: 1.2em;
+}
+
+.quest-labors .row {
+    margin: 0;
 }
 
 .quest-labors .header {
@@ -328,3 +386,163 @@ button:hover {
     font-weight: bold;
     font-size: 1.2em;
 }
+
+/* LABOR LIST */
+.labor-left-panel {
+    background: #fff5cc;
+    padding: 0px;
+    -webkit-border-radius: 5px 5px 5px 5px;
+    -moz-border-radius: 5px 5px 5px 5px;
+    border-radius: 5px 5px 5px 5px;
+    border: #fce897 solid 1px;
+}
+
+.labor-left-panel h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 10px;
+}
+
+.labor-left-panel .progbar {
+    padding: 5px 0px 0px 0px;
+}
+
+.labor-left-panel-filter {
+    padding: 20px 10px 10px 10px;
+}
+
+.labor-left-panel-page-selector {
+    clear: both;
+    overflow: auto;
+}
+
+.labor-left-panel-page-selector ul {
+    padding: 5px 0px 5px 0px;
+}
+
+.labor-left-panel-page-selector li {
+    display: block;
+    font-weight: bold;
+    float: left;
+    padding: 2px 5px 2px 5px;
+    border: 1px #fce897 solid;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin: 4px;
+    background: #fff5cc;
+    cursor: pointer;
+}
+
+.labor-left-panel-page-selector li:hover {
+    background: #FFFFFF;
+    box-shadow: 2px 2px 3px #25282b;
+}
+
+.labor-left-panel-page-selector .selected {
+    background: #FFFFFF;
+}
+
+.labor-list-wrapper {
+    padding: 0px 10px 20px 0px;
+}
+
+.labor-list-wrapper .labor-actions {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    border: 1px solid #e0e5ea;
+    padding: 5px;
+    margin-bottom: 10px;
+    background: #ffffff;
+    opacity: 1;
+}
+
+.labor-list-wrapper .labor-actions.disabled {
+    opacity: 0.5;
+}
+
+.labor-list-wrapper .labor-entry {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin-left: 0;
+    margin-bottom: 10px;
+    background: #e0e5ea;
+    border: transparent 2px solid;
+    padding: 2px;
+
+    overflow: auto;
+}
+
+.labor-list-wrapper .labor-entry:hover {
+    -webkit-box-shadow: 0 0 5px 0px #7b8994;
+    -moz-box-shadow: 0 0 5px 0px #7b8994;
+    box-shadow: 0 0 5px 0px #7b8994;
+    cursor: pointer;
+}
+
+.labor-list-wrapper .labor-entry.selected {
+    background: #72b6ec;
+}
+
+.labor-list-wrapper .labor-entry .row {
+    margin: 0px;
+}
+
+.labor-list-wrapper .labor-entry .hostname {
+    font-size: 1.0em;
+    font-weight: bold;
+    padding: 2px 10px;
+    -webkit-border-radius: 5px 0px 0px 0px;
+    -moz-border-radius: 5px 0px 0px 0px;
+    border-radius: 5px 0px 0px 0px;
+}
+
+.labor-list-wrapper .labor-entry .labor-type {
+    padding: 2px 10px;
+    text-align: right;
+    font-size: 1.0em;
+    -webkit-border-radius: 0px 5px 0px 0px;
+    -moz-border-radius: 0px 5px 0px 0px;
+    border-radius: 0px 5px 0px 0px;
+}
+
+.labor-list-wrapper .labor-entry .panel-label {
+    padding-left: 5px;
+}
+
+.labor-list-wrapper .labor-entry .tags {
+    padding: 5px;
+    font-size: 0.9em;
+}
+
+.labor-list-wrapper .labor-entry .tags ul {
+    display: block;
+    margin: 2px 0px;
+    padding: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    background: #ffffff;
+}
+
+.labor-list-wrapper .labor-entry .tags li {
+    display: inline-block;
+    padding: 2px 5px;
+}
+
+.labor-list-wrapper .labor-entry .quest-info {
+    padding: 5px;
+    font-size: 0.9em;
+}
+
+.labor-list-wrapper .labor-entry .quest-info-details {
+    margin: 2px 0px;
+    padding: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    background: #ffffff;
+}
+
