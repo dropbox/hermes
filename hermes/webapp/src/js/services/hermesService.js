@@ -105,8 +105,12 @@
         function getOpenLabors(options) {
             var url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes";
 
+            console.log("getOpenLabors:");
+            console.log(options);
             if (options['filterByOwner']) {
                 url += "&userQuery=" + options['filterByOwner'];
+            } else if (options['filterByQuery']) {
+                url += "&hostQuery=" + options['filterByQuery'];
             }
 
             return $http.get(url)

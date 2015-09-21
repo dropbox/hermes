@@ -7,15 +7,28 @@
                 </div>
                 <div class="row">
                     <div class="col-md-10">
-                        <form ng-submit="lsc.runNewFilter()">
+                        <form ng-submit="lsc.runOwnerFilter()">
                             <input id="ownerFilter" type="text" ng-model="lsc.hostOwnerInput" />
                         </form>
                     </div>
                     <div class="col-md-2">
-                        <button ng-click="lsc.runNewFilter()">GO</button>
+                        <button ng-click="lsc.runOwnerFilter()">GO</button>
                     </div>
                 </div>
-                <div style="padding: 5px 0px 5px 0px">
+                <div style="margin-top: 5px">
+                    <label for="queryFilter">Filter by query:</label>
+                </div>
+                <div class="row">
+                    <div class="col-md-10">
+                        <form ng-submit="lsc.runQueryFilter()">
+                            <input id="queryFilter" type="text" ng-model="lsc.queryInput" />
+                        </form>
+                    </div>
+                    <div class="col-md-2">
+                        <button ng-click="lsc.runQueryFilter()">GO</button>
+                    </div>
+                </div>
+                <div ng-if="lsc.laborData && !lsc.errorMessage" style="padding: 5px 0px 5px 0px">
                     <label>
                         Limit:
                         <select ng-model="lsc.limitSetting"
@@ -24,7 +37,7 @@
                         </select>
                     </label>
                 </div>
-                <div class="labor-left-panel-page-selector">
+                <div ng-if="lsc.laborData  && !lsc.errorMessage" class="labor-left-panel-page-selector">
                     <strong>Page:</strong>
                     <ul>
                         <li ng-click="lsc.pageSetting(pageVal)"
@@ -45,9 +58,17 @@
                             ng-model-options="lsc.selectOptions"
                             ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.throwableTypes">
                     </select> for {{lsc.selected.length}} selected hosts.
-                    <button ng-click="lsc.createEvents()">
+                    <button class="be-positive" ng-click="lsc.createEvents()">
                         <img ng-if="lsc.createInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" />
                         Create Events
+                    </button>
+                </div>
+                <div class="labor-select-toggles">
+                    <button style="float:left" ng-click="lsc.selectAll()">
+                        Select All
+                    </button>
+                    <button style="float:left" ng-click="lsc.deselectAll()">
+                        Deselect All
                     </button>
                 </div>
                 <div class="success-message" ng-if="lsc.createSuccessMessage">{{lsc.createSuccessMessage}}</div>
@@ -56,7 +77,7 @@
                     <img src="/img/loading.gif"/>
                 </div>
                 <div class="labor-entry"
-                     ng-if="lsc.laborData"
+                     ng-if="lsc.laborData  && !lsc.errorMessage"
                      ng-click="lsc.toggleSelect(labor.id)"
                      ng-repeat="labor in lsc.laborData | limitTo:lsc.limit:lsc.offset track by labor.id"
                      ng-class="lsc.selected.indexOf(labor.id) != -1 ? 'selected': ''">

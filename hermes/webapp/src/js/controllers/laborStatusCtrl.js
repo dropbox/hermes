@@ -6,6 +6,7 @@
 
         vm.errorMessage = null;
         vm.hostOwnerInput = null;
+        vm.queryInput = null;
         vm.selectedEventType = null;
 
         vm.laborData = null;
@@ -21,9 +22,12 @@
 
         vm.colors = ['#0071ce', '#72b6ec', '#cce6fa', '#f4faff'];
 
-        vm.runNewFilter = runNewFilter;
+        vm.runOwnerFilter = runOwnerFilter;
+        vm.runQueryFilter = runQueryFilter;
         vm.getOpenLabors = getOpenLabors;
         vm.toggleSelect = toggleSelect;
+        vm.selectAll = selectAll;
+        vm.deselectAll = deselectAll;
         vm.eventTypesSelection = eventTypesSelection;
         vm.createEvents = createEvents;
 
@@ -38,13 +42,13 @@
         // otherwise, the default is to use the authenticate user
         if ($routeParams.byOwner) {
             vm.hostOwnerInput = $routeParams.byOwner;
-            getOpenLabors();
+            getOpenLabors("owner");
         } else {
             hermesService.getCurrentUser().then(function(user){
                 if (user) {
                     vm.hostOwnerInput = user;
                 }
-                getOpenLabors();
+                getOpenLabors("owner");
             });
         }
 
@@ -119,21 +123,34 @@
 
         }
 
-        function runNewFilter() {
+        function runQueryFilter() {
             $routeParams.laborId = null;
             vm.offset = 0;
-            getOpenLabors();
+            vm.hostOwnerInput = null;
+            getOpenLabors("query");
         }
 
-        function getOpenLabors() {
+        function runOwnerFilter() {
+            $routeParams.laborId = null;
+            vm.offset = 0;
+            vm.queryInput = null;
+            getOpenLabors("owner");
+        }
+
+        function getOpenLabors(method) {
             vm.errorMessage = null;
             vm.selected = [];
             vm.laborData = null;
 
             var options = {};
-            if (vm.hostOwnerInput) {
+            if (method == "owner" && vm.hostOwnerInput) {
                 options['filterByOwner'] = vm.hostOwnerInput;
                 $location.search('byOwner', vm.hostOwnerInput, false);
+                $location.search('byQuery', null, false);
+            } else if (method == "query" && vm.queryInput) {
+                options['filterByQuery'] = vm.queryInput;
+                $location.search('byOwner', null, false);
+                $location.search('byQuery', vm.queryInput, false);
             }
 
             hermesService.getOpenLabors(options).then(function (data) {
@@ -193,6 +210,34 @@
                 vm.selected.splice(idx, 1)
             } else {
                 vm.selected.push(id);
+            }
+        }
+
+        /**
+         * Select all the labors on this screen and add them to the list
+         * of selected labors
+         */
+        function selectAll() {
+            for (var idx = parseInt(vm.offset);
+                 idx < (parseInt(vm.offset) + parseInt(vm.limit));
+                 idx++) {
+                if (vm.selected.indexOf(vm.laborData[idx].id == -1)) {
+                    vm.selected.push(vm.laborData[idx].id);
+                }
+            }
+        }
+
+         /**
+         * Deselect all the labors on this screen and remove them to the list
+         * of selected labors
+         */
+        function deselectAll() {
+            for (var idx = parseInt(vm.offset);
+                 idx < (parseInt(vm.offset) +  parseInt(vm.limit)); idx++) {
+                var idy = vm.selected.indexOf(vm.laborData[idx].id);
+                if (idy != -1) {
+                    vm.selected.splice(idy, 1);
+                }
             }
         }
 
