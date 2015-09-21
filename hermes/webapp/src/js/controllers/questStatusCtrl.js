@@ -100,6 +100,8 @@
             if (vm.filterByCreator) {
                 options['filterByCreator'] = vm.filterByCreator;
                 $location.search('byCreator', vm.filterByCreator, false);
+            } else {
+                $location.search('byCreator', null, false);
             }
 
             hermesService.getOpenQuests(options).then(function (questData) {

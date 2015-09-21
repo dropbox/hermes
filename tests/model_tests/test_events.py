@@ -57,4 +57,3 @@ def test_duplicate(sample_data1):
         sample_data1, host, "testman", event_type1, note="This is another test event"
     )
     sample_data1.commit()
-

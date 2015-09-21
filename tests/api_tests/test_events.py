@@ -122,3 +122,18 @@ def test_update(sample_data1_server):
     )
 
     assert_error(client.put("/events/3", json={"note": "New note"}), 405)
+
+
+def test_multi_host_events(sample_data1_server):
+    client = sample_data1_server
+    result = client.create(
+            "/events",
+            hostnames=["example","sample","test"],
+            user="testman@example.com",
+            eventTypeId=1,
+            note="This is a test event"
+        )
+
+    result_json = result.json()
+
+    assert result_json['totalEvents'] == 3

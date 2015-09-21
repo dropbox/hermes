@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 
 _HOOKS = []
 
+
 def register_hook(hook):
     _HOOKS.append(hook)
 
@@ -764,7 +765,7 @@ class Fate(Model):
             # And with that list of relevant Fates, we can look for
             # open Labors where the Labor's creation EventType matches
             # the Fate's creation EventType.  We will collect the matching
-            # Labors into and array for batch achievement
+            # Labors into an array for batch achievement
             if host.id in labors_by_hostid:
                 for labor in labors_by_hostid[host.id]:
                     for fate in relevant_fates:
@@ -1340,14 +1341,6 @@ class Quest(Model):
                 labor.to_dict(base_uri=base_uri, expand=set(expand))
                 for labor in labors
             ]
-        else:
-            labors_json = []
-            for labor in labors:
-                labors_json.append({
-                    "id": labor.id,
-                    "href": labor.href(base_uri)
-                })
-            out['labors'] = labors_json
 
         if base_uri:
             out['href'] = self.href(base_uri)
@@ -1590,9 +1583,7 @@ class Labor(Model):
         }
 
         if "quests" in expand:
-            out['quests'] = [
-                self.quest.to_dict(base_uri=base_uri, expand=set(expand))
-            ]
+            out['quest'] = self.quest.to_dict(base_uri=base_uri, expand=set(expand))
 
         if "hosts" in expand:
             out['host'] = self.host.to_dict(
