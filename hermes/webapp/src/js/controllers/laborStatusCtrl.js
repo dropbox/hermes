@@ -7,12 +7,14 @@
         vm.errorMessage = null;
         vm.hostOwnerInput = null;
         vm.queryInput = null;
+        vm.filterEventType = null;
         vm.selectedEventType = null;
 
         vm.laborData = null;
         vm.selected = [];
         vm.hostTags = null;
         vm.throwableTypes = null;
+        vm.allTypes = null;
         vm.createInProgress = false;
         vm.limit = 10;
         vm.offset = 0;
@@ -28,7 +30,8 @@
         vm.toggleSelect = toggleSelect;
         vm.selectAll = selectAll;
         vm.deselectAll = deselectAll;
-        vm.eventTypesSelection = eventTypesSelection;
+        vm.throwableEventTypesSelection = throwableEventTypesSelection;
+        vm.filterEventTypesSelection = filterEventTypesSelection;
         vm.createEvents = createEvents;
 
 
@@ -37,6 +40,11 @@
             getterSetter: true,
             allowInvalid: true
         };
+
+
+        if ($routeParams.byQuery) {
+            vm.queryInput = $routeParams.byQuery;
+        }
 
         // if user passed a filter-by-owner query param, that takes precedence.
         // otherwise, the default is to use the authenticate user
@@ -48,7 +56,7 @@
                 if (user) {
                     vm.hostOwnerInput = user;
                 }
-                getOpenLabors("owner");
+                getOpenLabors();
             });
         }
 
@@ -56,8 +64,14 @@
             if (user) {
                 vm.user = user;
             } else {
-                vm.errorMessages.push("Cannot create a new quest if not authenticated.");
+                vm.errorMessage = "Cannot create a new quest if not authenticated.";
             }
+        });
+
+        hermesService.getAllEventTypes().then(function(types) {
+            var allTypes = [""];
+            vm.allTypes = allTypes.concat(types);
+            vm.filterEventType = vm.allTypes[0];
         });
 
         hermesService.getUserThrowableEventTypes().then(function(types) {
@@ -114,42 +128,48 @@
         /**
          * The getter/setter for event types
          */
-        function eventTypesSelection(selection) {
+        function throwableEventTypesSelection(selection) {
             if (angular.isDefined(selection)) {
                 vm.selectedEventType = selection;
             } else {
                 return vm.selectedEventType;
             }
+        }
 
+        function filterEventTypesSelection(selection) {
+            if (angular.isDefined(selection)) {
+                vm.filterEventType = selection;
+            } else {
+                return vm.filterEventType;
+            }
         }
 
         function runQueryFilter() {
             $routeParams.laborId = null;
             vm.offset = 0;
-            vm.hostOwnerInput = null;
-            getOpenLabors("query");
+            getOpenLabors();
         }
 
         function runOwnerFilter() {
             $routeParams.laborId = null;
             vm.offset = 0;
-            vm.queryInput = null;
-            getOpenLabors("owner");
+            getOpenLabors();
         }
 
-        function getOpenLabors(method) {
+        function getOpenLabors() {
             vm.errorMessage = null;
             vm.selected = [];
             vm.laborData = null;
 
             var options = {};
-            if (method == "owner" && vm.hostOwnerInput) {
+
+            if (vm.hostOwnerInput) {
                 options['filterByOwner'] = vm.hostOwnerInput;
                 $location.search('byOwner', vm.hostOwnerInput, false);
-                $location.search('byQuery', null, false);
-            } else if (method == "query" && vm.queryInput) {
+            }
+
+            if (vm.queryInput) {
                 options['filterByQuery'] = vm.queryInput;
-                $location.search('byOwner', null, false);
                 $location.search('byQuery', vm.queryInput, false);
             }
 

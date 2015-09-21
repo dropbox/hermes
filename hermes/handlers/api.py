@@ -1548,7 +1548,7 @@ class LaborsHandler(ApiHandler):
                 .order_by(desc(Labor.creation_time))
             )
 
-        hostnames = []
+        host_query_hostnames = []
         if host_query:
             response = PluginHelper.request_get(params={"query": host_query})
             if (
@@ -1557,10 +1557,11 @@ class LaborsHandler(ApiHandler):
             ):
                 # FIXME -- couldn't this just be hostnames.extend?
                 for hostname in response.json()["results"]:
-                    hostnames.append(hostname)
+                    host_query_hostnames.append(hostname)
             else:
                 raise exc.BadRequest("Bad host query: {}".format(host_query))
 
+        user_query_hostnames = []
         if user_query:
             response = PluginHelper.request_get(params={"user": user_query})
             if (
@@ -1568,9 +1569,17 @@ class LaborsHandler(ApiHandler):
                 and response.json()["status"] == "ok"
             ):
                 for hostname in response.json()["results"]:
-                    hostnames.append(hostname)
+                    user_query_hostnames.append(hostname)
             else:
                 raise exc.BadRequest("Bad user query: {}".format(user_query))
+
+        hostnames = []
+        if host_query and user_query:
+            hostnames = list(set(host_query_hostnames) & set(user_query_hostnames))
+        elif host_query_hostnames:
+            hostnames = host_query_hostnames
+        elif user_query_hostnames:
+            hostnames = user_query_hostnames;
 
         if host_query or user_query:
             if hostnames:
