@@ -462,6 +462,17 @@ button:hover {
     opacity: 0.5;
 }
 
+.labor-list-wrapper .labor-select-toggles {
+    clear: both;
+    overflow: auto;
+    margin-bottom: 5px;
+    padding-bottom: 8px;
+}
+
+.labor-list-wrapper .labor-select-toggles button:not(:first-child) {
+    margin-left: 5px;
+}
+
 .labor-list-wrapper .labor-entry {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
