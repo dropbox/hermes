@@ -45,7 +45,7 @@
                             ng-model-options="lsc.selectOptions"
                             ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.throwableTypes">
                     </select> for {{lsc.selected.length}} selected hosts.
-                    <button ng-click="lsc.createEvents()">
+                    <button class="be-positive" ng-click="lsc.createEvents()">
                         <img ng-if="lsc.createInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" />
                         Create Events
                     </button>
