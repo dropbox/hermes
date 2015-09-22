@@ -7,12 +7,9 @@
                 </div>
                 <div class="row">
                     <div class="col-md-10">
-                        <form ng-submit="lsc.runOwnerFilter()">
+                        <form ng-submit="lsc.runFilter()">
                             <input id="ownerFilter" type="text" ng-model="lsc.hostOwnerInput" />
                         </form>
-                    </div>
-                    <div class="col-md-2">
-                        <button ng-click="lsc.runOwnerFilter()">GO</button>
                     </div>
                 </div>
                 <div style="margin-top: 5px">
@@ -20,23 +17,25 @@
                 </div>
                 <div class="row">
                     <div class="col-md-10">
-                        <form ng-submit="lsc.runQueryFilter()">
+                        <form ng-submit="lsc.runFilter()">
                             <input id="queryFilter" type="text" ng-model="lsc.queryInput" />
                         </form>
                     </div>
+                </div>
+                <div style="margin-top: 5px">
+                    <label for="event-type-selection">Filter by labor's event type:</label>
+                </div>
+                <div class="row">
+                    <div class="col-md-10">
+                        <select style="margin-left: 0" id="event-type-selection" ng-model="lsc.filterEventTypesSelection"
+                                ng-model-options="lsc.selectOptions"
+                                ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.allTypes">
+                        </select>
+                    </div>
                     <div class="col-md-2">
-                        <button ng-click="lsc.runQueryFilter()">GO</button>
+                        <button ng-click="lsc.runFilter()">GO</button>
                     </div>
                 </div>
-                <!--<div style="margin-top: 5px">-->
-                    <!--Filter by labor's event type:-->
-                <!--</div>-->
-                <!--<div class="row">-->
-                    <!--<select ng-model="lsc.filterEventTypesSelection"-->
-                            <!--ng-model-options="lsc.selectOptions"-->
-                            <!--ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.allTypes">-->
-                    <!--</select>-->
-                <!--</div>-->
                 <div ng-if="lsc.laborData && !lsc.errorMessage" style="padding: 5px 0px 5px 0px">
                     <label>
                         Limit:
@@ -95,8 +94,8 @@
                         <div class="labor-type col-md-6">{{labor.creationEvent.eventType.category}} {{labor.creationEvent.eventType.state}}</div>
                     </div>
                     <div class="row">
-                        <div class="tags col-md-6">
-                            <strong class="panel-label">Tags:</strong>
+                        <div class="info-panel col-md-6">
+                            <strong class="label">Tags:</strong>
                             <div>
                                 <img ng-if="!lsc.hostTags" src="/img/loading_15.gif" alt="Tag information loading" />
                                 <ul ng-if="lsc.hostTags">
@@ -106,13 +105,22 @@
                                 </ul>
                             </div>
                         </div>
-                        <div class="quest-info col-md-6"><strong class="panel-label">Quest Info:</strong>
-                            <div class="quest-info-details" ng-if="labor.quest">
-                                <strong>Quest {{labor.quest.id}}: </strong>
-                                {{labor.quest.description}}
+                        <div class="info-panel col-md-6">
+                            <strong class="label">Owner:</strong>
+                            <div class="details">
+                                <img ng-if="!lsc.hostOwners" src="/img/loading_15.gif" alt="Owner information loading" />
+                                <span ng-if="lsc.hostOwners">{{lsc.hostOwners[labor.host.hostname]}}</span>
                             </div>
-                            <div class="quest-info-details" ng-if="!labor.quest">
-                                Labor not part of a quest.
+                        </div>
+                        <div class="row" ng-if="labor.quest">
+                            <div class="info-panel col-md-12"><strong class="label">Quest Info:</strong>
+                                <div class="details">
+                                    <strong>Quest {{labor.quest.id}}: </strong>
+                                    {{labor.quest.description}}
+                                </div>
+                                <div class="details" ng-if="!labor.quest">
+                                    Labor not part of a quest.
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -13,6 +13,7 @@
         vm.laborData = null;
         vm.selected = [];
         vm.hostTags = null;
+        vm.hostOwners = null;
         vm.throwableTypes = null;
         vm.allTypes = null;
         vm.createInProgress = false;
@@ -24,8 +25,7 @@
 
         vm.colors = ['#0071ce', '#72b6ec', '#cce6fa', '#f4faff'];
 
-        vm.runOwnerFilter = runOwnerFilter;
-        vm.runQueryFilter = runQueryFilter;
+        vm.runFilter = runFilter;
         vm.getOpenLabors = getOpenLabors;
         vm.toggleSelect = toggleSelect;
         vm.selectAll = selectAll;
@@ -69,7 +69,7 @@
         });
 
         hermesService.getAllEventTypes().then(function(types) {
-            var allTypes = [""];
+            var allTypes = [null];
             vm.allTypes = allTypes.concat(types);
             vm.filterEventType = vm.allTypes[0];
         });
@@ -144,13 +144,7 @@
             }
         }
 
-        function runQueryFilter() {
-            $routeParams.laborId = null;
-            vm.offset = 0;
-            getOpenLabors();
-        }
-
-        function runOwnerFilter() {
+        function runFilter() {
             $routeParams.laborId = null;
             vm.offset = 0;
             getOpenLabors();
@@ -171,6 +165,11 @@
             if (vm.queryInput) {
                 options['filterByQuery'] = vm.queryInput;
                 $location.search('byQuery', vm.queryInput, false);
+            }
+
+            if (vm.filterEventType) {
+                options['filterByCategory'] = vm.filterEventType.category;
+                options['filterByState'] = vm.filterEventType.state;
             }
 
             hermesService.getOpenLabors(options).then(function (data) {
@@ -217,6 +216,12 @@
             }).catch(function(error){
                 vm.errorMessage = "Could not load host tags: " + error.statusText;
             });
+
+            hermesService.getOwnerInformation(hostnames).then(function(data) {
+                vm.hostOwners = data;
+            }).catch(function(error) {
+                vm.errorMessage = "Could not load host owners: " + error.statusText;
+            })
 
         }
 

@@ -114,6 +114,14 @@
                 url += "&hostQuery=" + options['filterByQuery'];
             }
 
+            if (options['filterByCategory']) {
+                url += "&category=" + options['filterByCategory']
+            }
+
+            if (options['filterByState']) {
+                url += "&state=" + options['filterByState']
+            }
+
             return $http.get(url)
                 .then(getLaborsComplete)
                 .catch(getLaborsFailed);

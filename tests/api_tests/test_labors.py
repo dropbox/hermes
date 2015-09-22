@@ -179,3 +179,80 @@ def test_update(sample_data1_server):
     )
 
     assert response.json()['ackTime'] is not None
+
+def test_labor_filter_by_eventttype(sample_data1_server):
+    client = sample_data1_server
+
+    assert_success(
+        client.get("/labors"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalLabors": 0,
+            "labors": []
+        }
+    )
+
+    # create a quest without a target_time
+    assert_created(
+        client.create(
+            "/quests",
+            creator="johnny",
+            eventTypeId=1,
+            description="This is a quest almighty",
+            hostnames=["example", "sample", "test"]
+        ),
+        "/api/v1/quests/1"
+    )
+
+    # create a quest without a target_time
+    assert_created(
+        client.create(
+            "/quests",
+            creator="johnny",
+            eventTypeId=3,
+            description="This is a 2nd quest almighty",
+            hostnames=["example", "sample", "test"]
+        ),
+        "/api/v1/quests/2"
+    )
+
+    assert_success(
+        client.get("/labors"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalLabors": 6,
+        },
+        strip=["labors"]
+    )
+
+    assert_success(
+        client.get("/labors?hostname=example"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalLabors": 2
+        },
+        strip=["labors"]
+    )
+
+    assert_success(
+        client.get("/labors?category=system-reboot&state=required"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalLabors": 3
+        },
+        strip=["labors"]
+    )
+
+    assert_success(
+        client.get("/labors?category=system-maintenance"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalLabors": 3
+        },
+        strip=["labors"]
+    )
