@@ -1501,6 +1501,8 @@ class LaborsHandler(ApiHandler):
         :query string startingLaborId: (*optional*) get Labors by the Id or the Id of the starting labor
         :query string hostQuery: (*optional*) the query to send to the plugin to come up with the list of hostnames
         :query string userQuery: (*optional*) the user query to send to the plugin to come up with the list of hostnames
+        :query string category: (*optional*) limit labors to ones where the starting event type is of this category
+        :query string state: (*optional*) limit labors to ones where the starting event type is of this state
         :query boolean open: if true, filter Labors to those still open
         :query int questId: the id of the quest we want to filter by
         :query string expand: (*optional*) supports hosts, eventtypes, events, quests
@@ -1516,8 +1518,25 @@ class LaborsHandler(ApiHandler):
         quest_id = self.get_argument("questId", None)
         host_query = self.get_argument("hostQuery", None)
         user_query = self.get_argument("userQuery", None)
+        category = self.get_argument("category", None)
+        state = self.get_argument("state", None)
 
         labors = self.session.query(Labor)
+
+        if category or state:
+            event_types = self.session.query(EventType);
+            if category:
+                event_types = event_types.filter(
+                    EventType.category == category
+                )
+            if state:
+                event_types = event_types.filter(
+                    EventType.state == state
+                )
+            valid_event_types = [event_type.id for event_type in event_types]
+            labors = labors.join(Labor.creation_event).join(Event.event_type).filter(
+                EventType.id.in_(valid_event_types)
+            )
 
         if open_flag and open_flag.lower() == "true":
             labors = labors.filter(Labor.completion_event_id == None)
