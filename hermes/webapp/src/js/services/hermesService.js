@@ -13,6 +13,7 @@
             getOwnerInformation: getOwnerInformation,
             getHostTags: getHostTags,
             getCurrentUser: getCurrentUser,
+            getAllEventTypes: getAllEventTypes,
             getStartingEventTypes: getStartingEventTypes,
             getUserThrowableEventTypes: getUserThrowableEventTypes,
             getQuestCreatorThrowableEventTypes: getQuestCreatorThrowableEventTypes,
@@ -105,11 +106,11 @@
         function getOpenLabors(options) {
             var url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes";
 
-            console.log("getOpenLabors:");
-            console.log(options);
             if (options['filterByOwner']) {
                 url += "&userQuery=" + options['filterByOwner'];
-            } else if (options['filterByQuery']) {
+            }
+
+            if (options['filterByQuery']) {
                 url += "&hostQuery=" + options['filterByQuery'];
             }
 
@@ -424,6 +425,22 @@
 
             function getFailed(error) {
                 console.error("API call to get user throwable event-types failed. "
+                    + error.status + " " + error.statusText);
+                throw error;
+            }
+        }
+
+        function getAllEventTypes() {
+            return $http.get("/api/v1/eventtypes?limit=all")
+                .then(getCompleted)
+                .catch(getFailed);
+
+            function getCompleted(response) {
+                return response.data.eventTypes;
+            }
+
+            function getFailed(error) {
+                console.error("API call to get all event-types failed. "
                     + error.status + " " + error.statusText);
                 throw error;
             }

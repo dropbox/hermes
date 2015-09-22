@@ -28,6 +28,15 @@
                         <button ng-click="lsc.runQueryFilter()">GO</button>
                     </div>
                 </div>
+                <!--<div style="margin-top: 5px">-->
+                    <!--Filter by labor's event type:-->
+                <!--</div>-->
+                <!--<div class="row">-->
+                    <!--<select ng-model="lsc.filterEventTypesSelection"-->
+                            <!--ng-model-options="lsc.selectOptions"-->
+                            <!--ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.allTypes">-->
+                    <!--</select>-->
+                <!--</div>-->
                 <div ng-if="lsc.laborData && !lsc.errorMessage" style="padding: 5px 0px 5px 0px">
                     <label>
                         Limit:
@@ -54,7 +63,7 @@
             <div class="labor-list-wrapper">
                 <div class="labor-actions"
                      ng-class="lsc.selected.length == 0 ? 'disabled' : ''">
-                    Throw  <select ng-model="lsc.eventTypesSelection"
+                    Throw  <select ng-model="lsc.throwableEventTypesSelection"
                             ng-model-options="lsc.selectOptions"
                             ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.throwableTypes">
                     </select> for {{lsc.selected.length}} selected hosts.
@@ -107,6 +116,16 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div ng-if="lsc.laborData  && !lsc.errorMessage" class="labor-left-panel-page-selector">
+                    <strong>Page:</strong>
+                    <ul>
+                        <li ng-click="lsc.pageSetting(pageVal)"
+                            ng-repeat="pageVal in lsc.pageValues()"
+                            ng-class="(lsc.pageSetting() == pageVal) ? 'selected' : ''">
+                            {{pageVal}}
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
