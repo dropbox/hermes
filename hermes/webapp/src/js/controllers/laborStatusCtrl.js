@@ -22,6 +22,7 @@
         vm.totalQuests = 10;
         vm.createErrorMessage = null;
         vm.createSuccessMessage = null;
+        vm.createEventsModal = false;
 
         vm.colors = ['#0071ce', '#72b6ec', '#cce6fa', '#f4faff'];
 
@@ -246,7 +247,7 @@
             for (var idx = parseInt(vm.offset);
                  idx < (parseInt(vm.offset) + parseInt(vm.limit));
                  idx++) {
-                if (vm.selected.indexOf(vm.laborData[idx].id == -1)) {
+                if (vm.selected.indexOf(vm.laborData[idx].id) == -1) {
                     vm.selected.push(vm.laborData[idx].id);
                 }
             }
@@ -271,6 +272,7 @@
          */
         function createEvents() {
             if (vm.createInProgress) return;
+            vm.createEventsModal = false;
             vm.createInProgress = true;
             vm.createErrorMessage = null;
             vm.createSuccessMessage = null;
