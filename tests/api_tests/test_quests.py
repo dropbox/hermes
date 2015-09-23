@@ -555,6 +555,7 @@ def test_quest_lifecycle(sample_data1_server):
         strip=["creationTime", "completionTime"]
     )
 
+
 def test_filter_by_creator(sample_data1_server):
     client = sample_data1_server
     # We start with 0 quests in the test data
@@ -612,6 +613,73 @@ def test_filter_by_creator(sample_data1_server):
 
     assert_success(
         client.get("/quests?byCreator=noone@example.com"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalQuests": 0
+        },
+        strip=["quests"]
+    )
+
+
+def test_filter_by_hostnames(sample_data1_server):
+    client = sample_data1_server
+    # We start with 0 quests in the test data
+    assert_success(
+        client.get("/quests"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalQuests": 0,
+            "quests": []
+        }
+    )
+
+    # Have johnny create a quest
+    assert_created(
+        client.create(
+            "/quests",
+            creator="johnny@example.com",
+            eventTypeId=1,
+            description="This is a quest almighty",
+            hostnames=["sample"]
+        ),
+        "/api/v1/quests/1"
+    )
+
+    # Have bonny create a quest
+    assert_created(
+        client.create(
+            "/quests",
+            creator="bonny@example.com",
+            eventTypeId=1,
+            description="This is a quest not so almighty",
+            hostnames=["example", "sample", "test"]
+        ),
+        "/api/v1/quests/2"
+    )
+
+    assert_success(
+        client.get("/quests"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalQuests": 2
+        },
+        strip=["quests"]
+    )
+
+    quest_1 = client.get("/quests?hostnames=example,test").json()
+    quest_2 = client.get("/quests?hostnames=sample").json()
+
+    assert len(quest_1['quests']) == 1
+    assert quest_1['quests'][0]['id'] == 2
+    assert len(quest_2['quests']) == 2
+    assert quest_2['quests'][0]['id'] == 1
+    assert quest_2['quests'][1]['id'] == 2
+
+    assert_success(
+        client.get("/quests?hostnames=not-a-server"),
         {
             "limit": 10,
             "offset": 0,

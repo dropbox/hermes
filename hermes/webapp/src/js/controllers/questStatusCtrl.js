@@ -6,6 +6,7 @@
 
         vm.errorMessage = null;
         vm.filterByCreator = null;
+        vm.queryInput = null;
 
         vm.questData = null;
         vm.selectedQuest = null;
@@ -22,6 +23,10 @@
         vm.getOpenQuests = getOpenQuests;
         vm.newQuestSelection = newQuestSelection;
         vm.goToCreatePage = goToCreatePage;
+
+        if ($routeParams.byQuery) {
+            vm.queryInput = $routeParams.byQuery;
+        }
 
         // if user passed a filter-by-creator query param, that takes precedence.
         // otherwise, the default is to use the authenticate user
@@ -102,6 +107,13 @@
                 $location.search('byCreator', vm.filterByCreator, false);
             } else {
                 $location.search('byCreator', null, false);
+            }
+
+            if (vm.queryInput) {
+                options['filterByQuery'] = vm.queryInput;
+                $location.search('byFilter', vm.queryInput, false);
+            } else {
+                $location.search('byFilter', null, false);
             }
 
             hermesService.getOpenQuests(options).then(function (questData) {
