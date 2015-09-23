@@ -188,8 +188,6 @@ class ApiHandler(BaseHandler):
             API_VER
         )
 
-        logging.debug("Added headers")
-
     def not_supported(self):
         self.write({
             "status": "error",

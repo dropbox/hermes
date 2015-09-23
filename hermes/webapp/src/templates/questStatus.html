@@ -14,6 +14,16 @@
                             <input id="creatorFilter" type="text" ng-model="qc.filterByCreator" />
                         </form>
                     </div>
+                </div>
+                <div style="margin-top: 5px">
+                    <label for="queryFilter">Filter by query:</label>
+                </div>
+                <div class="row">
+                    <div class="col-md-10">
+                        <form ng-submit="qc.runNewFilter()">
+                            <input id="queryFilter" type="text" ng-model="qc.queryInput" />
+                        </form>
+                    </div>
                     <div class="col-md-2">
                         <button ng-click="qc.runNewFilter()">GO</button>
                     </div>

@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 
 EMAIL_REGEX = re.compile(r"[^@]+@[^@]+\.[^@]+")
 
+
 class HostsHandler(ApiHandler):
 
     def post(self):
@@ -1972,9 +1973,11 @@ class QuestsHandler(ApiHandler):
                 ],
             }
 
-        :query boolean filterClosed: if true, filter out completed Quests
-        :query boolean progressInfo: if true, include progress information
-        :query string byCreator: if set, filter the quests by a particular creator
+        :query boolean filterClosed: (*optional*) if true, filter out completed Quests
+        :query boolean progressInfo: (*optional*) if true, include progress information
+        :query string byCreator: (*optional*) if set, filter the quests by a particular creator
+        :query string hostnames: (*optional*) filter to quests that pertain to a particular host
+        :query string hostQuery: (*optional*) filter quests to those involving hosts returned by the external query
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
 
@@ -1984,11 +1987,35 @@ class QuestsHandler(ApiHandler):
         filter_closed = self.get_argument("filterClosed", None)
         progress_info = self.get_argument("progressInfo", None)
         by_creator = self.get_argument("byCreator", None)
+        hostnames = self.get_argument("hostnames", None)
+        host_query = self.get_argument("hostQuery", None)
+
+        if hostnames:
+            hostnames = hostnames.split(",")
+        else:
+            hostnames = []
+
+        if host_query:
+            response = PluginHelper.request_get(params={"query": host_query})
+            if (
+                response.status_code == 200
+                and response.json()["status"] == "ok"
+            ):
+                for hostname in response.json()["results"]:
+                    hostnames.append(hostname)
+            else:
+                raise exc.BadRequest("Bad host query: {}".format(host_query))
 
         # We used to sort in reverse embark time so that the default would be
         # to show the latest quests but we don't want to do that anymore
         # quests = self.session.query(Quest).order_by(desc(Quest.embark_time))
         quests = self.session.query(Quest).order_by(Quest.embark_time)
+
+        if hostnames:
+            quests = (
+                quests.join(Quest.labors).join(Labor.host)
+                .filter(Host.hostname.in_(hostnames))
+            ).group_by(Quest)
 
         if filter_closed:
             quests = quests.filter(Quest.completion_time == None)

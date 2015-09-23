@@ -148,6 +148,11 @@
             if (options['filterByCreator']) {
                 url += "&byCreator=" + options['filterByCreator'];
             }
+
+            if (options['filterByQuery']) {
+                url += "&hostQuery=" + options['filterByQuery'];
+            }
+
             return $http.get(url)
                 .then(getQuestsComplete)
                 .catch(getQuestsFailed);
