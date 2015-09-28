@@ -107,19 +107,19 @@
             var url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes";
 
             if (options['filterByOwner']) {
-                url += "&userQuery=" + options['filterByOwner'];
+                url += "&userQuery=" + encodeURIComponent(options['filterByOwner']);
             }
 
             if (options['filterByQuery']) {
-                url += "&hostQuery=" + options['filterByQuery'];
+                url += "&hostQuery=" + encodeURIComponent(options['filterByQuery']);
             }
 
             if (options['filterByCategory']) {
-                url += "&category=" + options['filterByCategory']
+                url += "&category=" + encodeURIComponent(options['filterByCategory']);
             }
 
             if (options['filterByState']) {
-                url += "&state=" + options['filterByState']
+                url += "&state=" + encodeURIComponent(options['filterByState']);
             }
 
             return $http.get(url)
@@ -146,11 +146,11 @@
             var url = "/api/v1/quests?filterClosed=true&progressInfo=true&expand=hosts&expand=labors&limit=all";
 
             if (options['filterByCreator']) {
-                url += "&byCreator=" + options['filterByCreator'];
+                url += "&byCreator=" + encodeURIComponent(options['filterByCreator']);
             }
 
             if (options['filterByQuery']) {
-                url += "&hostQuery=" + options['filterByQuery'];
+                url += "&hostQuery=" + encodeURIComponent(options['filterByQuery']);
             }
 
             return $http.get(url)
@@ -486,7 +486,7 @@
          * @returns {*}
          */
         function runQuery(queryString) {
-            return $http.get("/api/v1/extquery?query=" + queryString)
+            return $http.get("/api/v1/extquery?query=" + encodeURIComponent(queryString))
                 .then(runQueryComplete)
                 .catch(runQueryFailed);
 
