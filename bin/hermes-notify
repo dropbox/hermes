@@ -1,0 +1,157 @@
+#!/usr/bin/env python
+
+import argparse
+import logging
+import textwrap
+
+import hermes
+from hermes.handlers.util import PluginHelper
+from hermes.models import get_db_session, get_db_engine, Session, Quest, Labor
+from hermes.settings import settings
+from hermes.util import email_message
+
+from sqlalchemy.exc import OperationalError
+
+sa_log = logging.getLogger("sqlalchemy.engine.base.Engine")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Hermes Web Service")
+    parser.add_argument("-c", "--config", default="/etc/hermes/server.yaml",
+                        help="Path to config file.")
+    parser.add_argument(
+        "-v", "--verbose", action="count", default=0,
+        help="Increase logging verbosity."
+    )
+    parser.add_argument(
+        "-q", "--quiet", action="count", default=0,
+        help="Decrease logging verbosity."
+    )
+    parser.add_argument(
+        "-V", "--version", action="version",
+        version="%%(prog)s %s" % hermes.__version__,
+        help="Display version information."
+    )
+    parser.add_argument(
+        "-p", "--port", type=int, default=None, help="Override port in config."
+    )
+    return parser.parse_args()
+
+def find_quest(quests, quest_id):
+    for quest in quests:
+        if quest.id == quest_id:
+            return quest
+
+    return None
+
+def main():
+
+    args = parse_args()
+    settings.update_from_config(args.config)
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG, format=settings.log_format)
+    elif args.quiet:
+        logging.basicConfig(level=logging.ERROR, format=settings.log_format)
+    else:
+        logging.basicConfig(level=logging.INFO, format=settings.log_format)
+
+    logging.info(
+        "Starting Hermes notification system"
+    )
+
+    # Connect to the database and get the open quests
+    db_engine = get_db_engine(settings.database)
+    Session.configure(bind=db_engine)
+    session = Session()
+    open_quests = Quest.get_open_quests(session)
+    open_labors = Labor.get_open_labors(session)
+
+    # get the list of all the hostnames that have open labors
+    hostnames = set()
+    for labor in open_labors:
+        hostnames.add(labor.host.hostname)
+
+    # get the owner information
+    try:
+        results = PluginHelper.request_post(
+            json_body={
+                "operation": "owners",
+                "hostnames": list(hostnames)
+            }
+        )
+        owners = results.json()['results']
+    except Exception as e:
+        logging.error("Failed to get host owners: " + e.message)
+
+    # get the tags for hosts
+    try:
+        results = PluginHelper.request_post(
+            json_body={
+                "operation": "tags",
+                "hostnames": list(hostnames)
+            }
+        )
+        tags = results.json()['results']
+    except Exception as e:
+        logging.error("Failed to get host tags: " + e.message)
+
+    # map the labors and quests to owners
+    info = {}
+    for labor in open_labors:
+        # FIXME we only map "required" labors -- is that the right approach?
+        if labor.creation_event.event_type.state != "required":
+            continue
+        if owners[labor.host.hostname] not in info:
+            info[owners[labor.host.hostname]] = {}
+
+        owner = info[owners[labor.host.hostname]]
+
+        quest_id = labor.quest_id if labor.quest else 0
+        if quest_id not in owner:
+            owner[quest_id] = []
+
+        owner[quest_id].append(labor.host.hostname)
+
+    # generate and send emails
+    for owner in info:
+        msg = (
+            "Hello {}:\n\nYou have open Hermes labors "
+            "which need to be addressed ASAP.\n\n".format(owner)
+        )
+
+        for quest_id in info[owner]:
+            quest = find_quest(open_quests, quest_id)
+            if quest:
+                msg += "  Quest {} created by {}:\n".format(
+                    quest_id, quest.creator
+                )
+                msg += "    \"{}\"\n".format(textwrap.fill(
+                    quest.description,
+                    width=60, subsequent_indent="    "
+                ))
+                msg += "    href: {}/v1/quests/{}\n\n".format(
+                    settings.frontend, quest_id
+                )
+            else:
+                msg += "  Labors not associated with a quest:\n\n"
+
+            for hostname in sorted(info[owner][quest_id]):
+                msg += "    {} ({})\n".format(
+                    hostname, (", ".join(tags[hostname]))
+                )
+
+            msg += "\n\n"
+
+        msg += (
+            "\nTo see more information or throw event "
+            "manually, please visit {}.".format(settings.frontend)
+        )
+
+        email_message(
+            "{}@{}".format(owner, settings.domain),
+            "Open Hermes labors need your attention", msg
+        )
+
+if __name__ == "__main__":
+    main()

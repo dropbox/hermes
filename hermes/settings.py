@@ -47,6 +47,7 @@ settings = Settings({
     "num_processes": 1,
     "database": None,
     "query_server": "http://localhost:5353/api/query",
+    "frontend": "https://hermes.company.net",
     "slack_webhook": None,
     "slack_proxyhost": None,
     "debug": False,
