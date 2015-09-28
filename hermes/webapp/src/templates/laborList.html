@@ -11,6 +11,9 @@
                             <input id="ownerFilter" type="text" ng-model="lsc.hostOwnerInput" />
                         </form>
                     </div>
+                    <div class="col-md-2">
+                        <img src="/img/remove_15.png" alt="Clear owner filter field" class="remove-img-button" ng-click="lsc.hostOwnerInput = ''" />
+                    </div>
                 </div>
                 <div style="margin-top: 5px">
                     <label for="queryFilter">Filter by query:</label>
@@ -20,6 +23,9 @@
                         <form ng-submit="lsc.runFilter()">
                             <input id="queryFilter" type="text" ng-model="lsc.queryInput" />
                         </form>
+                    </div>
+                    <div class="col-md-2">
+                        <img src="/img/remove_15.png" alt="Clear query filter field" class="remove-img-button" ng-click="lsc.queryInput = ''" />
                     </div>
                 </div>
                 <div style="margin-top: 5px">

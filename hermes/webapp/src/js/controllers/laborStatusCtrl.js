@@ -247,6 +247,11 @@
             for (var idx = parseInt(vm.offset);
                  idx < (parseInt(vm.offset) + parseInt(vm.limit));
                  idx++) {
+
+                if (idx >= vm.laborData.length) {
+                    break;
+                }
+
                 if (vm.selected.indexOf(vm.laborData[idx].id) == -1) {
                     vm.selected.push(vm.laborData[idx].id);
                 }
@@ -260,6 +265,11 @@
         function deselectAll() {
             for (var idx = parseInt(vm.offset);
                  idx < (parseInt(vm.offset) +  parseInt(vm.limit)); idx++) {
+
+                if (idx >= vm.laborData.length) {
+                    break;
+                }
+
                 var idy = vm.selected.indexOf(vm.laborData[idx].id);
                 if (idy != -1) {
                     vm.selected.splice(idy, 1);
