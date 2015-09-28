@@ -14,6 +14,9 @@
                             <input id="creatorFilter" type="text" ng-model="qc.filterByCreator" />
                         </form>
                     </div>
+                    <div class="col-md-2">
+                        <img src="/img/remove_15.png" alt="Clear owner filter field" class="remove-img-button" ng-click="qc.filterByCreator = ''" />
+                    </div>
                 </div>
                 <div style="margin-top: 5px">
                     <label for="queryFilter">Filter by query:</label>
@@ -23,6 +26,13 @@
                         <form ng-submit="qc.runNewFilter()">
                             <input id="queryFilter" type="text" ng-model="qc.queryInput" />
                         </form>
+                    </div>
+                    <div class="col-md-2">
+                        <img src="/img/remove_15.png" alt="Clear query filter field" class="remove-img-button" ng-click="qc.queryInput = ''" />
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 10px">
+                    <div class="col-md-10">
                     </div>
                     <div class="col-md-2">
                         <button ng-click="qc.runNewFilter()">GO</button>
