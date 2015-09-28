@@ -111,9 +111,9 @@
 
             if (vm.queryInput) {
                 options['filterByQuery'] = vm.queryInput;
-                $location.search('byFilter', vm.queryInput, false);
+                $location.search('byQuery', vm.queryInput, false);
             } else {
-                $location.search('byFilter', null, false);
+                $location.search('byQuery', null, false);
             }
 
             hermesService.getOpenQuests(options).then(function (questData) {
