@@ -28,6 +28,42 @@ def test_creation(sample_data1):
     assert fate.creation_event_type == event_type6
     assert fate.completion_event_type == event_type7
     assert fate.description == "New fate"
+    assert fate.for_creator is False
+    assert fate.for_owner is True
+
+    assert len(event_type6.auto_creates) == 1
+    assert event_type6.auto_creates[0] == fate
+    assert len(event_type6.auto_completes) == 0
+
+    assert len(event_type7.auto_creates) == 0
+    assert len(event_type7.auto_completes) == 1
+    assert event_type7.auto_completes[0] == fate
+
+
+def test_creation2(sample_data1):
+    event_types = sample_data1.query(EventType).all()
+    assert len(event_types) == 7
+
+    event_type6 = event_types[5]
+    event_type7 = event_types[6]
+
+    Fate.create(
+        sample_data1, event_type6, event_type7, for_creator=True,
+        for_owner=False, description="New fate"
+    )
+    sample_data1.commit()
+
+    fates = sample_data1.query(Fate).all()
+
+    # the total number of fates should be 5 now.  We care about the new one
+    assert len(fates) == 5
+    fate = fates[4]
+    assert fate.id == 5
+    assert fate.creation_event_type == event_type6
+    assert fate.completion_event_type == event_type7
+    assert fate.description == "New fate"
+    assert fate.for_creator is True
+    assert fate.for_owner is False
 
     assert len(event_type6.auto_creates) == 1
     assert event_type6.auto_creates[0] == fate
@@ -46,6 +82,19 @@ def test_duplicate(sample_data1):
         Fate.create(
             sample_data1, event_type4, event_type5, description="Dup fate",
             follows_id=2
+        )
+
+
+def test_designation_constraint(sample_data1):
+    """Fates must be set to for_owner or for_creator or both"""
+
+    event_type1 = sample_data1.query(EventType).get(1)
+    event_type5 = sample_data1.query(EventType).get(5)
+
+    with pytest.raises(exc.ValidationError):
+        Fate.create(
+            sample_data1, event_type1, event_type5, description="Wrong fate",
+            for_creator=False, for_owner=False, follows_id=2
         )
 
 

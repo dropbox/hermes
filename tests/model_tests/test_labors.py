@@ -39,6 +39,7 @@ def test_lifecycle1(sample_data1):
     assert labors[0].completion_time is None
     assert labors[0].completion_event is None
     assert labors[0].creation_event == event
+    assert labors[0].for_creator is False
     assert len(host.labors) == 1
     assert len(event.created_labors) == 1
     assert len(event.completed_labors) == 0
@@ -60,6 +61,7 @@ def test_lifecycle1(sample_data1):
     assert len(labors) == 1
     assert labors[0].completion_time is not None
     assert labors[0].completion_event == event
+    assert labors[0].for_creator is False
     assert len(event.created_labors) == 0
     assert len(event.completed_labors) == 1
 
@@ -81,7 +83,6 @@ def test_lifecycle_simple2(sample_data1):
     event_a = sample_data1.query(EventType).get(1)
     event_d = sample_data1.query(EventType).get(4)
 
-
     # Throw event A
     Event.create(sample_data1, host, "system", event_a)
 
@@ -98,6 +99,7 @@ def test_lifecycle_simple2(sample_data1):
     assert labors[0].completion_time is None
     assert labors[0].completion_event is None
     assert labors[0].creation_event == event
+    assert labors[0].for_creator is False
     assert len(host.labors) == 1
     assert len(event.created_labors) == 1
     assert len(event.completed_labors) == 0
@@ -120,6 +122,7 @@ def test_lifecycle_simple2(sample_data1):
     assert len(labors) == 1
     assert labors[0].completion_time is not None
     assert labors[0].completion_event == event
+    assert labors[0].for_creator is False
     assert len(event.created_labors) == 0
     assert len(event.completed_labors) == 1
 
@@ -162,8 +165,10 @@ def test_lifecycle_complex2(sample_data1):
     assert len(labors) == 2
     assert labors[0].completion_time is None
     assert labors[0].completion_event is None
+    assert labors[0].for_creator is False
     assert labors[1].completion_time is None
     assert labors[1].completion_event is None
+    assert labors[1].for_creator is False
 
     # Throw event B
     Event.create(
@@ -182,8 +187,10 @@ def test_lifecycle_complex2(sample_data1):
     assert len(labors) == 2
     assert labors[0].completion_time is not None
     assert labors[0].completion_event is not None
+    assert labors[0].for_creator is False
     assert labors[1].completion_time is None
     assert labors[1].completion_event is None
+    assert labors[1].for_creator is False
 
     labors = Labor.get_open_labors(sample_data1).all()
     assert len(labors) == 1
@@ -218,6 +225,7 @@ def test_acknowledge(sample_data1):
     assert labors[0].ack_time is None
     assert labors[0].ack_user is None
     assert labors[0].creation_event == event
+    assert labors[0].for_creator is False
 
     labors[0].acknowledge("testman")
 
@@ -228,6 +236,7 @@ def test_acknowledge(sample_data1):
     assert labors[0].ack_time is not None
     assert labors[0].ack_user == "testman"
     assert labors[0].creation_event == event
+    assert labors[0].for_creator is False
 
     labors = Labor.get_open_unacknowledged(sample_data1)
     assert len(labors) == 0
@@ -289,6 +298,7 @@ def test_longer_chain(sample_data2):
     assert len(labors) == 1
     assert len(host.labors) == 1
     assert labors[0].starting_labor_id is None
+    assert labors[0].for_creator is False
     starting_labor_id = labors[0].id
 
     event_b = Event.create(sample_data2, host, "system", event_type_b)
@@ -296,12 +306,14 @@ def test_longer_chain(sample_data2):
     assert len(labors) == 1
     assert len(host.labors) == 2
     assert labors[0].starting_labor_id == starting_labor_id
+    assert labors[0].for_creator is True
 
     event_c = Event.create(sample_data2, host, "system", event_type_c)
     labors = Labor.get_open_unacknowledged(sample_data2)
     assert len(labors) == 1
     assert len(host.labors) == 3
     assert labors[0].starting_labor_id == starting_labor_id
+    assert labors[0].for_creator is False
 
     # This last event closes the final labor but does not create a new labor
     event_d = Event.create(sample_data2, host, "system", event_type_d)

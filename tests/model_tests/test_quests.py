@@ -138,7 +138,7 @@ def test_creation_without_target(sample_data1):
     assert quests[0].completion_time is None
     assert quests[0].description == "Embark on the long road of maintenance"
     assert quests[0].creator == "testman"
-    assert quests[0].target_time == None
+    assert quests[0].target_time is None
     assert len(quests[0].labors) == 2
 
     labors = Labor.get_open_unacknowledged(sample_data1)
@@ -361,6 +361,14 @@ def test_complex_chaining1(sample_data2):
 
     assert labor1.host == hosts[0]
     assert labor2.host == hosts[1]
+    # True b/c of Fate #2
+    assert labor1.for_owner is True
+    # True b/c of Fate #4
+    assert labor1.for_creator is True
+    # True b/c of Fate #2
+    assert labor2.for_owner is True
+    # True b/c of Fate #4
+    assert labor2.for_creator is True
     assert labor1.creation_event == event1
     assert labor2.creation_event == event2
 
@@ -514,6 +522,8 @@ def test_complex_chaining3(sample_data2):
     assert bravo_quest
     assert charlie_quest
     assert len(bravo_quest.labors) == 1
+    assert bravo_quest.get_open_labors().all()[0].for_owner is True
+    assert bravo_quest.get_open_labors().all()[0].for_creator is False
     assert len(charlie_quest.labors) == 1
     assert bravo_quest.completion_time is None
     assert charlie_quest.completion_time is None
@@ -528,6 +538,10 @@ def test_complex_chaining3(sample_data2):
     )
     assert bravo_quest.get_open_labors().all()[0].creation_event == event1
     assert bravo_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[0].id
+    # True b/c of Fate #2
+    assert bravo_quest.get_open_labors().all()[0].for_owner is True
+    # True b/c of Fate #4
+    assert bravo_quest.get_open_labors().all()[0].for_creator is True
     assert len(bravo_quest.labors) == 2
 
     # Now we progress the bravo quest again by throwing sys-maint-ready
@@ -538,6 +552,8 @@ def test_complex_chaining3(sample_data2):
     )
     assert bravo_quest.get_open_labors().all()[0].creation_event == event1b
     assert bravo_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[0].id
+    assert bravo_quest.get_open_labors().all()[0].for_owner is True
+    assert bravo_quest.get_open_labors().all()[0].for_creator is False
     assert len(bravo_quest.labors) == 3
 
     # Now we progress the charlie quest with the system-reboot-completed event
