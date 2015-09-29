@@ -508,10 +508,15 @@ class Fate(Model):
         follows: indicates that this Fate only comes into affect if fulfilling
             the Fate with this specified id
         precedes: indicates which Fates are chained to come after this Fate
+        for_creator: if true, the labor created will be designated for the quest creator
+        for_owner: if true, the labor creator will be designated for the server owner
         description: the optional human readable description of this Fate
         _all_fates: cached list of all Fates
         _intermediate_fates = cached list of all intermediate Fates (Fates that follow other Fates)
         _starting_fates = cached list of all non-intermediate Fates
+
+    Notes:
+        A Fate can create a Labor can be designated for both the server owner and the quest owner
     """
 
     __tablename__ = "fates"
@@ -544,6 +549,9 @@ class Fate(Model):
         "Fate", lazy="joined", backref="precedes", remote_side=[id]
     )
 
+    for_creator = Column(Boolean, nullable=False, default=False)
+    for_owner = Column(Boolean, nullable=False, default=True)
+
     description = Column(String(2048), nullable=True)
     __table_args__ = (
         UniqueConstraint(
@@ -563,7 +571,7 @@ class Fate(Model):
     def create(
             cls, session,
             creation_event_type, completion_event_type, follows_id=None,
-            description=None
+            for_creator=False, for_owner=True, description=None
     ):
         """Create a Fate
 
@@ -573,6 +581,8 @@ class Fate(Model):
             completion_event_type: an EventType that will trigger
                 an labor completion
             follows_id: id of the Fate this new Fate will follow; None if non-intermediate
+            for_creator: if true, Fate will create labors for the quest creator
+            for_owner: if true, Fate will create labors for the server owner
             description: optional description for display
 
         Returns:
@@ -596,11 +606,19 @@ class Fate(Model):
                     "EventType for the preceding Fate do not match"
                 )
 
+        if not for_creator and not for_owner:
+            raise exc.ValidationError(
+                "Fate must designate labors for the machine owner, "
+                "quest creator, or both."
+            )
+
         try:
             obj = cls(
                 creation_event_type=creation_event_type,
                 completion_event_type=completion_event_type,
                 follows_id=follows_id,
+                for_creator=for_creator,
+                for_owner=for_owner,
                 description=description
             )
             obj.add(session)
@@ -635,7 +653,9 @@ class Fate(Model):
                 "follows_id": fate.follows_id,
                 "precedes_ids": [
                     linked_fate.id for linked_fate in fate.precedes
-                ]
+                ],
+                "for_creator": fate.for_creator,
+                "for_owner": fate.for_owner
             }
             Fate._all_fates.append(fate_dict)
             if fate.follows_id:
@@ -748,7 +768,9 @@ class Fate(Model):
                     new_labor_dict = {
                         "host_id": host.id,
                         "creation_event_id": event.id,
-                        "quest_id": quest.id if quest else None
+                        "quest_id": quest.id if quest else None,
+                        "for_creator": fate["for_creator"],
+                        "for_owner": fate["for_owner"]
                     }
                     if new_labor_dict not in all_new_labors:
                         all_new_labors.append(new_labor_dict)
@@ -781,8 +803,15 @@ class Fate(Model):
                             # Since this Fate closes this Labor, let's see
                             # if this Fate also precedes other Fates.  If so,
                             # we can make the assumption that a new Labor
-                            # should be created
+                            # should be created.  We will examine those
+                            # subsequent labors to see if the labor should be
+                            # for the quest creator, server owner, or both.
                             if fate["precedes_ids"]:
+                                designations = Fate.get_designations(
+                                    all_fates,
+                                    fate['precedes_ids']
+                                )
+
                                 new_labor_dict = {
                                     "host_id": host.id,
                                     "starting_labor_id": (
@@ -793,7 +822,9 @@ class Fate(Model):
                                     "creation_event_id": event.id,
                                     "quest_id": (
                                         labor.quest.id if labor.quest else None
-                                    )
+                                    ),
+                                    "for_creator": designations["for_creator"],
+                                    "for_owner": designations["for_owner"],
                                 }
                                 if new_labor_dict not in all_new_labors:
                                     all_new_labors.append(new_labor_dict)
@@ -805,6 +836,21 @@ class Fate(Model):
             Labor.achieve_many(session, all_achieved_labors)
         session.flush()
         session.commit()
+
+    @classmethod
+    def get_designations(cls, fates, ids):
+        for_owner = False
+        for_creator = False
+
+        for fate in fates:
+            if fate["id"] in ids:
+                for_owner = for_owner or fate["for_owner"]
+                for_creator = for_creator or fate["for_creator"]
+
+        return {
+            "for_owner": for_owner,
+            "for_creator": for_creator
+        }
 
     def href(self, base_uri):
         """Create an HREF value for this object
@@ -839,6 +885,8 @@ class Fate(Model):
             "completionEventTypeId": self.completion_type_id,
             "follows_id": self.follows_id,
             "precedes_ids": [labor.id for labor in self.precedes],
+            "for_creator": self.for_creator,
+            "for_owner": self.for_owner,
             "description": self.description,
         }
 
@@ -1356,6 +1404,8 @@ class Labor(Model):
         starting_labor_id: the database id of the labor that started chain of intermediate labors
         quest: the Quest to this this Labor belongs
         host: the Host to which this Labor pertains
+        for_creator: if true, the labor will be designated for the quest creator
+        for_labor: if true, the labor is designate for the server owner
         creation_time: when this Labor was created
         ack_time: when this Labor was acknowledged
         ack_user: the user who acknowledged the Labor
@@ -1366,38 +1416,55 @@ class Labor(Model):
     Notes:
         the user field is for auditing purposes only.  It is not enforced or
         validated in any way.
+        A Labor can be designated for both the server owner and the Quest owner
     """
 
     __tablename__ = "labors"
 
     id = Column(Integer, primary_key=True)
+
     starting_labor_id = Column(Integer, nullable=True, index=True)
+
     quest_id = Column(
         Integer, ForeignKey("quests.id"), nullable=True, index=True
     )
+
     quest = relationship(Quest, lazy="joined", backref="labors")
+
     host_id = Column(
         Integer, ForeignKey("hosts.id"), nullable=False, index=True
     )
+
     host = relationship(
         Host, lazy="joined", backref="labors"
     )
+
+    for_creator = Column(Boolean, nullable=False, default=False)
+    for_owner = Column(Boolean, nullable=False, default=True)
+
     creation_time = Column(
         DateTime, default=datetime.utcnow, nullable=False, index=True
     )
+
     ack_time = Column(DateTime, nullable=True)
+
     ack_user = Column(String(64), nullable=True)
+
     completion_time = Column(DateTime, nullable=True)
+
     creation_event_id = Column(
         Integer, ForeignKey("events.id"), nullable=False, index=True
     )
+
     creation_event = relationship(
         Event, lazy="joined", backref="created_labors",
         foreign_keys=[creation_event_id]
     )
+
     completion_event_id = Column(
         Integer, ForeignKey("events.id"), nullable=True, index=True
     )
+
     completion_event = relationship(
         Event, lazy="joined", backref="completed_labors",
         foreign_keys=[completion_event_id]
@@ -1568,6 +1635,8 @@ class Labor(Model):
             "startingLaborId": self.starting_labor_id,
             "questId": self.quest_id,
             "hostId": self.host_id,
+            "for_creator": self.for_creator,
+            "for_owner": self.for_owner,
             "creationTime": str(self.creation_time),
             "creationEventId": self.creation_event_id,
             "completionTime": (

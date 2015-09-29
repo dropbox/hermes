@@ -13,6 +13,25 @@ def test_malformed(sample_data1_server):
     assert_error(client.post("/fates", data="Non-JSON"), 400)
 
 
+def test_bad_creation(sample_data1_server):
+    """Fate's must be either set to for_owner, for_creator, or both"""
+    client = sample_data1_server
+    assert_error(
+        client.post(
+            "/fates",
+            data={
+                "creationEventTypeId": 6,
+                "completionEventTypeId": 7,
+                "for_owner": False,
+                "for_creator": False,
+                "precedes_ids": [],
+                "description":"New fate"
+            }
+        ),
+        400
+    )
+
+
 def test_creation(sample_data1_server):
     client = sample_data1_server
     assert_success(
@@ -43,6 +62,8 @@ def test_creation(sample_data1_server):
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "follows_id": None,
+            "for_owner": True,
+            "for_creator": False,
             "precedes_ids": [],
             "description": "New fate"
         }
@@ -68,6 +89,8 @@ def test_update(sample_data1_server):
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "follows_id": None,
+            "for_owner": True,
+            "for_creator": False,
             "precedes_ids": [],
             "description": "New fate"
         }
@@ -83,6 +106,8 @@ def test_update(sample_data1_server):
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "follows_id": 1,
+            "for_owner": True,
+            "for_creator": False,
             "precedes_ids": [],
             "description": "New fate"
         }
@@ -98,6 +123,8 @@ def test_update(sample_data1_server):
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "follows_id": 1,
+            "for_owner": True,
+            "for_creator": False,
             "precedes_ids": [],
             "description": "New desc"
         }
@@ -114,6 +141,8 @@ def test_update(sample_data1_server):
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "follows_id": None,
+            "for_owner": True,
+            "for_creator": False,
             "precedes_ids": [],
             "description": "Another desc"
         }
@@ -126,6 +155,8 @@ def test_update(sample_data1_server):
             "creationEventTypeId": 6,
             "completionEventTypeId": 7,
             "follows_id": None,
+            "for_owner": True,
+            "for_creator": False,
             "precedes_ids": [],
             "description": "Another desc"
         }

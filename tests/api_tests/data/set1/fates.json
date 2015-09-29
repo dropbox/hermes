@@ -13,6 +13,8 @@
     "creationEventTypeId": 4,
     "completionEventTypeId": 5,
     "follows_id": 2,
+    "for_creator": true,
+    "for_owner": false,
     "description": "Maintenance must be performed on a system that is prepped."
   }
 }

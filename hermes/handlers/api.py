@@ -1185,6 +1185,7 @@ class FatesHandler(ApiHandler):
                 "completionEventTypeId": 2,
                 "description": "This is a fate",
                 "follows_id": 1,
+                "for_creator": true,
             }
 
         **Example response:**
@@ -1201,6 +1202,7 @@ class FatesHandler(ApiHandler):
                 "creationEventTypeId": 1,
                 "completionEventTypeId": 2,
                 "follows": 1,
+                "for_creator": true,
                 "description": "This is a fate"
             }
 
@@ -1224,6 +1226,8 @@ class FatesHandler(ApiHandler):
             creation_event_type_id = self.jbody["creationEventTypeId"]
             completion_event_type_id = self.jbody["completionEventTypeId"]
             follows_id = self.jbody.get("follows_id")
+            for_creator = self.jbody.get("for_creator", False)
+            for_owner = self.jbody.get("for_owner", True)
             description = self.jbody["description"]
         except KeyError as err:
             raise exc.BadRequest(
@@ -1251,7 +1255,9 @@ class FatesHandler(ApiHandler):
         try:
             fate = Fate.create(
                 self.session, creation_event_type, completion_event_type,
-                follows_id=follows_id, description=description
+                follows_id=follows_id, for_creator=for_creator,
+                for_owner=for_owner,
+                description=description
             )
         except IntegrityError as err:
             raise exc.Conflict(err.orig.message)
@@ -1293,6 +1299,7 @@ class FatesHandler(ApiHandler):
                         "creationEventTypeId": 1,
                         "completionEventType": 2,
                         "follows_id": null,
+                        "for_creator": 0,
                         "precedes_ids": [3, 5],
                         "description": "This is a fate",
                     },
@@ -1352,7 +1359,9 @@ class FateHandler(ApiHandler):
                 "href": "/api/v1/fates/1",
                 "creationEventTypeId": 1,
                 "completionEventType": 2,
-                "intermediate": true|false,
+                "follows_id": null,
+                "for_creator": false,
+                "for_owner": true,
                 "description": string,
             }
 
@@ -1404,6 +1413,8 @@ class FateHandler(ApiHandler):
                 "creationEventTypeId": 1,
                 "completionEventType": 2,
                 "follows_id": 1,
+                "for_creator": false,
+                "for_owner": true
                 "description": "New desc"
             }
 
@@ -1484,6 +1495,8 @@ class LaborsHandler(ApiHandler):
                         "id": 23,
                         "startingLaborId": null,
                         "href": "/api/v1/labors/23",
+                        "for_owner": false,
+                        "for_creator": true,
                         "questId": 5,
                         "hostId": 26,
                         "creationTime": timestamp,
@@ -1656,6 +1669,8 @@ class LaborHandler(ApiHandler):
                 "startingLaborId": null,
                 "questId": 5,
                 "hostId": 26,
+                "for_creator": true,
+                "for_owner": false,
                 "creationTime": timestamp,
                 "targetTime": timestamp,
                 "ackTime": timestamp,
