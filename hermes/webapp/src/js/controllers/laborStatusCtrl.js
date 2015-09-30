@@ -151,6 +151,19 @@
             getOpenLabors();
         }
 
+        function laborSorter(labor1, labor2) {
+            var a = parseInt(labor1.questId) || 0;
+            var b = parseInt(labor2.questId) || 0;
+
+            if (a < b) {
+                return -1;
+            } else if (a > b) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+
         function getOpenLabors() {
             vm.errorMessage = null;
             vm.selected = [];
@@ -181,7 +194,7 @@
                     return;
                 }
 
-                vm.laborData = data['labors'];
+                vm.laborData = data['labors'].sort(laborSorter);
                 vm.limit = data['limit'] || vm.limit;
                 vm.offset = data['offset'] || vm.offset;
                 vm.totalLabors = data['totalLabors'] || vm.totalLabors;

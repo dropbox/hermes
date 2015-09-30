@@ -64,6 +64,10 @@ button:hover {
     box-shadow: 2px 2px 3px #25282b;
 }
 
+button:disabled {
+    opacity: 0.6;
+}
+
 .big-wide-button {
     font-size: 1.5em;
     font-weight: bold;
@@ -181,7 +185,7 @@ button:hover {
     -webkit-border-radius: 5px 5px 5px 5px;
     -moz-border-radius: 5px 5px 5px 5px;
     border-radius: 5px 5px 5px 5px;
-    border: #fce897 solid 1px;
+    /*border: #fce897 solid 1px;*/
 }
 
 
@@ -419,7 +423,7 @@ button:hover {
     -webkit-border-radius: 5px 5px 5px 5px;
     -moz-border-radius: 5px 5px 5px 5px;
     border-radius: 5px 5px 5px 5px;
-    border: #fce897 solid 1px;
+    /*border: #fce897 solid 1px;*/
 }
 
 .labor-left-panel h1 {
@@ -476,26 +480,56 @@ button:hover {
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
-    border: 1px solid #e0e5ea;
-    padding: 5px;
+    /*border: 1px solid #e0e5ea;*/
+    padding: 10px;
     margin-bottom: 10px;
-    background: #ffffff;
+    background: #fff5cc;
     opacity: 1;
+    clear: both;
+    overflow: auto;
+}
+
+.labor-list-wrapper .labor-actions span {
+    display: inline-block;
+    margin-left: 20px;
+    padding: 0px;
+}
+
+.labor-list-wrapper .labor-actions button {
+    margin-top: 1px;
+}
+
+.labor-list-wrapper .labor-actions button:not(:first-child) {
+    margin-left: 5px;
 }
 
 .labor-list-wrapper .labor-actions.disabled {
     opacity: 0.5;
 }
 
-.labor-list-wrapper .labor-select-toggles {
-    clear: both;
-    overflow: auto;
-    margin-bottom: 5px;
-    padding-bottom: 8px;
+.labor-list-row.ng-enter {
+    transition: 0.15s ease-out all;
+    margin-top: -20px;
+    opacity: 0;
 }
 
-.labor-list-wrapper .labor-select-toggles button:not(:first-child) {
-    margin-left: 5px;
+.labor-list-row.ng-enter-active {
+    opacity: 1;
+    margin-top: 0px;
+}
+
+.labor-list-row.ng-enter-stagger {
+    -webkit-transition-delay: 0.05s;
+    -moz-transition-delay: 0.05s;
+    -ms-transition-delay: 0.05s;
+    -o-transition-delay: 0.05s;
+    transition-delay: 0.05s;
+
+    -webkit-transition-duration: 0s;
+    -moz-transition-duration: 0s;
+    -ms-transition-duration: 0s;
+    -o-transition-duration: 0s;
+    transition-duration: 0s;
 }
 
 .labor-list-wrapper .labor-entry {
@@ -509,17 +543,29 @@ button:hover {
     padding: 2px;
 
     overflow: auto;
+
+    -webkit-transition: 0.15s ease-in all;
+    -moz-transition: 0.15s ease-in all;
+    -ms-transition: 0.15s ease-in all;
+    -o-transition: 0.15s ease-in all;
+    transition: 0.15s ease-in all;
 }
 
 .labor-list-wrapper .labor-entry:hover {
-    -webkit-box-shadow: 0 0 5px 0px #7b8994;
-    -moz-box-shadow: 0 0 5px 0px #7b8994;
-    box-shadow: 0 0 5px 0px #7b8994;
+    -webkit-box-shadow: 2px 2px 5px 0px #7b8994;
+    -moz-box-shadow: 2px 2px 5px 0px #7b8994;
+    box-shadow: 2px 2px 5px 0px #7b8994;
     cursor: pointer;
 }
 
 .labor-list-wrapper .labor-entry.selected {
     background: #72b6ec;
+
+    -webkit-transition: 0.15s ease-in all;
+    -moz-transition: 0.15s ease-in all;
+    -ms-transition: 0.15s ease-in all;
+    -o-transition: 0.15s ease-in all;
+    transition: 0.15s ease-in all;
 }
 
 .labor-list-wrapper .labor-entry .row {
@@ -529,14 +575,14 @@ button:hover {
 .labor-list-wrapper .labor-entry .hostname {
     font-size: 1.0em;
     font-weight: bold;
-    padding: 2px 10px;
+    padding: 2px 5px;
     -webkit-border-radius: 5px 0px 0px 0px;
     -moz-border-radius: 5px 0px 0px 0px;
     border-radius: 5px 0px 0px 0px;
 }
 
 .labor-list-wrapper .labor-entry .labor-type {
-    padding: 2px 10px;
+    padding: 2px 5px;
     text-align: right;
     font-size: 1.0em;
     -webkit-border-radius: 0px 5px 0px 0px;
@@ -546,13 +592,13 @@ button:hover {
 
 .labor-list-wrapper .labor-entry .info-panel {
     padding: 5px;
-    font-size: 0.9em;
+    font-size: 0.8em;
 }
 
 .labor-list-wrapper .labor-entry .info-panel ul {
     display: block;
-    margin: 2px 0px;
-    padding: 5px;
+    margin: 0px;
+    padding: 0px;
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
@@ -561,22 +607,46 @@ button:hover {
 
 .labor-list-wrapper .labor-entry .info-panel li {
     display: inline-block;
-    padding: 2px 5px;
+    padding: 0;
+    margin-right: 5px;
 }
 
-.labor-list-wrapper .labor-entry .info-panel .label {
-    padding-left: 5px;
+.labor-list-wrapper .labor-entry .info-panel .label-holder {
+    float: left;
+    margin: 7px 5px 5px 0px;
     font-size: 1em;
     font-weight: bold;
     color: #000000;
-    margin-bottom: 4px;
 }
 
 .labor-list-wrapper .labor-entry .info-panel .details {
+    overflow: hidden;
     margin: 2px 0px;
     padding: 5px;
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
     background: #ffffff;
+}
+
+.labor-list-wrapper .quest-info {
+    margin: 10px 0px;
+    padding: 10px;
+    /*border-top: 8px solid #d0d4d9;*/
+    /*border-bottom: 8px solid #d0d4d9;*/
+}
+
+.labor-list-wrapper .quest-info .title {
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.labor-list-wrapper .quest-info .info {
+    text-align: center;
+    font-size: 0.8em;
+}
+
+.labor-list-wrapper .quest-info .details {
+    padding: 20px 10px 0px 10px;
 }
