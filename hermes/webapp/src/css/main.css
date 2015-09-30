@@ -255,6 +255,31 @@ button:disabled {
     background: #fffdec;
 }
 
+.quest-list-entry.ng-enter {
+    transition: 0.15s ease-out all;
+    margin-top: -20px;
+    opacity: 0;
+}
+
+.quest-list-entry.ng-enter-active {
+    opacity: 1;
+    margin-top: 0px;
+}
+
+.quest-list-entry.ng-enter-stagger {
+    -webkit-transition-delay: 0.05s;
+    -moz-transition-delay: 0.05s;
+    -ms-transition-delay: 0.05s;
+    -o-transition-delay: 0.05s;
+    transition-delay: 0.05s;
+
+    -webkit-transition-duration: 0s;
+    -moz-transition-duration: 0s;
+    -ms-transition-duration: 0s;
+    -o-transition-duration: 0s;
+    transition-duration: 0s;
+}
+
 .quest-details {
     padding: 20px 0px 20px 0px;
 }

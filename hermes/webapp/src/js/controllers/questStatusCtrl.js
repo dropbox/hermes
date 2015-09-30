@@ -4,6 +4,8 @@
     function QuestStatusCtrl(hermesService, $q, $routeParams, $location) {
         var vm = this;
 
+        vm.initialized = false;
+
         vm.errorMessage = null;
         vm.filterByCreator = null;
         vm.queryInput = null;
@@ -24,22 +26,25 @@
         vm.newQuestSelection = newQuestSelection;
         vm.goToCreatePage = goToCreatePage;
 
-        if ($routeParams.byQuery) {
-            vm.queryInput = $routeParams.byQuery;
-        }
+        if (!vm.initialized) {
+            vm.initialized = true;
+            if ($routeParams.byQuery) {
+                vm.queryInput = $routeParams.byQuery;
+            }
 
-        // if user passed a filter-by-creator query param, that takes precedence.
-        // otherwise, the default is to use the authenticate user
-        if ($routeParams.byCreator) {
-            vm.filterByCreator = $routeParams.byCreator;
-            getOpenQuests();
-        } else {
-            hermesService.getCurrentUser().then(function(user){
-                if (user) {
-                    vm.filterByCreator = user;
-                }
+            // if user passed a filter-by-creator query param, that takes precedence.
+            // otherwise, the default is to use the authenticate user
+            if ($routeParams.byCreator) {
+                vm.filterByCreator = $routeParams.byCreator;
                 getOpenQuests();
-            });
+            } else {
+                hermesService.getCurrentUser().then(function (user) {
+                    if (user) {
+                        vm.filterByCreator = user;
+                    }
+                    getOpenQuests();
+                });
+            }
         }
 
 
@@ -95,6 +100,8 @@
         function runNewFilter() {
             $routeParams.questId = null;
             vm.offset = 0;
+            vm.questData = null;
+            vm.selectedQuest= null;
             getOpenQuests();
         }
 
@@ -168,7 +175,7 @@
             ]).then(function(data) {
                 vm.hostOwners = data[0];
                 vm.selectedQuestDetails = data[1];
-                $location.update_path('/v1/quests/' + quest.id, true);
+                $location.path('/v1/quests/' + quest.id, false);
                 analyzeLabors(data[0], data[1]);
             });
         }
@@ -205,8 +212,6 @@
             vm.types = {};
             for (var idx in laborsUnique) {
                 var hostname = laborsUnique[idx]['host']['hostname'];
-                var owner = null;
-
                 var owner = ownerData[hostname];
                 var creator = questData['creator'];
                 var forOwner = laborsUnique[idx]['forOwner'];
