@@ -1514,7 +1514,7 @@ class LaborsHandler(ApiHandler):
         :query string hostname: (*optional*) filter Labors by a particular hostname
         :query string startingLaborId: (*optional*) get Labors by the Id or the Id of the starting labor
         :query string hostQuery: (*optional*) the query to send to the plugin to come up with the list of hostnames
-        :query string userQuery: (*optional*) the user query to send to the plugin to come up with the list of hostnames
+        :query string userQuery: (*optional*) get labors for machines ownen by this user or for which this user is responsible
         :query string category: (*optional*) limit labors to ones where the starting event type is of this category
         :query string state: (*optional*) limit labors to ones where the starting event type is of this state
         :query boolean open: if true, filter Labors to those still open
@@ -1537,8 +1537,10 @@ class LaborsHandler(ApiHandler):
 
         labors = self.session.query(Labor)
 
+        # if filtering by category or state, find the event types that match
+        # these conditions and add them to the query
         if category or state:
-            event_types = self.session.query(EventType);
+            event_types = self.session.query(EventType)
             if category:
                 event_types = event_types.filter(
                     EventType.category == category
@@ -1552,6 +1554,7 @@ class LaborsHandler(ApiHandler):
                 EventType.id.in_(valid_event_types)
             )
 
+        # if specifying to filter by open or closed state, add that to the query
         if open_flag and open_flag.lower() == "true":
             labors = labors.filter(Labor.completion_event_id == None)
         if open_flag and open_flag.lower() == "false":
@@ -1566,6 +1569,8 @@ class LaborsHandler(ApiHandler):
                 Labor.starting_labor_id == starting_labor_id
             ))
 
+        # if user wants to filter by a specific host, verify that the host is
+        # good and add that to the query
         if hostname is not None:
             try:
                 host = (
@@ -1581,6 +1586,8 @@ class LaborsHandler(ApiHandler):
                 .order_by(desc(Labor.creation_time))
             )
 
+        # if the user specified a host query, we need to translate that into a
+        # list of hostnames to use.
         host_query_hostnames = []
         if host_query:
             response = PluginHelper.request_get(params={"query": host_query})
@@ -1594,7 +1601,10 @@ class LaborsHandler(ApiHandler):
             else:
                 raise exc.BadRequest("Bad host query: {}".format(host_query))
 
+        # if the user wants to filter by user, let's first find the hostnames
+        # of machines the user would be responsible for
         user_query_hostnames = []
+        user_created_quests = []
         if user_query:
             response = PluginHelper.request_get(params={"user": user_query})
             if (
@@ -1606,25 +1616,57 @@ class LaborsHandler(ApiHandler):
             else:
                 raise exc.BadRequest("Bad user query: {}".format(user_query))
 
+            user_created_quests =[
+                quest.id for quest in
+                (
+                    self.session.query(Quest).filter(
+                        Quest.creator == user_query
+                    ).all()
+                )
+            ]
+
+        # since we may have used multiple ways to get hostname lists, compile
+        # into a final list of hostnames we care about
         hostnames = []
         if host_query and user_query:
-            hostnames = list(set(host_query_hostnames) & set(user_query_hostnames))
+            hostnames = list(
+                set(host_query_hostnames) & set(user_query_hostnames)
+            )
         elif host_query_hostnames:
             hostnames = host_query_hostnames
         elif user_query_hostnames:
-            hostnames = user_query_hostnames;
+            hostnames = user_query_hostnames
 
+        # if we are just doing a simple host_query, we can just filter by
+        # the hostnames we collected.  Otherwise, if we are doing a user_query
+        # we need not just hosts owned by the user, but also labors that belong
+        # to a quest creator that matches the user name
         if host_query or user_query:
-            if hostnames:
-                hosts = (
-                    self.session.query(Host).filter(
-                        Host.hostname.in_(hostnames)
-                    )
-                )
-                host_ids = [host.id for host in hosts]
-                labors = labors.filter(Labor.host_id.in_(host_ids))
-            else:
+            if not hostnames:
                 raise exc.BadRequest("Querying on 0 hosts")
+
+            hosts = (
+                self.session.query(Host).filter(
+                    Host.hostname.in_(hostnames)
+                )
+            )
+            host_ids = [host.id for host in hosts]
+            if not user_query:
+                labors = labors.filter(and_(
+                    Labor.host_id.in_(host_ids),
+                    Labor.for_owner == 1
+                ))
+            elif hostnames and user_query:
+                labors = labors.filter(or_(
+                    and_(
+                        Labor.host_id.in_(host_ids),
+                        Labor.for_owner == 1
+                    ),
+                    and_(
+                        Labor.for_creator == 1,
+                        Labor.quest_id.in_(user_created_quests)
+                    )
+                ))
 
         offset, limit, expand = self.get_pagination_values()
         labors, total = self.paginate_query(labors, offset, limit)

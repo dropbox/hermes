@@ -186,7 +186,7 @@
                 vm.offset = data['offset'] || vm.offset;
                 vm.totalLabors = data['totalLabors'] || vm.totalLabors;
 
-                // find the quest requested and make that the selection
+                // find the labor requested and make that the selection
                 var index = 0;
                 for (var idx in vm.laborData) {
                     if (vm.laborData[idx]['id'] == $routeParams.laborId) {

@@ -200,44 +200,97 @@
                 }
             }
 
+            // sort the unique labors into a buckets based on the owner and labor type
             var sortedLabors = {};
             vm.types = {};
             for (var idx in laborsUnique) {
                 var hostname = laborsUnique[idx]['host']['hostname'];
-                var owner = ownerData[hostname];
+                var owner = null;
 
-                if (!sortedLabors[owner]) {
-                    sortedLabors[owner] = {}
+                var owner = ownerData[hostname];
+                var creator = questData['creator'];
+                var forOwner = laborsUnique[idx]['forOwner'];
+                var forCreator = laborsUnique[idx]['forCreator'];
+
+                if (forOwner && !sortedLabors[owner]) {
+                    sortedLabors[owner] = {};
                 }
-                var ownerLabors = sortedLabors[owner];
+
+                if (forCreator && !sortedLabors[creator]) {
+                    sortedLabors[creator] = {};
+                }
+
+                // if this labor is completed, we will file it by the complete event type
                 if (laborsUnique[idx]['completionEvent']) {
                     var completionEventType = laborsUnique[idx]['completionEvent']['eventType'];
                     var key = completionEventType['category'] + " " + completionEventType['state'];
+                    // update the count of labors by type
                     vm.types[key] ? vm.types[key]++ : vm.types[key] = 1;
-                    if (ownerLabors[key]) {
-                        ownerLabors[key]['count']++;
-                        ownerLabors[key]['hosts'].push(
-                            laborsUnique[idx]['host']['hostname']
-                        )
-                    } else {
-                        ownerLabors[key] = {
-                            'count': 1,
-                            'hosts': [laborsUnique[idx]['host']['hostname']]
+
+                    // sort into the bucket for this owner, if the labor is for the server owner
+                    if (forOwner) {
+                        if (sortedLabors[owner][key]) {
+                            sortedLabors[owner][key]['count']++;
+                            sortedLabors[owner][key]['hosts'].push(
+                                laborsUnique[idx]['host']['hostname']
+                            )
+                        } else {
+                            sortedLabors[owner][key] = {
+                                'count': 1,
+                                'hosts': [laborsUnique[idx]['host']['hostname']]
+                            }
                         }
                     }
-                } else {
+
+                    // sort into the bucket for the quest creator, if this labor is for the quest creator
+                    if (forCreator) {
+                        if (sortedLabors[creator][key]) {
+                            sortedLabors[creator][key]['count']++;
+                            sortedLabors[creator][key]['hosts'].push(
+                                laborsUnique[idx]['host']['hostname']
+                            )
+                        } else {
+                            sortedLabors[creator][key] = {
+                                'count': 1,
+                                'hosts': [laborsUnique[idx]['host']['hostname']]
+                            }
+                        }
+                    }
+
+                } else { // for incomplete labors, file by the creating event type
                     var creationEventType = laborsUnique[idx]['creationEvent']['eventType'];
-                    var key = creationEventType['category'] + " " + creationEventType['state']
+                    var key = creationEventType['category'] + " " + creationEventType['state'];
+
+                    // update the count of labors by type
                     vm.types[key] ? vm.types[key]++ : vm.types[key] = 1;
-                    if (ownerLabors[key]) {
-                        ownerLabors[key]['count']++;
-                        ownerLabors[key]['hosts'].push(
-                            laborsUnique[idx]['host']['hostname']
-                        )
-                    } else {
-                        ownerLabors[key] = {
-                            'count': 1,
-                            'hosts': [laborsUnique[idx]['host']['hostname']]
+
+                    // sort into the bucket for the server owner if the labor is for the owner
+                    if (forOwner) {
+                        if (sortedLabors[owner][key]) {
+                            sortedLabors[owner][key]['count']++;
+                            sortedLabors[owner][key]['hosts'].push(
+                                laborsUnique[idx]['host']['hostname']
+                            )
+                        } else {
+                            sortedLabors[owner][key] = {
+                                'count': 1,
+                                'hosts': [laborsUnique[idx]['host']['hostname']]
+                            }
+                        }
+                    }
+
+                    // sort into the bucket for the quest creator if the labor is designate for them
+                    if (forCreator) {
+                        if (sortedLabors[creator][key]) {
+                            sortedLabors[creator][key]['count']++;
+                            sortedLabors[creator][key]['hosts'].push(
+                                laborsUnique[idx]['host']['hostname']
+                            )
+                        } else {
+                            sortedLabors[creator][key] = {
+                                'count': 1,
+                                'hosts': [laborsUnique[idx]['host']['hostname']]
+                            }
                         }
                     }
                 }

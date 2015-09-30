@@ -103,20 +103,24 @@
                     <div class="row">
                         <div class="info-panel col-md-6">
                             <strong class="label">Tags:</strong>
-                            <div>
                                 <img ng-if="!lsc.hostTags" src="/img/loading_15.gif" alt="Tag information loading" />
                                 <ul ng-if="lsc.hostTags">
-                                    <li ng-repeat="tag in lsc.hostTags[labor.host.hostname]">
+                                    <li>
+                                        owner=<img ng-if="!lsc.hostOwners" src="/img/loading_15.gif" alt="Owner information loading" />
+                                        <span ng-if="lsc.hostOwners">{{lsc.hostOwners[labor.host.hostname]}}</span>
+                                    </li>
+                                    <li ng-repeat="tag in lsc.hostTags[labor.host.hostname] track by $index">
                                         {{tag}}
                                     </li>
                                 </ul>
-                            </div>
                         </div>
                         <div class="info-panel col-md-6">
-                            <strong class="label">Owner:</strong>
-                            <div class="details">
-                                <img ng-if="!lsc.hostOwners" src="/img/loading_15.gif" alt="Owner information loading" />
-                                <span ng-if="lsc.hostOwners">{{lsc.hostOwners[labor.host.hostname]}}</span>
+                            <strong class="label">Labor For:</strong>
+                            <div ng-if="labor.forOwner == true" class="details">
+                                Server Owner
+                            </div>
+                            <div ng-if="labor.forCreator == true" class="details">
+                                Quest Creator
                             </div>
                         </div>
                         <div class="row" ng-if="labor.quest">
