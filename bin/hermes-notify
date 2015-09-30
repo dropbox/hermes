@@ -33,19 +33,20 @@ def parse_args():
         help="Display version information."
     )
     parser.add_argument(
-        "-p", "--port", type=int, default=None, help="Override port in config."
+        "-s", "--send-to", type=str, default=None, help="Send all reports to this email address"
     )
     return parser.parse_args()
+
 
 def find_quest(quests, quest_id):
     for quest in quests:
         if quest.id == quest_id:
             return quest
 
+
     return None
 
 def main():
-
     args = parse_args()
     settings.update_from_config(args.config)
 
@@ -99,8 +100,7 @@ def main():
     # map the labors and quests to owners
     info = {}
     for labor in open_labors:
-        # FIXME we only map "required" labors -- is that the right approach?
-        if labor.creation_event.event_type.state != "required":
+        if not labor.for_owner:
             continue
         if owners[labor.host.hostname] not in info:
             info[owners[labor.host.hostname]] = {}
@@ -148,8 +148,10 @@ def main():
             "manually, please visit {}.".format(settings.frontend)
         )
 
+        recipient = args.send_to if args.send_to else owner
+
         email_message(
-            "{}@{}".format(owner, settings.domain),
+            "{}@{}".format(recipient, settings.domain),
             "Open Hermes labors need your attention", msg
         )
 
