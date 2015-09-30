@@ -885,8 +885,8 @@ class Fate(Model):
             "completionEventTypeId": self.completion_type_id,
             "follows_id": self.follows_id,
             "precedes_ids": [labor.id for labor in self.precedes],
-            "for_creator": self.for_creator,
-            "for_owner": self.for_owner,
+            "forCreator": self.for_creator,
+            "forOwner": self.for_owner,
             "description": self.description,
         }
 
@@ -1635,8 +1635,8 @@ class Labor(Model):
             "startingLaborId": self.starting_labor_id,
             "questId": self.quest_id,
             "hostId": self.host_id,
-            "for_creator": self.for_creator,
-            "for_owner": self.for_owner,
+            "forCreator": self.for_creator,
+            "forOwner": self.for_owner,
             "creationTime": str(self.creation_time),
             "creationEventId": self.creation_event_id,
             "completionTime": (
