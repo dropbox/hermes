@@ -66,24 +66,23 @@
         </div>
         <div class="col-md-9">
             <div class="labor-list-wrapper">
-                <div class="labor-actions"
-                     ng-class="lsc.selected.length == 0 ? 'disabled' : ''">
-                    Throw  <select ng-disabled="lsc.selected.length == 0"
-                            ng-model="lsc.throwableEventTypesSelection"
-                            ng-model-options="lsc.selectOptions"
-                            ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.throwableTypes">
-                    </select> for {{lsc.selected.length}} selected hosts.
-                    <button class="be-positive" ng-click="lsc.createEventsModal = true" ng-disabled="lsc.selected.length == 0">
-                        <img ng-if="lsc.createInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" />
-                        Create Events
-                    </button>
-                </div>
-                <div class="labor-select-toggles">
+                <div class="labor-actions">
                     <button style="float:left" ng-click="lsc.selectAll()">
                         Select All
                     </button>
                     <button style="float:left" ng-click="lsc.deselectAll()">
                         Deselect All
+                    </button>
+                    <span>
+                    Throw <select ng-disabled="lsc.selected.length == 0"
+                            ng-model="lsc.throwableEventTypesSelection"
+                            ng-model-options="lsc.selectOptions"
+                            ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.throwableTypes">
+                        </select> for {{lsc.selected.length}} selected hosts.
+                    </span>
+                    <button class="create-button be-positive" ng-click="lsc.createEventsModal = true" ng-disabled="lsc.selected.length == 0">
+                        <img ng-if="lsc.createInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" />
+                        Throw Events
                     </button>
                 </div>
                 <div class="success-message" ng-if="lsc.createSuccessMessage">{{lsc.createSuccessMessage}}</div>
@@ -91,46 +90,57 @@
                 <div ng-if="!lsc.laborData && !lsc.errorMessage" style="padding: 10px;">
                     <img src="/img/loading.gif"/>
                 </div>
-                <div class="labor-entry"
-                     ng-if="lsc.laborData  && !lsc.errorMessage"
-                     ng-click="lsc.toggleSelect(labor.id)"
-                     ng-repeat="labor in lsc.laborData | limitTo:lsc.limit:lsc.offset track by labor.id"
-                     ng-class="lsc.selected.indexOf(labor.id) != -1 ? 'selected': ''">
-                    <div class="row">
-                        <div class="hostname col-md-6">{{labor.host.hostname}}</div>
-                        <div class="labor-type col-md-6">{{labor.creationEvent.eventType.category}} {{labor.creationEvent.eventType.state}}</div>
+                <div class="labor-list-row" ng-if="lsc.laborData  && !lsc.errorMessage"
+                     ng-repeat="labor in (pageData = (lsc.laborData | limitTo:lsc.limit:lsc.offset)) track by labor.id">
+                    <div class="quest-info" ng-if="labor.quest && labor.quest.id != pageData[$index-1].quest.id">
+                        <div class="title">Quest {{labor.quest.id}}</div>
+                        <div class="info">Created by <a href="mailto:{{labor.quest.creator}}">{{labor.quest.creator}}</a></div>
+                        <div class="details">
+                            {{labor.quest.description}}
+                        </div>
                     </div>
-                    <div class="row">
-                        <div class="info-panel col-md-6">
-                            <strong class="label">Tags:</strong>
-                                <img ng-if="!lsc.hostTags" src="/img/loading_15.gif" alt="Tag information loading" />
-                                <ul ng-if="lsc.hostTags">
-                                    <li>
-                                        owner=<img ng-if="!lsc.hostOwners" src="/img/loading_15.gif" alt="Owner information loading" />
-                                        <span ng-if="lsc.hostOwners">{{lsc.hostOwners[labor.host.hostname]}}</span>
-                                    </li>
-                                    <li ng-repeat="tag in lsc.hostTags[labor.host.hostname] track by $index">
-                                        {{tag}}
-                                    </li>
-                                </ul>
+                    <div class="quest-info" ng-if="!labor.quest && (!pageData[$index-1] || pageData[$index-1].quest)">
+                        <div class="title">Labors not part of a quest</div>
+                        <div class="details">
+                            The following labors were created as a result of events that were not part of a quest creation.
                         </div>
-                        <div class="info-panel col-md-6">
-                            <strong class="label">Labor For:</strong>
-                            <div ng-if="labor.forOwner == true" class="details">
-                                Server Owner
-                            </div>
-                            <div ng-if="labor.forCreator == true" class="details">
-                                Quest Creator
-                            </div>
+                    </div>
+                    <div class="labor-entry"
+                         ng-click="lsc.toggleSelect(labor.id)"
+                         ng-class="lsc.selected.indexOf(labor.id) != -1 ? 'selected': ''">
+                        <div class="row">
+                            <div class="hostname col-md-6">{{labor.host.hostname}}</div>
+                            <div class="labor-type col-md-6">{{labor.creationEvent.eventType.category}} {{labor.creationEvent.eventType.state}}</div>
                         </div>
-                        <div class="row" ng-if="labor.quest">
-                            <div class="info-panel col-md-12"><strong class="label">Quest Info:</strong>
-                                <div class="details">
-                                    <strong>Quest {{labor.quest.id}}: </strong>
-                                    {{labor.quest.description}}
+                        <div class="row">
+                            <div class="info-panel col-md-6">
+                                <div class="label-holder">
+                                    <strong>Tags:</strong>
                                 </div>
-                                <div class="details" ng-if="!labor.quest">
-                                    Labor not part of a quest.
+                                <div class="details">
+                                    <img ng-if="!lsc.hostTags" src="/img/loading_15.gif" alt="Tag information loading" />
+                                    <ul ng-if="lsc.hostTags">
+                                        <li>
+                                            owner=<img ng-if="!lsc.hostOwners" src="/img/loading_15.gif" alt="Owner information loading" />
+                                            <span ng-if="lsc.hostOwners">{{lsc.hostOwners[labor.host.hostname]}}</span>
+                                        </li>
+                                        <li ng-repeat="tag in lsc.hostTags[labor.host.hostname] track by $index">
+                                            {{tag}}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="info-panel col-md-6">
+                                <div class="label-holder">
+                                    <strong>Labor For:</strong>
+                                </div>
+                                <div class="details">
+                                    <div ng-if="labor.forOwner == true">
+                                        Server Owner
+                                    </div>
+                                    <div ng-if="labor.forCreator == true">
+                                        Quest Creator
+                                    </div>
                                 </div>
                             </div>
                         </div>

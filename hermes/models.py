@@ -1652,7 +1652,10 @@ class Labor(Model):
         }
 
         if "quests" in expand:
-            out['quest'] = self.quest.to_dict(base_uri=base_uri, expand=set(expand))
+            if self.quest:
+                out['quest'] = self.quest.to_dict(base_uri=base_uri, expand=set(expand))
+            else:
+                out['quest'] = None
 
         if "hosts" in expand:
             out['host'] = self.host.to_dict(

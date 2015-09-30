@@ -190,6 +190,7 @@ def test_update(sample_data1_server):
 
     assert response.json()['ackTime'] is not None
 
+
 def test_labor_filter_by_eventttype(sample_data1_server):
     client = sample_data1_server
 
@@ -265,4 +266,75 @@ def test_labor_filter_by_eventttype(sample_data1_server):
             "totalLabors": 3
         },
         strip=["labors"]
+    )
+
+
+def test_quest_expansion(sample_data1_server):
+    client = sample_data1_server
+
+    # create a quest without a target_time
+    assert_created(
+        client.create(
+            "/quests",
+            creator="johnny",
+            eventTypeId=1,
+            description="This is a quest almighty",
+            hostnames=["example"]
+        ),
+        "/api/v1/quests/1"
+    )
+
+    assert_created(
+        client.create(
+            "/events",
+            eventTypeId=1,
+            hostname="sample",
+            user="testman@example.com",
+        ),
+        "/api/v1/events/4"
+    )
+
+    assert_success(
+        client.get("/labors?expand=quests"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalLabors": 2,
+            "labors": [
+                {'ackTime': None,
+                 'ackUser': None,
+                 'completionEventId': None,
+                 'completionTime': None,
+                 'creationEventId': 3,
+                 'forCreator': False,
+                 'forOwner': True,
+                 'hostId': 1,
+                 'id': 1,
+                 'quest': {
+                     'completionTime': None,
+                     'creator': 'johnny@example.com',
+                     'description': 'This is a quest almighty',
+                     'id': 1,
+                     'targetTime': None
+                 },
+                 'questId': 1,
+                 'startingLaborId': None,
+                 'targetTime': None
+                 },
+                {'ackTime': None,
+                 'ackUser': None,
+                 'completionEventId': None,
+                 'completionTime': None,
+                 'creationEventId': 4,
+                 'forCreator': False,
+                 'forOwner': True,
+                 'hostId': 2,
+                 'id': 2,
+                 'quest': None,
+                 'questId': None,
+                 'startingLaborId': None
+                 }
+            ]
+        },
+        strip=["embarkTime", "creationTime"]
     )
