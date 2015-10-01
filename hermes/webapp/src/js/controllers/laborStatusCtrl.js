@@ -109,6 +109,31 @@
             }
         }
 
+        function pageFirst() {
+            pageSetting(1);
+        }
+
+        function pagePrev() {
+            var currentPage = parseInt(pageSetting());
+
+            if (currentPage > 1) {
+                pageSetting(currentPage - 1);
+            }
+        }
+
+        function pageNext() {
+            var currentPage = parseInt(pageSetting());
+            var maxPage = Math.floor((vm.totalLabors - 1) / vm.limit) + 1;
+            if (currentPage < maxPage) {
+                pageSetting(currentPage + 1);
+            }
+        }
+
+        function pageLast() {
+            var maxPage = Math.floor((vm.totalLabors - 1) / vm.limit) + 1;
+            pageSetting(maxPage);
+        }
+
         function pageValues() {
             var maxPage = Math.floor((vm.totalLabors - 1) / vm.limit);
             var options = [];
@@ -122,6 +147,10 @@
         vm.limitSetting = limitSetting;
         vm.limitValues = limitValues;
         vm.pageSetting = pageSetting;
+        vm.pageFirst = pageFirst;
+        vm.pagePrev = pagePrev;
+        vm.pageNext = pageNext;
+        vm.pageLast = pageLast;
         vm.pageValues = pageValues;
 
         ////////////////////////////////

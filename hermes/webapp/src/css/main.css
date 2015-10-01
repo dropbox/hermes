@@ -468,6 +468,7 @@ button:disabled {
 .labor-left-panel-page-selector {
     clear: both;
     overflow: auto;
+    padding-bottom: 5px;
 }
 
 .labor-left-panel-page-selector ul {

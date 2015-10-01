@@ -4,8 +4,6 @@
     function QuestStatusCtrl(hermesService, $q, $routeParams, $location) {
         var vm = this;
 
-        vm.initialized = false;
-
         vm.errorMessage = null;
         vm.filterByCreator = null;
         vm.queryInput = null;
@@ -26,8 +24,9 @@
         vm.newQuestSelection = newQuestSelection;
         vm.goToCreatePage = goToCreatePage;
 
-        if (!vm.initialized) {
-            vm.initialized = true;
+        if ($routeParams.questId) {
+            getOpenQuests();
+        } else {
             if ($routeParams.byQuery) {
                 vm.queryInput = $routeParams.byQuery;
             }
@@ -76,6 +75,31 @@
             }
         }
 
+        function pageFirst() {
+            pageSetting(1);
+        }
+
+        function pagePrev() {
+            var currentPage = parseInt(pageSetting());
+
+            if (currentPage > 1) {
+                pageSetting(currentPage - 1);
+            }
+        }
+
+        function pageNext() {
+            var currentPage = parseInt(pageSetting());
+            var maxPage = Math.floor((vm.totalQuests - 1) / vm.limit) + 1;
+            if (currentPage < maxPage) {
+                pageSetting(currentPage + 1);
+            }
+        }
+
+        function pageLast() {
+            var maxPage = Math.floor((vm.totalQuests - 1) / vm.limit) + 1;
+            pageSetting(maxPage);
+        }
+
         function pageValues() {
             var maxPage = Math.floor((vm.totalQuests - 1) / vm.limit);
             var options = [];
@@ -89,6 +113,10 @@
         vm.limitSetting = limitSetting;
         vm.limitValues = limitValues;
         vm.pageSetting = pageSetting;
+        vm.pageFirst = pageFirst;
+        vm.pagePrev = pagePrev;
+        vm.pageNext = pageNext;
+        vm.pageLast = pageLast;
         vm.pageValues = pageValues;
 
         ////////////////////////////////
@@ -175,7 +203,7 @@
             ]).then(function(data) {
                 vm.hostOwners = data[0];
                 vm.selectedQuestDetails = data[1];
-                $location.path('/v1/quests/' + quest.id, false);
+                $location.update_path('/v1/quests/' + quest.id, false);
                 analyzeLabors(data[0], data[1]);
             });
         }
