@@ -53,13 +53,13 @@
                 </div>
                 <div ng-if="lsc.laborData  && !lsc.errorMessage" class="labor-left-panel-page-selector">
                     <strong>Page:</strong>
-                    <ul>
-                        <li ng-click="lsc.pageSetting(pageVal)"
-                            ng-repeat="pageVal in lsc.pageValues()"
-                            ng-class="(lsc.pageSetting() == pageVal) ? 'selected' : ''">
-                            {{pageVal}}
-                        </li>
-                    </ul>
+                    <button style="float:none" type="button" ng-click="lsc.pageFirst()">First</button>
+                    <button style="float:none" type="button" ng-click="lsc.pagePrev()">Prev</button>
+                    <select style="margin-left: 0px;" ng-model="lsc.pageSetting"
+                            ng-model-options="lsc.limitOptions"
+                            ng-options="pageVal for pageVal in lsc.pageValues()"></select>
+                    <button style="float:none" type="button" ng-click="lsc.pageNext()">Next</button>
+                    <button style="float:none" type="button" ng-click="lsc.pageLast()">Last</button>
                 </div>
                 <div ng-if="lsc.errorMessage" class="error-message" ng-bind="lsc.errorMessage"></div>
             </div>
@@ -93,7 +93,11 @@
                 <div class="labor-list-row" ng-if="lsc.laborData  && !lsc.errorMessage"
                      ng-repeat="labor in (pageData = (lsc.laborData | limitTo:lsc.limit:lsc.offset)) track by labor.id">
                     <div class="quest-info" ng-if="labor.quest && labor.quest.id != pageData[$index-1].quest.id">
-                        <div class="title">Quest {{labor.quest.id}}</div>
+                        <div class="title">
+                            <a ng-href="/v1/quests/{{labor.quest.id}}">
+                            Quest {{labor.quest.id}}
+                            </a>
+                        </div>
                         <div class="info">Created by <a href="mailto:{{labor.quest.creator}}">{{labor.quest.creator}}</a></div>
                         <div class="details">
                             {{labor.quest.description}}
@@ -148,13 +152,13 @@
                 </div>
                 <div ng-if="lsc.laborData  && !lsc.errorMessage" class="labor-left-panel-page-selector">
                     <strong>Page:</strong>
-                    <ul>
-                        <li ng-click="lsc.pageSetting(pageVal)"
-                            ng-repeat="pageVal in lsc.pageValues()"
-                            ng-class="(lsc.pageSetting() == pageVal) ? 'selected' : ''">
-                            {{pageVal}}
-                        </li>
-                    </ul>
+                    <button style="float:none" type="button" ng-click="lsc.pageFirst()">First</button>
+                    <button style="float:none" type="button" ng-click="lsc.pagePrev()">Prev</button>
+                    <select style="margin-left: 0px;" ng-model="lsc.pageSetting"
+                            ng-model-options="lsc.limitOptions"
+                            ng-options="pageVal for pageVal in lsc.pageValues()"></select>
+                    <button style="float:none" type="button" ng-click="lsc.pageNext()">Next</button>
+                    <button style="float:none" type="button" ng-click="lsc.pageLast()">Last</button>
                 </div>
             </div>
         </div>
