@@ -44,6 +44,7 @@ def slack_message(message):
     except Exception as exc:
         log.warn("Error writing to Slack: {}".format(exc.message))
 
+
 def email_message(recipients, subject, message):
     """Email a message to a user.
 
