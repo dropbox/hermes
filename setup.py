@@ -27,7 +27,7 @@ kwargs = {
     "version": str(__version__),
     "packages": find_packages(exclude=['tests']),
     "package_data": package_data,
-    "scripts": ["bin/hermes-server", "bin/hermes"],
+    "scripts": ["bin/hermes-server", "bin/hermes", "bin/hermes-notify"],
     "description": "Hermes Event Management and Autotasker",
     "author": "Digant C Kasundra",
     "maintainer": "Digant C Kasundra",

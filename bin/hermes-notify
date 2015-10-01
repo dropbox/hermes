@@ -117,20 +117,25 @@ def main():
     for owner in info:
         msg = (
             "Hello {}:\n\nYou have open Hermes labors "
-            "which need to be addressed ASAP.\n\n".format(owner)
+            "which need to be addressed ASAP.\n".format(owner)
+        )
+
+        msg += (
+            "\nTo see more information or throw event "
+            "manually, please visit {}/v1/labors\n\n".format(settings.frontend)
         )
 
         for quest_id in info[owner]:
             quest = find_quest(open_quests, quest_id)
             if quest:
-                msg += "  Quest {} created by {}:\n".format(
+                msg += "QUEST {}  [created by {}]:\n".format(
                     quest_id, quest.creator
                 )
-                msg += "    \"{}\"\n".format(textwrap.fill(
+                msg += "  \"{}\"\n".format(textwrap.fill(
                     quest.description,
-                    width=60, subsequent_indent="    "
+                    width=60, subsequent_indent="  "
                 ))
-                msg += "    href: {}/v1/quests/{}\n\n".format(
+                msg += "  href: {}/v1/quests/{}\n\n".format(
                     settings.frontend, quest_id
                 )
             else:
@@ -143,15 +148,12 @@ def main():
 
             msg += "\n\n"
 
-        msg += (
-            "\nTo see more information or throw event "
-            "manually, please visit {}.".format(settings.frontend)
+        recipient = args.send_to if args.send_to else "{}@{}".format(
+            owner, settings.domain
         )
 
-        recipient = args.send_to if args.send_to else owner
-
         email_message(
-            "{}@{}".format(recipient, settings.domain),
+            recipient,
             "Open Hermes labors need your attention", msg
         )
 
