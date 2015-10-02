@@ -42,6 +42,15 @@
             allowInvalid: true
         };
 
+
+        hermesService.getCurrentUser().then(function(user){
+            if (user) {
+                vm.user = user;
+            } else {
+                vm.errorMessages.push("Cannot create a new quest if not authenticated.");
+            }
+        });
+
         if ($routeParams.byQuery) {
             vm.queryInput = $routeParams.byQuery;
         }
@@ -54,12 +63,16 @@
         // if the user went straight to this page without any params, lets
         // modify the search to only show their labors
         if ($location.path() == "/v1/labors/" && Object.keys($routeParams).length == 0) {
-            hermesService.getCurrentUser().then(function(user){
-                if (user) {
-                    vm.hostOwnerInput = user;
-                }
-                getOpenLabors();
-            });
+            if (vm.user) {
+                vm.hostOwnerInput = vm.user;
+            } else {
+                hermesService.getCurrentUser().then(function (user) {
+                    if (user) {
+                        vm.hostOwnerInput = user;
+                    }
+                    getOpenLabors();
+                });
+            }
         } else {
             getOpenLabors();
         }

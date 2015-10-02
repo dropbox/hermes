@@ -103,14 +103,49 @@
                     </div>
                     <div class="owner-group" ng-repeat="(owner, labors) in qc.labors">
                         <div class="type-group" ng-repeat="(laborType, details) in labors">
-                            <div class="labor-entry row" ng-repeat="host in details.hosts track by $index">
+                            <div class="labor-entry row"
+                                 ng-repeat="host in details.hosts track by $index"
+                                 ng-class="qc.selectedLabors.indexOf(host) != -1 ? 'selected': ''"
+                                 ng-click="qc.toggleSelect(host)"
+                                    >
                                 <div class="col-md-4"><span ng-if="$parent.$first && $first">{{owner}}</span></div><div class="col-md-4">{{host}}</div><div class="col-md-4">{{laborType}}</div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="quest-actions">
+                    <button style="float:left" ng-click="qc.selectAll()">
+                        Select All
+                    </button>
+                    <button style="float:left" ng-click="qc.deselectAll()">
+                        Deselect All
+                    </button>
+                    <span>
+                    Throw <select ng-disabled="qc.selectedLabors.length == 0"
+                            ng-model="qc.throwableEventTypesSelection"
+                            ng-model-options="qc.selectOptions"
+                            ng-options="optValue.category + ' ' + optValue.state for optValue in qc.throwableTypes">
+                        </select> for {{qc.selectedLabors.length}} selected hosts.
+                    </span>
+                    <button class="create-button be-positive" ng-click="qc.createEventsModal = true" ng-disabled="qc.selectedLabors.length == 0">
+                        <img ng-if="qc.createInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" />
+                        Throw Events
+                    </button>
+                </div>
             </div>
             </div>
+            </div>
+        </div>
+    </div>
+    <div ng-cloak class="modal-wrapper fade" ng-if="qc.createEventsModal">
+        <div id="confirmModal" class="modal-dialog" role="dialog">
+            <div class="dialog-callout">The event <code>{{qc.selectedEventType.category}} {{qc.selectedEventType.state}}</code> means: {{qc.selectedEventType.description}}</div>
+            <div class="dialog-text">
+                Are you sure you want to create a <code>{{qc.selectedEventType.category}} {{qc.selectedEventType.state}}</code> event for {{qc.selectedLabors.length}} servers?
+            </div>
+            <div class="dialog-buttons">
+                <button style="float: none" class="big-button" ng-click="qc.createEvents()">Yes</button>
+                <button style="float: none" class="big-button" ng-click="qc.createEventsModal = false">No</button>
             </div>
         </div>
     </div>
