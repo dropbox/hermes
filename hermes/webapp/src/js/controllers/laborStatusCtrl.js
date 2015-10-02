@@ -42,32 +42,27 @@
             allowInvalid: true
         };
 
-
         if ($routeParams.byQuery) {
             vm.queryInput = $routeParams.byQuery;
         }
 
-        // if user passed a filter-by-owner query param, that takes precedence.
-        // otherwise, the default is to use the authenticate user
+        // if user passed a filter-by-owner query param, use it
         if ($routeParams.byOwner) {
             vm.hostOwnerInput = $routeParams.byOwner;
-            getOpenLabors("owner");
-        } else {
+        }
+
+        // if the user went straight to this page without any params, lets
+        // modify the search to only show their labors
+        if ($location.path() == "/v1/labors/" && Object.keys($routeParams).length == 0) {
             hermesService.getCurrentUser().then(function(user){
                 if (user) {
                     vm.hostOwnerInput = user;
                 }
                 getOpenLabors();
             });
+        } else {
+            getOpenLabors();
         }
-
-        hermesService.getCurrentUser().then(function(user){
-            if (user) {
-                vm.user = user;
-            } else {
-                vm.errorMessage = "Cannot create a new quest if not authenticated.";
-            }
-        });
 
         hermesService.getAllEventTypes().then(function(types) {
             var allTypes = [null];
@@ -98,7 +93,7 @@
         }
 
         function limitValues() {
-            return ['10', '20', '50', '100'];
+            return ['10', '20', '50', '100', 'ALL'];
         }
 
         function pageSetting(page) {
@@ -203,11 +198,15 @@
             if (vm.hostOwnerInput) {
                 options['filterByOwner'] = vm.hostOwnerInput;
                 $location.search('byOwner', vm.hostOwnerInput, false);
+            } else {
+                $location.search('byOwner', null, false);
             }
 
             if (vm.queryInput) {
                 options['filterByQuery'] = vm.queryInput;
                 $location.search('byQuery', vm.queryInput, false);
+            } else {
+                $location.search('byQuery', null, false);
             }
 
             if (vm.filterEventType) {
