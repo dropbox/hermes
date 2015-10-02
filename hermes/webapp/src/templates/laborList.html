@@ -165,6 +165,7 @@
     </div>
     <div ng-cloak class="modal-wrapper fade" ng-if="lsc.createEventsModal">
         <div id="confirmModal" class="modal-dialog" role="dialog">
+            <div class="dialog-callout">The event <code>{{lsc.selectedEventType.category}} {{lsc.selectedEventType.state}}</code> means: {{lsc.selectedEventType.description}}</div>
             <div class="dialog-text">
                 Are you sure you want to create a <code>{{lsc.selectedEventType.category}} {{lsc.selectedEventType.state}}</code> event for {{lsc.selected.length}} servers?
             </div>

@@ -16,6 +16,7 @@
             getAllEventTypes: getAllEventTypes,
             getStartingEventTypes: getStartingEventTypes,
             getUserThrowableEventTypes: getUserThrowableEventTypes,
+            getCreatorThrowableEventsTypes: getCreatorThrowableEventTypes,
             getQuestCreatorThrowableEventTypes: getQuestCreatorThrowableEventTypes,
             runQuery: runQuery,
             createQuest: createQuest,
@@ -438,6 +439,27 @@
 
             function getFailed(error) {
                 console.error("API call to get user throwable event-types failed. "
+                    + error.status + " " + error.statusText);
+                throw error;
+            }
+        }
+
+        /**
+         * Get all event-types that quest creators are allowed to throw.  Basically,
+         * this is any event-type of state "completed."
+         * @returns {*}
+         */
+        function getCreatorThrowableEventTypes() {
+            return $http.get("/api/v1/eventtypes?limit=all&state=completed")
+                .then(getCompleted)
+                .catch(getFailed);
+
+            function getCompleted(response) {
+                return response.data.eventTypes;
+            }
+
+            function getFailed(error) {
+                console.error("API call to get creator throwable event-types failed. "
                     + error.status + " " + error.statusText);
                 throw error;
             }

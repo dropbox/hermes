@@ -12,7 +12,12 @@
         vm.selectedQuest = null;
         vm.selectedQuestDetails = null;
         vm.labors = null;
+        vm.selectedLabors = [];
         vm.types = null;
+        vm.selectedEventType = null;
+        vm.throwableTypes = null;
+        vm.createEventsModal = false;
+        vm.createInProgress = false;
         vm.limit = 10;
         vm.offset = 0;
         vm.totalQuests = 10;
@@ -23,6 +28,30 @@
         vm.getOpenQuests = getOpenQuests;
         vm.newQuestSelection = newQuestSelection;
         vm.goToCreatePage = goToCreatePage;
+        vm.toggleSelect = toggleSelect;
+        vm.selectAll = selectAll;
+        vm.deselectAll = deselectAll;
+        vm.throwableEventTypesSelection = throwableEventTypesSelection;
+        vm.createEvents = createEvents;
+
+        vm.selectOptions = {
+            updateOn: 'default change blur',
+            getterSetter: true,
+            allowInvalid: true
+        };
+
+        hermesService.getCurrentUser().then(function(user){
+            if (user) {
+                vm.user = user;
+            } else {
+                vm.errorMessages.push("Cannot create a new quest if not authenticated.");
+            }
+        });
+
+        hermesService.getCreatorThrowableEventsTypes().then(function(types) {
+            vm.throwableTypes = types;
+            vm.throwableEventTypesSelection(vm.throwableTypes[0])
+        });
 
         if ($routeParams.questId) {
             getOpenQuests();
@@ -37,12 +66,16 @@
                 vm.filterByCreator = $routeParams.byCreator;
                 getOpenQuests();
             } else {
-                hermesService.getCurrentUser().then(function (user) {
-                    if (user) {
-                        vm.filterByCreator = user;
-                    }
-                    getOpenQuests();
-                });
+                if (vm.user) {
+                    vm.filterByCreator = vm.user;
+                } else {
+                    hermesService.getCurrentUser().then(function (user) {
+                        if (user) {
+                            vm.filterByCreator = user;
+                        }
+                        getOpenQuests();
+                    });
+                }
             }
         }
 
@@ -182,6 +215,7 @@
             vm.selectedQuestDetails = null;
             vm.hostOwners = null;
             vm.labors = null;
+            vm.selectedLabors = [];
             vm.types = null;
 
             // make an array of all the hostnames, and have the hermes service
@@ -330,6 +364,85 @@
             }
 
             vm.labors = sortedLabors;
+        }
+
+        /**
+         * Toggle a labor selection
+         * @param hostname hostname of the labor to select
+         */
+        function toggleSelect(hostname) {
+            var idx = vm.selectedLabors.indexOf(hostname);
+            if (idx != -1) {
+                vm.selectedLabors.splice(idx, 1)
+            } else {
+                vm.selectedLabors.push(hostname);
+            }
+        }
+
+        /**
+         * Select all the labors on this screen and add them to the list
+         * of selected labors
+         */
+        function selectAll() {
+            for (var idx in vm.labors) {
+                for (var idy in vm.labors[idx]) {
+                    for (var idz in vm.labors[idx][idy]["hosts"]) {
+                        if (vm.selectedLabors.indexOf(vm.labors[idx][idy]["hosts"][idz]) == -1) {
+                            vm.selectedLabors.push(vm.labors[idx][idy]["hosts"][idz]);
+                        }
+                    }
+                }
+            }
+        }
+
+         /**
+         * Deselect all the labors on this screen and remove them to the list
+         * of selected labors
+         */
+        function deselectAll() {
+            vm.selectedLabors = [];
+        }
+
+        /**
+         * The getter/setter for event types
+         */
+        function throwableEventTypesSelection(selection) {
+            if (angular.isDefined(selection)) {
+                vm.selectedEventType = selection;
+            } else {
+                return vm.selectedEventType;
+            }
+        }
+
+        /**
+         * Create events for the selected hosts
+         */
+        function createEvents() {
+            if (vm.createInProgress) return;
+            vm.createEventsModal = false;
+            vm.createInProgress = true;
+            vm.createErrorMessage = null;
+            vm.createSuccessMessage = null;
+
+            if (!vm.selectedLabors) {
+                return;
+            }
+
+            vm.result = hermesService.createEvents(
+                vm.user, vm.selectedLabors, vm.selectedEventType,
+                "Created by " + vm.user + " via Web UI."
+            )
+                .then(function(response) {
+                    vm.createInProgress = false;
+                    vm.selected = [];
+                    vm.createSuccessMessage = "Successfully created events.";
+                    newQuestSelection(vm.selectedQuest);
+                })
+                .catch(function(error) {
+                    vm.createInProgress = false;
+                    vm.createErrorMessage ="Event creation failed!  " + error.statusText;
+                });
+
         }
     }
 

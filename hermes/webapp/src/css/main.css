@@ -291,6 +291,37 @@ button:disabled {
     padding: 20px 0px 20px 0px;
 }
 
+.quest-details .quest-actions {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    /*border: 1px solid #e0e5ea;*/
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #fff5cc;
+    opacity: 1;
+    clear: both;
+    overflow: auto;
+}
+
+.quest-details .quest-actions span {
+    display: inline-block;
+    margin-left: 20px;
+    padding: 0px;
+}
+
+.quest-details .quest-actions button {
+    margin-top: 1px;
+}
+
+.quest-details .quest-actions button:not(:first-child) {
+    margin-left: 5px;
+}
+
+.quest-details .quest-actions.disabled {
+    opacity: 0.5;
+}
+
 .quest-labors {
     font-size: 1.2em;
 }
@@ -303,8 +334,26 @@ button:disabled {
     font-weight: bold;
 }
 
+.quest-labors .labor-entry {
+    cursor: pointer;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    margin-bottom: 1px;
+}
+
 .quest-labors .labor-entry:hover {
     background: #cce6fa;
+}
+
+.quest-labors  .labor-entry.selected {
+    background: #72b6ec;
+
+    -webkit-transition: 0.15s ease-in all;
+    -moz-transition: 0.15s ease-in all;
+    -ms-transition: 0.15s ease-in all;
+    -o-transition: 0.15s ease-in all;
+    transition: 0.15s ease-in all;
 }
 
 .quest-labors .owner-group {
@@ -420,6 +469,15 @@ button:disabled {
     font-weight: bold;
 }
 
+.modal-dialog .dialog-callout {
+    padding: 10px;
+    margin: 10px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    background: #fff5cc;
+}
+
 .modal-dialog .dialog-buttons {
     text-align: center;
 }
@@ -437,7 +495,7 @@ button:disabled {
 }
 
 #confirmModal {
-    border: 5px solid #d0d4d9;
+    border: 5px solid #c99700;
     text-align: left;
 }
 
