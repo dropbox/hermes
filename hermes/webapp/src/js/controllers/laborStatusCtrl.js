@@ -298,6 +298,13 @@
          * of selected labors
          */
         function selectAll() {
+            if (vm.limit == "ALL") {
+                for (var idx in vm.laborData) {
+                    if (vm.selected.indexOf(vm.laborData[idx].id) == -1) {
+                        vm.selected.push(vm.laborData[idx].id);
+                    }
+                }
+            }
             for (var idx = parseInt(vm.offset);
                  idx < (parseInt(vm.offset) + parseInt(vm.limit));
                  idx++) {
@@ -317,6 +324,9 @@
          * of selected labors
          */
         function deselectAll() {
+             if (vm.limit == "ALL") {
+                 vm.selected = [];
+             }
             for (var idx = parseInt(vm.offset);
                  idx < (parseInt(vm.offset) +  parseInt(vm.limit)); idx++) {
 
