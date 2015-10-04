@@ -39,7 +39,7 @@ var VENDOR_ROOT = "./_bc/";
 
 var JS_MAIN_SRC = SRC_ROOT + 'js/hermesApp.js';
 var JS_SRC = SRC_ROOT + 'js/**/*.js';
-var STYLE_SRC = SRC_ROOT + 'css/**/*.css';
+var STYLE_SRC = SRC_ROOT + 'css/**/*.less';
 var IMAGE_SRC = SRC_ROOT + 'img/**';
 var HTML_SRC = SRC_ROOT + "**/*.html";
 
@@ -106,6 +106,9 @@ gulp.task('build:html', function() {
  */
 gulp.task('build:style', function() {
     return gulp.src(STYLE_SRC)
+        .pipe(less({
+                paths: [ path.join(__dirname, 'less', 'includes') ]
+        }))
         .pipe(sort())
         .pipe(concat('hermes.css'))
         .pipe(gulp.dest((BUILD_DEST + 'css')))
