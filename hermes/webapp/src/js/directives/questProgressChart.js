@@ -86,12 +86,14 @@
                         // add the quest info to the top left
                         var title = raphael.text(0, titleFontSize, "Quest " + data[0].id)
                             .attr('text-anchor', 'start')
-                            .attr('font-size', titleFontSize);
+                            .attr('font-size', titleFontSize)
+                            .attr('font-family', "Montserrat");
 
                         // add the quest description
                         var desc = raphael.text(0, legendY)
                             .attr('text-anchor', 'start')
-                            .attr('font-size', legendFontSize);
+                            .attr('font-size', legendFontSize)
+                            .attr('font-family', "Montserrat");
                         wrapText(data[0].description, desc, width *.25);
 
                         // draw out the legend on the right
@@ -103,7 +105,7 @@
                             var y = legendY + (i * legendSpacing * 1.1);
                             var text = raphael.text(
                                 x, y, type
-                            ).attr('font-size', legendFontSize).attr('text-anchor', 'start')
+                            ).attr('font-size', legendFontSize).attr('font-family', "Montserrat").attr('text-anchor', 'start')
 
                             var boxX = x - legendSpacing- (legendSpacing/4);
                             var boxY = y - legendSpacing/2;
