@@ -107,3 +107,19 @@ def test_update(tornado_server):
     )
 
     assert_error(client.update("/hosts/newname"), 400)
+
+
+def test_merging(tornado_server):
+    """When renaming a server to an existing servername, just merge them"""
+    client = Client(tornado_server)
+
+    client.create("/hosts", hostname="testname")
+    client.create("/hosts", hostname="newname")
+
+    assert_success(
+        client.update("/hosts/testname", hostname="newname"),
+        {
+            "id": 2,
+            "hostname": "newname"
+        }
+    )

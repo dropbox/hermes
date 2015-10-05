@@ -458,6 +458,28 @@ class Host(Model):
             .order_by(desc(Labor.creation_time))
         )
 
+    def update_name(self, new_name):
+        """Rename an existing host.  If the new name exists, merge the entries.
+
+        Args:
+            new_name: the new name for the host
+        Returns:
+            either the renamed host or the existing host that was merged
+        """
+        existing_host = (
+            self.session.query(Host).filter(Host.hostname == new_name).scalar()
+        )
+
+        if not existing_host:
+            self.update(hostname=new_name)
+            return self
+        else:
+            for event in self.events:
+                event.update(host_id=existing_host.id)
+            for labor in self.labors:
+                labor.update(host_id=existing_host.id)
+            return existing_host
+
     def href(self, base_uri):
         """Create an HREF value for this object
 
@@ -1337,7 +1359,6 @@ class Quest(Model):
                 "Quest {} updated".format(quest["quest"].id),
                 msg
             )
-
 
     def href(self, base_uri):
         """Create an HREF value for this object

@@ -387,12 +387,7 @@ class HostHandler(ApiHandler):
                 "Missing Required Argument: {}".format(err.message)
             )
 
-        try:
-            host = host.update(
-                hostname=new_hostname,
-            )
-        except IntegrityError as err:
-            raise exc.Conflict(str(err.orig))
+        host = host.update_name(new_hostname);
 
         json = host.to_dict(self.href_prefix)
 
