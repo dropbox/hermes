@@ -83,57 +83,92 @@
         </div>
         <div class="col-md-9">
             <div class="row" style="margin-left: 0px">
-            <div class="col-md-12">
-            <div ng-if="!qc.selectedQuest && !qc.errorMessage" style="padding: 10px;">
-                <img src="/img/loading.gif"/>
-            </div>
-            <div ng-if="qc.labors" class="quest-details">
-                <div quest-progress-chart
-                     colors="qc.colors"
-                     types="qc.types"
-                     data="qc.selectedQuestDetails"></div>
-                <div class="quest-overview">
+                <div class="col-md-12">
+                    <div ng-if="!qc.selectedQuest && !qc.errorMessage"
+                         style="padding: 10px;">
+                        <img src="/img/loading.gif"/>
+                    </div>
+                    <div ng-if="qc.labors" class="quest-details">
+                        <div quest-progress-chart
+                             colors="qc.colors"
+                             types="qc.types"
+                             data="qc.selectedQuestDetails"></div>
+                        <div class="quest-overview">
                     <span>
                         {{qc.selectedQuestDetails.totalLabors}} total labors.  {{qc.selectedQuestDetails.openLabors}} remain open.
                     </span>
-                </div>
-                <div class="quest-labors">
-                    <div class="header row">
-                        <div class="col-md-4">Owner</div><div class="col-md-4">Host</div><div class="col-md-4">Labor</div>
-                    </div>
-                    <div class="owner-group" ng-repeat="(owner, labors) in qc.labors">
-                        <div class="type-group" ng-repeat="(laborType, details) in labors">
-                            <div class="labor-entry row"
-                                 ng-repeat="host in details.hosts track by $index"
-                                 ng-class="qc.selectedLabors.indexOf(host) != -1 ? 'selected': ''"
-                                 ng-click="qc.toggleSelect(host)"
-                                    >
-                                <div class="col-md-4"><span ng-if="$parent.$first && $first">{{owner}}</span></div><div class="col-md-4">{{host}}</div><div class="col-md-4">{{laborType}}</div>
+                        </div>
+                        <div class="quest-labors">
+                            <div class="header row">
+                                <div class="col-md-1"></div>
+                                <div class="col-md-11 labor-entry row">
+                                    <div class="col-md-3">Labor Owner</div>
+                                    <div class="col-md-2">Host</div>
+                                    <div class="col-md-3">Host Owner</div>
+                                    <div class="col-md-4">Labor</div>
+                                </div>
                             </div>
+                            <div class="owner-group"
+                                 ng-repeat="(owner, labors) in qc.labors">
+                                <div class="type-group"
+                                     ng-repeat="(laborType, details) in labors">
+                                    <div class="row"
+                                         ng-repeat="host in details.hosts track by $index">
+                                        <div class="col-md-1">
+                                            <span ng-if="$parent.$first && $first">
+                                                <a href="mailto:{{owner}}{{
+                                                    owner.indexOf('@') == -1 ? '@' + qc.domain : ''
+                                                }}"
+                                                   target="_blank"
+                                                        >
+                                                    <img src="/img/send_email_15.png" alt="Send email to {{owner}}" />
+                                                </a>
+                                            </span>
+                                        </div>
+                                        <div class="col-md-11 labor-entry row"
+                                             ng-class="qc.selectedLabors.indexOf(host) != -1 ? 'selected': ''"
+                                             ng-click="qc.toggleSelect(host)"
+                                                >
+                                            <div class="col-md-3">
+                                                <span ng-if="$parent.$first && $first">
+                                                    {{owner}}
+                                                </span>
+                                            </div>
+                                            <div class="col-md-2">{{host}}</div>
+                                            <div class="col-md-3">{{qc.hostOwners[host]}}</div>
+                                            <div class="col-md-4">{{laborType}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="quest-actions">
+                            <button style="float:left"
+                                    ng-click="qc.selectAll()">
+                                Select All
+                            </button>
+                            <button style="float:left"
+                                    ng-click="qc.deselectAll()">
+                                Deselect All
+                            </button>
+                    <span>
+                    Throw <select ng-disabled="qc.selectedLabors.length == 0"
+                                  ng-model="qc.throwableEventTypesSelection"
+                                  ng-model-options="qc.selectOptions"
+                                  ng-options="optValue.category + ' ' + optValue.state for optValue in qc.throwableTypes">
+                    </select> for {{qc.selectedLabors.length}} selected hosts.
+                    </span>
+                            <button class="create-button be-positive"
+                                    ng-click="qc.createEventsModal = true"
+                                    ng-disabled="qc.selectedLabors.length == 0">
+                                <img ng-if="qc.createInProgress"
+                                     src="/img/loading_15.gif"
+                                     style="margin: 5px; float: left"/>
+                                Throw Events
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div class="quest-actions">
-                    <button style="float:left" ng-click="qc.selectAll()">
-                        Select All
-                    </button>
-                    <button style="float:left" ng-click="qc.deselectAll()">
-                        Deselect All
-                    </button>
-                    <span>
-                    Throw <select ng-disabled="qc.selectedLabors.length == 0"
-                            ng-model="qc.throwableEventTypesSelection"
-                            ng-model-options="qc.selectOptions"
-                            ng-options="optValue.category + ' ' + optValue.state for optValue in qc.throwableTypes">
-                        </select> for {{qc.selectedLabors.length}} selected hosts.
-                    </span>
-                    <button class="create-button be-positive" ng-click="qc.createEventsModal = true" ng-disabled="qc.selectedLabors.length == 0">
-                        <img ng-if="qc.createInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" />
-                        Throw Events
-                    </button>
-                </div>
-            </div>
-            </div>
             </div>
         </div>
     </div>

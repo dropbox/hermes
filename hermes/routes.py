@@ -33,6 +33,9 @@ HANDLERS = [
     # Query for the current user
     (r"/api/v1/currentUser", api.CurrentUserHandler),
 
+    # Query the server for its configs
+    (r"/api/v1/serverConfig", api.ServerConfig),
+
     # Frontend Handlers
     (
         r"/((?:css|img|js|vendor|templates)/.*)",

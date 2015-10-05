@@ -4,6 +4,7 @@
 
     function HermesService($http, $q) {
         var fates;
+        var serverConfig = null;
         var service = {
             getFates: getFates,
             getFatesSigma: getFatesSigma,
@@ -20,7 +21,8 @@
             getQuestCreatorThrowableEventTypes: getQuestCreatorThrowableEventTypes,
             runQuery: runQuery,
             createQuest: createQuest,
-            createEvents: createEvents
+            createEvents: createEvents,
+            getServerConfig: getServerConfig
         };
 
         return service;
@@ -520,6 +522,20 @@
                 console.error("API call to get run query failed. "  + error.status + " " + error.statusText);
                 throw error;
             }
+        }
+
+        /**
+         * Get the server's config.
+         * @returns a config promise
+         */
+        function getServerConfig() {
+            if (serverConfig == null) {
+                serverConfig = $http.get("/api/v1/serverConfig")
+                    .then(function(response) {
+                    return response.data
+                });
+            }
+            return serverConfig;
         }
     }
 

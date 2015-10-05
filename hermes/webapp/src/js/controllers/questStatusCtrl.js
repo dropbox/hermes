@@ -8,6 +8,7 @@
         vm.filterByCreator = null;
         vm.queryInput = null;
 
+        vm.domain = null;
         vm.questData = null;
         vm.selectedQuest = null;
         vm.selectedQuestDetails = null;
@@ -46,6 +47,12 @@
             } else {
                 vm.errorMessages.push("Cannot create a new quest if not authenticated.");
             }
+        });
+
+        console.log(hermesService.getServerConfig);
+
+        hermesService.getServerConfig().then(function(config) {
+           vm.domain = config['domain'];
         });
 
         hermesService.getCreatorThrowableEventsTypes().then(function(types) {
