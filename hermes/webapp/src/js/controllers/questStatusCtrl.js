@@ -22,7 +22,7 @@
         vm.offset = 0;
         vm.totalQuests = 10;
 
-        vm.colors = ['#0071ce', '#72b6ec', '#cce6fa', '#f4faff'];
+        vm.colors = ['#688ab4', '#9cbfea', '#232f3e', '#7e8184'];
 
         vm.runNewFilter = runNewFilter;
         vm.getOpenQuests = getOpenQuests;
