@@ -14,6 +14,7 @@ import time
 from .util import ApiHandler, PluginHelper
 from .. import exc
 from ..models import Host, EventType, Event, Labor, Fate, Quest
+from ..settings import settings
 
 from datetime import datetime
 from dateutil import parser
@@ -2371,7 +2372,6 @@ class CurrentUserHandler(ApiHandler):
 
             GET /api/v1/currentUser HTTP/1.1
             Host: localhost
-            X-NSoT-Email: user@localhost
 
         **Example response**:
 
@@ -2399,4 +2399,37 @@ class CurrentUserHandler(ApiHandler):
             "user": user
         }
 
-        self.success(result_json);
+        self.success(result_json)
+
+
+class ServerConfig(ApiHandler):
+    def get(self):
+        """ **Get the server's configuration information**
+
+        This is used to get the config information that the front end might
+        want to know about.
+
+        **Example Request**:
+
+        .. sourcecode:: http
+
+            GET /api/v1/serverConfig HTTP/1.1
+            Host: localhost
+
+        **Example response**:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+                "status": "ok",
+                "domain": "example.com"
+            }
+        """
+        result_json = {
+            "domain": settings.domain
+        }
+
+        self.success(result_json)
