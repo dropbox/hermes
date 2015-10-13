@@ -106,6 +106,7 @@ def test_update(tornado_server):
         }
     )
 
+    # test failure of empty update calls
     assert_error(client.update("/hosts/newname"), 400)
 
 

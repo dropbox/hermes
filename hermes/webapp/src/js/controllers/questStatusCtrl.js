@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    function QuestStatusCtrl(hermesService, $q, $routeParams, $location) {
+    function QuestStatusCtrl(hermesService, $q, $routeParams, $location, smoothScroll) {
         var vm = this;
 
         vm.errorMessage = null;
@@ -218,6 +218,8 @@
         }
 
         function newQuestSelection(quest) {
+            var detailsDiv = document.getElementById('quest-details');
+            smoothScroll(detailsDiv, {duration: 700, easing: 'easeInOutQuad', offset: 100});
             vm.selectedQuest = quest;
             vm.selectedQuestDetails = null;
             vm.hostOwners = null;
@@ -454,5 +456,5 @@
     }
 
     angular.module('hermesApp').controller('QuestStatusCtrl', QuestStatusCtrl);
-    QuestStatusCtrl.$inject = ['HermesService', '$q', '$routeParams', '$location'];
+    QuestStatusCtrl.$inject = ['HermesService', '$q', '$routeParams', '$location', 'smoothScroll'];
 })();

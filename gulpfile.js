@@ -42,6 +42,7 @@ var JS_SRC = SRC_ROOT + 'js/**/*.js';
 var STYLE_SRC = SRC_ROOT + 'css/**/*.less';
 var IMAGE_SRC = SRC_ROOT + 'img/**';
 var HTML_SRC = SRC_ROOT + "**/*.html";
+var BS_FONT_SRC = VENDOR_ROOT + "bootstrap/dist/fonts/*.woff2";
 
 
 /**
@@ -140,6 +141,10 @@ gulp.task('build:images', function() {
         .pipe(gulp.dest((BUILD_DEST + 'img')))
 });
 
+gulp.task('build:fonts', function() {
+    return gulp.src(BS_FONT_SRC)
+        .pipe(gulp.dest((BUILD_DEST + 'fonts')))
+});
 
 /**
  * Uses bower to install the "main" files into our build. In most cases
@@ -156,7 +161,7 @@ gulp.task('build:3rdparty', ['bower'], function() {
  * Create a hashed version of all built files. This is currently
  * just a placeholder and hasn't been finished yet.
  */
-gulp.task('build:revisions', ['build:html', 'build:js', 'build:bsless', 'build:style', 'build:images', 'build:3rdparty'], function() {
+gulp.task('build:revisions', ['build:html', 'build:js', 'build:bsless', 'build:style', 'build:images', 'build:fonts', 'build:3rdparty'], function() {
     // TODO(gary): Do.
     return gulp.src(BUILD_DEST);
 });

@@ -8,11 +8,16 @@
         vm.hostList = [];
         vm.selectedEventType = null;
         vm.description = null;
+        vm.today = new Date();
+        vm.targetDate = new Date();
+        vm.targetDate.setDate(new Date().getDate() + 14);
+        vm.targetDate.setTime(Math.round(vm.targetDate.getTime() / 900000) * 900000);
 
         vm.errorMessages = null;
         vm.queryErrorMessage = null;
         vm.successMessage = null;
         vm.createInProgress = false;
+        vm.queryInProgress = false;
         vm.result = null;
         vm.showFatesModal = false;
         vm.queryString = null;
@@ -47,6 +52,7 @@
         vm.moveQueriedToQueued = moveQueriedToQueued;
         vm.eventTypesSelection = eventTypesSelection;
         vm.createQuest = createQuest;
+        vm.calDateClasser = calDateClasser;
 
 
         ////////////////////////////////
@@ -78,10 +84,12 @@
             }
 
             if (vm.errorMessages.length != 0) {
+                vm.createInProgress = false;
                 return;
             }
 
-            vm.result = hermesService.createQuest(vm.user, vm.hostList, vm.selectedEventType, vm.description)
+            vm.result = hermesService.createQuest(vm.user, vm.hostList,
+                vm.selectedEventType, vm.targetDate, vm.description)
                 .then(function(response) {
                     vm.createInProgress = false;
                     vm.hostList = [];
@@ -111,13 +119,19 @@
          * Run the user specified query against the query passthrough service
          */
         function runQuery() {
+            if (!vm.queryString || vm.queryString.trim().length == 0) {
+                vm.queryErrorMessage = "Query is empty.";
+                return;
+            }
             vm.queryErrorMessage = null;
+            vm.queryInProgress = true;
             hermesService.runQuery(vm.queryString).then(function(hosts) {
-                console.log(hosts);
+                vm.queryInProgress = false;
                 if (hosts) {
                     vm.queriedHosts = hosts;
                 }
             }).catch(function(error) {
+                vm.queryInProgress = false;
                 vm.queryErrorMessage = "Failed to run query!  " + error.statusText;
             });
         }
@@ -150,6 +164,7 @@
          * @param host the host to add
          */
         function addHost(host) {
+            if (!host) return;
             if (vm.hostList.indexOf(host) == -1) {
                 vm.hostList.push(host);
             }
@@ -162,6 +177,15 @@
             while (vm.queriedHosts.length > 0) {
                 addHost(vm.queriedHosts.shift());
             }
+        }
+
+        /**
+         * Adds our classes to the date picker
+         * @param date the date in question
+         * @param mode the mode
+         */
+        function calDateClasser(date, mode) {
+            return "date-picker";
         }
 
     }

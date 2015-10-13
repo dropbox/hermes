@@ -1,35 +1,3 @@
-// Color variables (appears count calculates by raw css)
-@color1: #fce897;
-// Appears 10 times
-@color2: #fff5cc;
-// Appears 8 times
-@color3: #000000;
-// Appears 5 times
-@color4: #25282b;
-// Appears 5 times
-@color5: #d0d4d9;
-// Appears 4 times
-@color6: #7b8994;
-// Appears 3 times
-@color7: #48ac68;
-// Appears 3 times
-@color8: #f6f9fc;
-// Appears 3 times
-@color9: #e82110;
-// Appears 2 times
-@color10: #004c8a;
-// Appears 2 times
-@color11: #72b6ec;
-// Appears 2 times
-@color12: #ddf0e2;
-// Appears 2 times
-@color13: #c99700;
-// Appears 1 time
-@color14: #e0e5ea;
-// Appears 1 time
-@color15: #121212;
-// Appears 1 time
-
 @c-background: #ffffff;
 @c-highlight: #ffffff;
 @c-selected: #72b6ec;
@@ -40,6 +8,7 @@
 @light-gray: #dce1e6;
 @xlight-gray: #e7ecf1;
 @med-gray: #7e8184;
+@dark-gray: #3A3C3D;
 @burnt-orange: #c97429;
 @red: #c92929;
 @white: #ffffff;
@@ -54,7 +23,7 @@
 @btn-color: @burnt-orange;
 @btn-text-color: @white;
 @btn-color2: @blue;
-@shadow-color: @black;
+@shadow-color: @dark-gray;
 @error-color: @red;
 @success-color: @blue;
 @link-color: @burnt-orange;
@@ -137,18 +106,19 @@ button {
   border: none;
   color: @btn-text-color;
   float: right;
-  transition: 0.15s ease-out all;
-  -webkit-transition: 0.15s ease-out all;
-  -moz-transition: 0.15s ease-out all;
-  -ms-transition: 0.15s ease-out all;
-  -o-transition: 0.15s ease-out all;
-  transition: 0.15s ease-out all;
+  -webkit-transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
+  -moz-transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
+  -ms-transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
+  -o-transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
+  transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
   -webkit-transform: none;
   -moz-transform: none;
   -ms-transform: none;
   -o-transform: none;
   transform: none;
   &:hover {
+    -webkit-box-shadow:  2px 2px 3px @shadow-color;
+    -moz-box-shadow:  2px 2px 3px @shadow-color;
     box-shadow: 2px 2px 3px @shadow-color;
     transform: translate(-2px, -2px);
     -webkit-transform: translate(-2px, -2px);
@@ -158,6 +128,17 @@ button {
   }
   &:disabled {
     opacity: 0.6;
+  }
+  &:active {
+    background: desaturate(@btn-color2, 15%);
+    -webkit-box-shadow:  inset 0px 0px 6px @shadow-color;
+    -moz-box-shadow: inset 0px 0px 6px @shadow-color;
+    box-shadow: inset 0px 0px 6px @shadow-color;
+    transform: translate(-2px, -2px);
+    -webkit-transform: translate(0px, 0px);
+    -moz-transform: translate(0px, 0px);
+    -ms-transform: translate(0px, 0px);
+    -o-transform: translate(0px, 0px);
   }
 }
 
@@ -277,7 +258,7 @@ a {
   -webkit-border-radius: 5px;
   background: @white;
   border-radius: 5px;
-  border: @btn-color 1px solid;
+  border: @unselected-color 1px solid;
   padding: 10px;
 }
 
@@ -301,11 +282,15 @@ a {
   padding: 5px;
 }
 
+.success-dialog {
+
+}
+
 .quest-list {
   -moz-border-radius: 5px 5px 5px 5px;
   -webkit-border-radius: 5px 5px 5px 5px;
-  background: @unselected-color;
   border-radius: 5px 5px 5px 5px;
+  background: @unselected-color;
   padding: 0px;
   h1 {
     font-size: 1.5em;
@@ -339,6 +324,9 @@ a {
   transform: none;
   &:last-child {
     border-bottom: none;
+    -moz-border-radius: 0px 0px 5px 5px;
+    -webkit-border-radius: 0px 0px 5px 5px;
+    border-radius: 0px 0px 5px 5px;
   }
   &:hover {
     &:not(.selected) {
@@ -503,22 +491,88 @@ a {
     min-height: 50px;
     overflow: scroll;
     padding: 0px 5px 0px 5px;
+    -moz-transition: 0.5s ease-out all;
+    -ms-transition: 0.5s ease-out all;
+    -o-transition: 0.5s ease-out all;
+    transition: 0.5s ease-out all;
   }
+}
+
+#datepicker {
+  table {
+    color: @black;
+    border-collapse: separate;
+    border-spacing: 5px;
+    thead tr th button[disabled]  {
+      color: @black;
+      opacity: 1;
+    }
+  }
+}
+
+.date-picker {
+  .btn[disabled] {
+    background-color: @dark-blue;
+    opacity: 1;
+    color: @dark-blue;
+  }
+
+  .btn {
+    .text-muted {
+      color: @dark-blue;
+      opacity: 1;
+    }
+    .text-info {
+      color: @black;
+    }
+  }
+
+  .btn-default[disabled] {
+    color: @dark-blue;
+    border-color: @dark-blue;
+  }
+  .btn-default {
+    background: @light-gray;
+    border-color: @black;
+    color: @black;
+  }
+  .btn-info {
+    background: @btn-color2;
+    color: @white !important;
+    border-color: @black;
+    opacity: 1;
+    &.active, &.active:hover, &:active {
+      background: @btn-color2 !important;
+      border-color: @black;
+      color: @white !important;
+      opacity: 1;
+    }
+  }
+}
+
+#timepicker {
+  .btn-link {
+    color: @black;
+    &:hover {
+      color: @black;
+    }
+  }
+  .btn-default {
+    &:hover {
+      background: @white;
+    }
+  }
+}
+
+.box-continuation {
+  -webkit-box-shadow: inset 0 -30px 30px -30px rgba(0,0,0,0.5);
+  -moz-box-shadow: inset 0 -30px 30px -30px rgba(0,0,0,0.5);
+  box-shadow: inset 0 -30px 30px -30px rgba(0,0,0,0.5);
 }
 
 .remove-img-button {
   cursor: pointer;
 }
-
-//.create-panel input, .create-panel button, .create-panel select, .create-panel .host-list {
-//  border: @color5 1px solid;
-//}
-
-//.create-panel {
-//  textarea {
-//    border: @color5 1px solid;
-//  }
-//}
 
 .modal-wrapper {
   background: rgba(0, 0, 0, .6);
@@ -594,6 +648,8 @@ a {
   font-size: 1.2em;
   font-weight: bold;
   padding: 20px;
+  color: @btn-text-color;
+  background: @success-color;
 }
 
 #confirmModal {

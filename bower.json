@@ -19,9 +19,11 @@
     "angular-animate": "~1.4.5",
     "angular-location-update": "*",
     "angular-route": "~1.4.5",
+    "angular-smooth-scroll": "ngSmoothScroll#~1.7.1",
     "bootstrap": "~3.3.5",
     "d3": "~3.5.6",
     "jquery": "~2.1.4",
-    "raphael": "raphael.js#~2.1.4"
+    "raphael": "raphael.js#~2.1.4",
+    "angular-bootstrap": "~0.14.0"
   }
 }

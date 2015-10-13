@@ -34,13 +34,15 @@
          * @param user the user who is the owner/creator of the quest
          * @param hosts the list of hosts to which this quest applies
          * @param eventType the starting event-type
+         * @param targetDateTime the date and time the quest should complete
          * @param description the human readable description for this quest
          */
-        function createQuest(user, hosts, eventType, description) {
+        function createQuest(user, hosts, eventType, targetDateTime, description) {
             return $http.post("/api/v1/quests", {
                 'creator': user,
                 'hostnames': hosts,
                 'eventTypeId': eventType.id,
+                'targetTime': targetDateTime,
                 'description': description
             }).then(createQuestCompleted)
                 .catch(createQuestFailed);
