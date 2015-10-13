@@ -5,10 +5,11 @@
                 <div><h1>Create a quest:</h1></div>
             </div>
         </div>
+        <!-- ROW ONE -->
         <div class="row">
             <div class="col-md-6 create-panel">
                 <div><strong>For hosts:</strong></div>
-                <div class="host-list">
+                <div class="host-list" box-continuation watch="qc.hostList">
                     <div ng-repeat="host in qc.hostList track by $index">
                         <img class="remove-img-button" src="/img/remove_10.png"
                              ng-click="qc.removeHost(host)" />
@@ -40,7 +41,8 @@
                         <button ng-click="qc.runQuery()">Go</button>
                     </div>
                 </div>
-                <div class="host-list">
+                <div class="host-list" box-continuation watch="qc.queriedHosts">
+                    <img ng-if="qc.queryInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" />
                     <div ng-repeat="host in qc.queriedHosts">
                         <img class="remove-img-button" src="/img/remove_10.png"
                              ng-click="qc.removeQueriedHost(host)"/>
@@ -57,6 +59,7 @@
                 </div>
             </div>
         </div>
+        <!-- ROW TWO -->
         <div class="row">
             <div class="col-md-6 create-panel">
                 <div><label>Start with event:
@@ -77,6 +80,20 @@ will satisfy them.</p>
                 </div>
             </div>
         </div>
+        <!-- ROW THREE -->
+        <div class="row">
+            <div class="col-md-6 create-panel">
+                <div style="display: inline-block; min-height: 210px;"><label for="datepicker">Target Date:</label>
+                    <uib-datepicker id="datepicker" ng-model="qc.targetDate" min-date="qc.today" show-weeks="false" max-mode="day" custom-class="qc.calDateClasser(date, mode)"></uib-datepicker>
+                </div>
+                <div style="display: inline-block; min-height: 210px;"><label for="timepicker">Target Time:</label>
+                    <uib-timepicker id="timepicker" ng-model="qc.targetDate" min-date="qc.today" minute-step="15"></uib-timepicker>
+                </div>
+            </div>
+            <div class="col-md-4 helper-panel">
+                <div>The targeted completion date and time for the quest.  As the date gets closer, notifications to service owners will intensify.</div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-6 create-panel">
                 <div><label for="description">With description:</label>
@@ -91,6 +108,7 @@ descriptive as possible.  Let users know what is going on
 and what action they should take.</div>
             </div>
         </div>
+        <!-- ROW FOUR -->
         <div class="row">
             <div class="col-md-6 create-panel">
                 <div class="error-message" ng-if="qc.errorMessages" ng-repeat="msg in qc.errorMessages">{{msg}}</div>
@@ -117,10 +135,10 @@ and what action they should take.</div>
         </div>
     </div>
     <div ng-cloak class="modal-wrapper fade" ng-if="qc.successMessage">
-        <div id="successModal" class="modal-dialog be-positive" role="dialog">
+        <div id="successModal" class="modal-dialog" role="dialog">
             <div>{{qc.successMessage}}</div>
             <div>
-                <button ng-click="qc.successMessage = null">Close</button>
+                <button class="be-positive" ng-click="qc.successMessage = null">Close</button>
             </div>
         </div>
     </div>

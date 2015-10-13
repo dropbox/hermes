@@ -2,6 +2,7 @@ from __future__ import division
 
 import json
 import logging
+import pytz
 import random
 import re
 import sqlalchemy
@@ -1909,6 +1910,7 @@ class QuestsHandler(ApiHandler):
                 target_time = parser.parse(
                     self.jbody["targetTime"]
                 )
+                target_time = target_time.replace(tzinfo=None)
                 if target_time <= datetime.utcnow():
                     raise exc.BadRequest(
                         "Quest target date must be in future"
