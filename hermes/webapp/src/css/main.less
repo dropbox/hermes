@@ -61,6 +61,7 @@ body {
   font-size: 1.2em;
   margin: 0;
   padding: 0px 0px 20px 0px;
+  overflow: hidden;
 }
 
 h1 {
@@ -131,9 +132,9 @@ button {
   }
   &:active {
     background: desaturate(@btn-color2, 15%);
-    -webkit-box-shadow:  inset 0px 0px 6px @shadow-color;
-    -moz-box-shadow: inset 0px 0px 6px @shadow-color;
-    box-shadow: inset 0px 0px 6px @shadow-color;
+    -webkit-box-shadow:  inset 0px 0px 6px lighten(@shadow-color, 20%);
+    -moz-box-shadow: inset 0px 0px 6px lighten(@shadow-color, 20%);
+    box-shadow: inset 0px 0px 6px lighten(@shadow-color, 20%);
     transform: translate(-2px, -2px);
     -webkit-transform: translate(0px, 0px);
     -moz-transform: translate(0px, 0px);
@@ -469,16 +470,55 @@ a {
 }
 
 .quest-creation {
+  .panel-row {
+    overflow: hidden;
+    &.top-row{
+      .helper-panel {
+        -webkit-border-radius: 5px 5px 0px 0px;
+        -moz-border-radius: 5px 5px 0px 0px;
+        border-radius: 5px 5px 0px 0px;
+      }
+    }
+    &:not(.top-row) {
+      .helper-panel, .create-panel {
+        padding-top: 20px;
+      }
+    }
+    &.bottom-row {
+      .helper-panel {
+        -webkit-border-radius: 0px 0px 5px 5px;
+        -moz-border-radius: 0px 0px 5px 5px;
+        border-radius: 0px 0px 5px 5px;
+        padding: 0;
+        margin: 0;
+        max-height: 8px;
+      }
+      .create-panel {
+        padding: 0;
+        margin: 0;
+        max-height: 8px;
+      }
+    }
+  }
   .helper-panel {
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
+    height: 100%;
     background: @unselected-color;
-    border-radius: 5px;
-    margin: 5px 0px;
     padding: 10px;
+    padding-bottom: 20010px;
+    margin-bottom: -20000px;
+    &:last-of-type {
+      -webkit-border-radius: 0px 0px 5px 5px;
+      -moz-border-radius: 0px 0px 5px 5px;
+      border-radius: 0px 0px 5px 5px;
+    }
   }
   .create-panel {
     padding: 10px;
+    padding-bottom: 20010px;
+    margin-bottom: -20000px;
+    &:not(:first-child) {
+      padding-top: 50px;
+    }
   }
   .host-list {
     -moz-border-radius: 5px;
