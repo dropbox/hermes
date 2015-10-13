@@ -6,7 +6,7 @@
             </div>
         </div>
         <!-- ROW ONE -->
-        <div class="row">
+        <div class="row panel-row top-row">
             <div class="col-md-6 create-panel">
                 <div><strong>For hosts:</strong></div>
                 <div class="host-list" box-continuation watch="qc.hostList">
@@ -60,7 +60,7 @@
             </div>
         </div>
         <!-- ROW TWO -->
-        <div class="row">
+        <div class="row panel-row">
             <div class="col-md-6 create-panel">
                 <div><label>Start with event:
                     <select ng-model="qc.eventTypesSelection"
@@ -81,7 +81,7 @@ will satisfy them.</p>
             </div>
         </div>
         <!-- ROW THREE -->
-        <div class="row">
+        <div class="row panel-row">
             <div class="col-md-6 create-panel">
                 <div style="display: inline-block; min-height: 210px;"><label for="datepicker">Target Date:</label>
                     <uib-datepicker id="datepicker" ng-model="qc.targetDate" min-date="qc.today" show-weeks="false" max-mode="day" custom-class="qc.calDateClasser(date, mode)"></uib-datepicker>
@@ -94,7 +94,8 @@ will satisfy them.</p>
                 <div>The targeted completion date and time for the quest.  As the date gets closer, notifications to service owners will intensify.</div>
             </div>
         </div>
-        <div class="row">
+        <!-- ROW FOUR -->
+        <div class="row panel-row">
             <div class="col-md-6 create-panel">
                 <div><label for="description">With description:</label>
                     <textarea id="description"  ng-model="qc.description">
@@ -108,8 +109,8 @@ descriptive as possible.  Let users know what is going on
 and what action they should take.</div>
             </div>
         </div>
-        <!-- ROW FOUR -->
-        <div class="row">
+        <!-- ROW FIVE -->
+        <div class="row panel-row">
             <div class="col-md-6 create-panel">
                 <div class="error-message" ng-if="qc.errorMessages" ng-repeat="msg in qc.errorMessages">{{msg}}</div>
                 <div>
@@ -119,7 +120,16 @@ and what action they should take.</div>
                     </button>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 helper-panel">
+                &nbsp;
+            </div>
+        </div>
+        <!-- ROW BOTTOM -->
+        <div class="row panel-row bottom-row">
+            <div class="col-md-6 create-panel">
+                &nbsp;
+            </div>
+            <div class="col-md-4 helper-panel">
                 &nbsp;
             </div>
         </div>
