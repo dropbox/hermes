@@ -37,31 +37,15 @@
 @height2: 60px;
 // Appears 4 times
 
-@font-face {
-  font-family: "Open Sans";
-  font-style: normal;
-  font-weight: 400;
-  src: local("Open Sans"), local("OpenSans"), url("//fonts.gstatic.com/s/opensans/v10/cJZKeOuBrn4kERxqtaUH3aCWcynf_cDxXwCLxiixG1c.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: 'Noto Sans';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Noto Sans'), local('NotoSans'), url(http://fonts.gstatic.com/s/notosans/v6/LeFlHvsZjXu2c3ZRgBq9nJBw1xU1rKptJj_0jans920.woff2) format('woff2');
-}
-
-
 .container-fluid {
   padding: 0px;
 }
 
 body {
-  font-family: 'Noto', Verdana;
+  font-family: 'Titillium Web', Verdana;
   font-size: 1.2em;
   margin: 0;
   padding: 0px 0px 20px 0px;
-  overflow: hidden;
 }
 
 h1 {
@@ -103,7 +87,6 @@ button {
   -webkit-border-radius: 5px;
   background: @btn-color2;
   border-radius: 5px;
-  //border: 1px @btn-color solid;
   border: none;
   color: @btn-text-color;
   float: right;
@@ -331,7 +314,6 @@ a {
   }
   &:hover {
     &:not(.selected) {
-      //background: @c-highlight;
       cursor: pointer;
       -webkit-box-shadow: 1px 1px 3px 0px @shadow-color;
       -moz-box-shadow: 1px 1px 3px 0px @shadow-color;
@@ -410,19 +392,18 @@ a {
 
 .quest-labors {
   font-size: 1em;
-  .row {
-    margin: 0;
-  }
+
   .header {
     font-weight: bold;
   }
+
   .labor-entry {
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     border-radius: 5px;
     cursor: pointer;
     margin-bottom: 1px;
-    padding: 2px;
+    padding: 2px 15px;
     transition: 0.15s ease-out all;
     -webkit-transition: 0.15s ease-out all;
     -moz-transition: 0.15s ease-out all;
@@ -455,21 +436,17 @@ a {
   }
   .owner-group {
     margin-bottom: 5px;
-    margin-left: -15px;
-    margin-right: -15px;
-    &:nth-child(odd) {
-      //background: @alt-row-color;
-    }
     .type-group {
-      padding-bottom: 5px;
-      padding-left: 15px;
-      padding-right: 15px;
-      padding-top: 5px;
+      //padding-bottom: 5px;
+      //padding-left: 15px;
+      //padding-right: 15px;
+      //padding-top: 5px;
     }
   }
 }
 
 .quest-creation {
+  overflow: hidden;
   .panel-row {
     overflow: hidden;
     &.top-row{
@@ -489,13 +466,13 @@ a {
         -webkit-border-radius: 0px 0px 5px 5px;
         -moz-border-radius: 0px 0px 5px 5px;
         border-radius: 0px 0px 5px 5px;
-        padding: 0;
-        margin: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
         max-height: 8px;
       }
       .create-panel {
-        padding: 0;
-        margin: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
         max-height: 8px;
       }
     }
@@ -525,7 +502,6 @@ a {
     -webkit-border-radius: 5px;
     background: @alt-row-color;
     border-radius: 5px;
-    //border: @input-outline-color solid 1px;
     margin: 5px 0px;
     max-height: 200px;
     min-height: 50px;
@@ -745,20 +721,19 @@ a {
     opacity: 0.5;
   }
   .labor-entry {
-    -moz-border-radius: 5px;
-    -moz-transition: 0.15s ease-in all;
     -ms-transition: 0.15s ease-in all;
     -o-transition: 0.15s ease-in all;
-    -webkit-border-radius: 5px;
     -webkit-transition: 0.15s ease-in all;
+    -moz-transition: 0.15s ease-in all;
+    transition: 0.15s ease-in all;
     background: @unselected-color;
+    -webkit-border-radius: 5px;
     border-radius: 5px;
+    -moz-border-radius: 5px;
     border: transparent 2px solid;
     margin-bottom: 10px;
-    margin-left: 0;
     overflow: auto;
-    padding: 2px;
-    transition: 0.15s ease-in all;
+    padding: 2px 15px;
     -webkit-transform: none;
     -moz-transform: none;
     -ms-transform: none;
@@ -774,9 +749,6 @@ a {
       -ms-transform: translate(-2px, -2px);
       -o-transform: translate(-2px, -2px);
       transform: translate(-2px, -2px);
-    }
-    .row {
-      margin: 0px;
     }
     .hostname {
       -moz-border-radius: 5px 0px 0px 0px;

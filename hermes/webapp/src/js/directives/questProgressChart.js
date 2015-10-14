@@ -87,13 +87,13 @@
                         var title = raphael.text(0, titleFontSize, "Quest " + data[0].id)
                             .attr('text-anchor', 'start')
                             .attr('font-size', titleFontSize)
-                            .attr('font-family', "Noto Sans");
+                            .attr('font-family', "Titillium Web");
 
                         // add the quest description
                         var desc = raphael.text(0, legendY)
                             .attr('text-anchor', 'start')
                             .attr('font-size', legendFontSize)
-                            .attr('font-family', "Noto Sans");
+                            .attr('font-family', "Titillium Web");
                         wrapText(data[0].description, desc, width *.25);
 
                         // draw out the legend on the right
@@ -105,7 +105,7 @@
                             var y = legendY + (i * legendSpacing * 1.1);
                             var text = raphael.text(
                                 x, y, type
-                            ).attr('font-size', legendFontSize).attr('font-family', "Noto Sans").attr('text-anchor', 'start')
+                            ).attr('font-size', legendFontSize).attr('font-family', "Titillium Web").attr('text-anchor', 'start')
 
                             var boxX = x - legendSpacing- (legendSpacing/4);
                             var boxY = y - legendSpacing/2;
