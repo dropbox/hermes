@@ -3,7 +3,20 @@
         <div class="col-md-3 quest-list">
             <div class="quest-list-filter">
                 <div>
-                    <button class="big-wide-button be-positive" style="margin-bottom: 10px;" ng-click="qc.goToCreatePage()">Create Quest</button>
+                    <button class="big-wide-button be-positive"
+                            style="margin-bottom: 10px;"
+                            ng-click="qc.goToCreatePage()">Create Quest
+                    </button>
+                </div>
+                <div class="row">
+                    <div class="col-md-10"><label for="filterOwn">Show only my
+                        quests:</label></div>
+                    <div class="col-md-2">
+                        <span id="filterOwn" role="checkbox" class="glyphicon glyphicon-ok btn-glyph"
+                                ng-class="{'selected': qc.filterOwn}"
+                                ng-click="qc.filterOwn = !qc.filterOwn; qc.filterOwnChanged()">
+                        </span>
+                    </div>
                 </div>
                 <div>
                     <label for="creatorFilter">Filter by creator's username:</label>
@@ -11,11 +24,15 @@
                 <div class="row">
                     <div class="col-md-10">
                         <form ng-submit="qc.runNewFilter()">
-                            <input id="creatorFilter" type="text" ng-model="qc.filterByCreator" />
+                            <input id="creatorFilter" type="text"
+                                   ng-disabled="qc.filterOwn"
+                                   ng-model="qc.filterByCreator"/>
                         </form>
                     </div>
                     <div class="col-md-2">
-                        <img src="/img/remove_15.png" alt="Clear owner filter field" class="remove-img-button" ng-click="qc.filterByCreator = ''" />
+                         <span role="button" aria-label="Clear creator filter" class="glyphicon glyphicon-remove-sign btn-glyph"
+                                ng-click="qc.filterByCreator = ''; qc.filterOwn = false">
+                        </span>
                     </div>
                 </div>
                 <div style="margin-top: 5px">
@@ -28,7 +45,9 @@
                         </form>
                     </div>
                     <div class="col-md-2">
-                        <img src="/img/remove_15.png" alt="Clear query filter field" class="remove-img-button" ng-click="qc.queryInput = ''" />
+                        <span role="button" aria-label="Clear query filter" class="glyphicon glyphicon-remove-sign btn-glyph"
+                                ng-click="qc.queryInput = ''">
+                        </span>
                     </div>
                 </div>
                 <div class="row" style="margin-top: 10px">

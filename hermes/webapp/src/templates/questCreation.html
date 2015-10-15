@@ -11,8 +11,9 @@
                 <div><strong>For hosts:</strong></div>
                 <div class="host-list" box-continuation watch="qc.hostList">
                     <div ng-repeat="host in qc.hostList track by $index">
-                        <img class="remove-img-button" src="/img/remove_10.png"
-                             ng-click="qc.removeHost(host)" />
+                        <span role="button" aria-label="Remove host {{host}} from list" class="glyphicon glyphicon-remove-sign btn-glyph small"
+                                ng-click="qc.removeHost(host)">
+                        </span>
                         {{host}}
                     </div>
                 </div>
@@ -42,10 +43,11 @@
                     </div>
                 </div>
                 <div class="host-list" box-continuation watch="qc.queriedHosts">
-                    <img ng-if="qc.queryInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" />
+                    <div><img ng-if="qc.queryInProgress" src="/img/loading_15.gif" style="margin: 5px; float: left" /></div>
                     <div ng-repeat="host in qc.queriedHosts">
-                        <img class="remove-img-button" src="/img/remove_10.png"
-                             ng-click="qc.removeQueriedHost(host)"/>
+                        <span role="button" aria-label="Remove host {{host}} from list" class="glyphicon glyphicon-remove-sign btn-glyph small"
+                                ng-click="qc.removeQueriedHost(host)">
+                        </span>
                         {{host}}
                     </div>
                 </div>

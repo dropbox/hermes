@@ -5,10 +5,12 @@
         var vm = this;
 
         vm.errorMessage = null;
+        vm.filterOwn = false;
         vm.filterByCreator = null;
         vm.queryInput = null;
 
         vm.domain = null;
+        vm.user = null;
         vm.questData = null;
         vm.selectedQuest = null;
         vm.selectedQuestDetails = null;
@@ -30,6 +32,7 @@
         vm.newQuestSelection = newQuestSelection;
         vm.goToCreatePage = goToCreatePage;
         vm.toggleSelect = toggleSelect;
+        vm.filterOwnChanged = filterOwnChanged;
         vm.selectAll = selectAll;
         vm.deselectAll = deselectAll;
         vm.throwableEventTypesSelection = throwableEventTypesSelection;
@@ -41,15 +44,30 @@
             allowInvalid: true
         };
 
-        hermesService.getCurrentUser().then(function(user){
+        hermesService.getCurrentUser().then(function (user) {
             if (user) {
                 vm.user = user;
-            } else {
-                vm.errorMessages.push("Cannot create a new quest if not authenticated.");
             }
-        });
 
-        console.log(hermesService.getServerConfig);
+            if ($routeParams.byQuery) {
+                vm.queryInput = $routeParams.byQuery;
+            }
+
+            // if user passed a filter-by-creator query param, that takes precedence.
+            // otherwise, the default is to use the authenticate user
+            if ($routeParams.byCreator) {
+                vm.filterByCreator = $routeParams.byCreator;
+                vm.filterOwn = false;
+            } else if (vm.user && !$routeParams.questId) {
+                vm.filterByCreator = vm.user;
+                vm.filterOwn = true;
+            } else {
+                vm.filterByCreator = "";
+                vm.filterOwn = false;
+            }
+
+            getOpenQuests();
+        });
 
         hermesService.getServerConfig().then(function(config) {
            vm.domain = config['domain'];
@@ -59,32 +77,6 @@
             vm.throwableTypes = types;
             vm.throwableEventTypesSelection(vm.throwableTypes[0])
         });
-
-        if ($routeParams.questId) {
-            getOpenQuests();
-        } else {
-            if ($routeParams.byQuery) {
-                vm.queryInput = $routeParams.byQuery;
-            }
-
-            // if user passed a filter-by-creator query param, that takes precedence.
-            // otherwise, the default is to use the authenticate user
-            if ($routeParams.byCreator) {
-                vm.filterByCreator = $routeParams.byCreator;
-                getOpenQuests();
-            } else {
-                if (vm.user) {
-                    vm.filterByCreator = vm.user;
-                } else {
-                    hermesService.getCurrentUser().then(function (user) {
-                        if (user) {
-                            vm.filterByCreator = user;
-                        }
-                        getOpenQuests();
-                    });
-                }
-            }
-        }
 
 
         //////// FIXME: Move to some kind of control service ///////
@@ -161,6 +153,20 @@
 
         ////////////////////////////////
 
+        /**
+         * Called when the user clicks the "show only my quests" checkbox.
+         */
+        function filterOwnChanged() {
+            if (vm.filterOwn) {
+                if (vm.user) {
+                    vm.filterByCreator = vm.user;
+                } else {
+                    vm.filterOwn = false;
+                    vm.errorMessage = "Your username is unknown.";
+                }
+            }
+        }
+
         function goToCreatePage() {
             $location.url("/v1/quest/new");
         }
@@ -205,15 +211,23 @@
                 vm.totalQuests = questData['totalQuests'] || vm.totalQuests;
 
                 // find the quest requested and make that the selection
-                var index = 0;
+                var index = -1;
                 for (var idx in vm.questData) {
                     if (vm.questData[idx]['id'] == $routeParams.questId) {
                         index = idx;
                     }
                 }
 
-                vm.offset = index - (index % vm.limit);
-                newQuestSelection(vm.questData[index]);
+                if ($routeParams.questId && index == -1) {
+                    vm.errorMessage = "Quest " + $routeParams.questId +
+                            " not found.  Perhaps the quest is completed," +
+                            " invalid, or has been filtered out."
+                } else {
+                    // if index is -1, then they likely didn't specify an id
+                    if (index == -1) index = 0;
+                    vm.offset = index - (index % vm.limit);
+                    newQuestSelection(vm.questData[index]);
+                }
             });
         }
 
