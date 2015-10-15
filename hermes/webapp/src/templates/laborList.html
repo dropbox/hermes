@@ -2,17 +2,33 @@
     <div class="row">
         <div class="col-md-3 labor-left-panel">
             <div class="labor-left-panel-filter">
+                 <div class="row">
+                    <div class="col-md-10"><label for="filterOwn">Show only my
+                        labors:</label></div>
+                     <div class="col-md-2">
+                         <span id="filterOwn" role="checkbox" class="glyphicon glyphicon-ok btn-glyph"
+                                ng-class="{'selected': lsc.filterOwn}"
+                                ng-click="lsc.filterOwn = !lsc.filterOwn; lsc.filterOwnChanged()">
+                        </span>
+                     </div>
+                </div>
                 <div>
                     <label for="ownerFilter">Filter by username:</label>
                 </div>
                 <div class="row">
                     <div class="col-md-10">
                         <form ng-submit="lsc.runFilter()">
-                            <input id="ownerFilter" type="text" ng-model="lsc.hostOwnerInput" />
+                            <input id="ownerFilter" type="text"
+                                   ng-disabled="lsc.filterOwn"
+                                   ng-model="lsc.hostOwnerInput"/>
                         </form>
                     </div>
                     <div class="col-md-2">
-                        <img src="/img/remove_15.png" alt="Clear owner filter field" class="remove-img-button" ng-click="lsc.hostOwnerInput = ''" />
+                        <span role="button"
+                              aria-label="Clear host owner filter"
+                              class="glyphicon glyphicon-remove-sign btn-glyph"
+                              ng-click="lsc.hostOwnerInputr = ''; lsc.filterOwn = false">
+                        </span>
                     </div>
                 </div>
                 <div style="margin-top: 5px">
@@ -25,7 +41,10 @@
                         </form>
                     </div>
                     <div class="col-md-2">
-                        <img src="/img/remove_15.png" alt="Clear query filter field" class="remove-img-button" ng-click="lsc.queryInput = ''" />
+                        <span role="button" aria-label="Clear query filter"
+                              class="glyphicon glyphicon-remove-sign btn-glyph"
+                              ng-click="lsc.queryInput = ''">
+                        </span>
                     </div>
                 </div>
                 <div style="margin-top: 5px">

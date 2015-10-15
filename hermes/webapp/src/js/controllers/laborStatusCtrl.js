@@ -6,6 +6,7 @@
 
         vm.errorMessage = null;
         vm.hostOwnerInput = null;
+        vm.filterOwn = false;
         vm.queryInput = null;
         vm.filterEventType = null;
         vm.selectedEventType = null;
@@ -31,6 +32,7 @@
         vm.toggleSelect = toggleSelect;
         vm.selectAll = selectAll;
         vm.deselectAll = deselectAll;
+        vm.filterOwnChanged = filterOwnChanged;
         vm.throwableEventTypesSelection = throwableEventTypesSelection;
         vm.filterEventTypesSelection = filterEventTypesSelection;
         vm.createEvents = createEvents;
@@ -43,9 +45,24 @@
         };
 
 
-        hermesService.getCurrentUser().then(function(user){
+        hermesService.getCurrentUser().then(function (user) {
             if (user) {
                 vm.user = user;
+
+                // if user passed a filter-by-owner query param, use it
+                if ($routeParams.byOwner) {
+                    vm.hostOwnerInput = $routeParams.byOwner;
+                    vm.filterOwn = false;
+                }
+
+                // if the user went straight to this page without any params, lets
+                // modify the search to only show their labors
+                if ($location.path() == "/v1/labors/" && Object.keys($routeParams).length == 0) {
+                    vm.hostOwnerInput = vm.user;
+                    vm.filterOwn = true;
+                }
+
+                getOpenLabors();
             } else {
                 vm.errorMessages.push("Cannot create a new quest if not authenticated.");
             }
@@ -53,28 +70,6 @@
 
         if ($routeParams.byQuery) {
             vm.queryInput = $routeParams.byQuery;
-        }
-
-        // if user passed a filter-by-owner query param, use it
-        if ($routeParams.byOwner) {
-            vm.hostOwnerInput = $routeParams.byOwner;
-        }
-
-        // if the user went straight to this page without any params, lets
-        // modify the search to only show their labors
-        if ($location.path() == "/v1/labors/" && Object.keys($routeParams).length == 0) {
-            if (vm.user) {
-                vm.hostOwnerInput = vm.user;
-            } else {
-                hermesService.getCurrentUser().then(function (user) {
-                    if (user) {
-                        vm.hostOwnerInput = user;
-                    }
-                    getOpenLabors();
-                });
-            }
-        } else {
-            getOpenLabors();
         }
 
         hermesService.getAllEventTypes().then(function(types) {
@@ -162,6 +157,20 @@
         vm.pageValues = pageValues;
 
         ////////////////////////////////
+
+        /**
+         * Called when user selects the "show only my labors" checkbox
+         */
+        function filterOwnChanged() {
+            if (vm.filterOwn) {
+                if (vm.user) {
+                    vm.hostOwnerInput = vm.user;
+                } else {
+                    vm.filterOwn = false;
+                    vm.errorMessages.push("Your username is unknown.");
+                }
+            }
+        }
 
         /**
          * The getter/setter for event types

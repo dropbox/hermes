@@ -104,11 +104,11 @@ button {
     -webkit-box-shadow:  2px 2px 3px @shadow-color;
     -moz-box-shadow:  2px 2px 3px @shadow-color;
     box-shadow: 2px 2px 3px @shadow-color;
-    transform: translate(-2px, -2px);
-    -webkit-transform: translate(-2px, -2px);
-    -moz-transform: translate(-2px, -2px);
-    -ms-transform: translate(-2px, -2px);
-    -o-transform: translate(-2px, -2px);
+    transform: translate(-1px, -1px);
+    -webkit-transform: translate(-1px, -1px);
+    -moz-transform: translate(-1px, -1px);
+    -ms-transform: translate(-1px, -1px);
+    -o-transform: translate(-1px, -1px);
   }
   &:disabled {
     opacity: 0.6;
@@ -118,11 +118,46 @@ button {
     -webkit-box-shadow:  inset 0px 0px 6px lighten(@shadow-color, 20%);
     -moz-box-shadow: inset 0px 0px 6px lighten(@shadow-color, 20%);
     box-shadow: inset 0px 0px 6px lighten(@shadow-color, 20%);
-    transform: translate(-2px, -2px);
-    -webkit-transform: translate(0px, 0px);
-    -moz-transform: translate(0px, 0px);
-    -ms-transform: translate(0px, 0px);
-    -o-transform: translate(0px, 0px);
+    transform: translate(-1px, -1px);
+    -webkit-transform: translate(-1px, -1px);
+    -moz-transform: translate(-1px, -1px);
+    -ms-transform: translate(-1px, -1px);
+    -o-transform: translate(-1px, -1px);
+  }
+}
+
+.btn-glyph {
+  color: @black;
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 5px;
+
+  text-shadow: none;
+
+  -webkit-transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
+  -moz-transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
+  -ms-transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
+  -o-transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
+  transition: 0.05s ease-out transform, 0.05s ease-out box-shadow;
+  -webkit-transform: none;
+  -moz-transform: none;
+  -ms-transform: none;
+  -o-transform: none;
+  transform: none;
+  &.small {
+    font-size: 0.8em;
+  }
+  &:hover {
+    text-shadow: 1px 1px 1px lighten(@shadow-color, 30%);
+    transform: translate(-1px, -1px);
+    -webkit-transform: translate(-1px, -1px);
+    -moz-transform: translate(-1px, -1px);
+    -ms-transform: translate(-1px, -1px);
+    -o-transform: translate(-1px, -1px);
+  }
+
+  &.selected {
+    color: @btn-color2;
   }
 }
 
@@ -202,11 +237,11 @@ a {
       &:hover {
         border-bottom-color: @btn-color;
         color: @c-highlight !important;
-        -webkit-transform: translate(-2px, -2px);
-        -moz-transform: translate(-2px, -2px);
-        -ms-transform: translate(-2px, -2px);
-        -o-transform: translate(-2px, -2px);
-        transform: translate(-2px, -2px);
+        -webkit-transform: translate(-1px, -1px);
+        -moz-transform: translate(-1px, -1px);
+        -ms-transform: translate(-1px, -1px);
+        -o-transform: translate(-1px, -1px);
+        transform: translate(-1px, -1px);
       }
       &:focus {
         border-bottom-color: @btn-color;
@@ -318,11 +353,11 @@ a {
       -webkit-box-shadow: 1px 1px 3px 0px @shadow-color;
       -moz-box-shadow: 1px 1px 3px 0px @shadow-color;
       box-shadow: 1px 1px 3px 0px @shadow-color;
-      -webkit-transform: translate(-2px, -2px);
-      -moz-transform: translate(-2px, -2px);
-      -ms-transform: translate(-2px, -2px);
-      -o-transform: translate(-2px, -2px);
-      transform: translate(-2px, -2px);
+      -webkit-transform: translate(-1px, -1px);
+      -moz-transform: translate(-1px, -1px);
+      -ms-transform: translate(-1px, -1px);
+      -o-transform: translate(-1px, -1px);
+      transform: translate(-1px, -1px);
     }
   }
 }
@@ -419,11 +454,11 @@ a {
       -webkit-box-shadow: 1px 1px 3px 0px @shadow-color;
       -moz-box-shadow: 1px 1px 3px 0px @shadow-color;
       box-shadow: 1px 1px 3px 0px @shadow-color;
-      -webkit-transform: translate(-2px, -2px);
-      -moz-transform: translate(-2px, -2px);
-      -ms-transform: translate(-2px, -2px);
-      -o-transform: translate(-2px, -2px);
-      transform: translate(-2px, -2px);
+      -webkit-transform: translate(-1px, -1px);
+      -moz-transform: translate(-1px, -1px);
+      -ms-transform: translate(-1px, -1px);
+      -o-transform: translate(-1px, -1px);
+      transform: translate(-1px, -1px);
     }
   }
   .labor-entry.selected {
@@ -744,11 +779,11 @@ a {
       -webkit-box-shadow: 2px 2px 5px 0px @shadow-color;
       box-shadow: 2px 2px 5px 0px @shadow-color;
       cursor: pointer;
-      -webkit-transform: translate(-2px, -2px);
-      -moz-transform: translate(-2px, -2px);
-      -ms-transform: translate(-2px, -2px);
-      -o-transform: translate(-2px, -2px);
-      transform: translate(-2px, -2px);
+      -webkit-transform: translate(-1px, -1px);
+      -moz-transform: translate(-1px, -1px);
+      -ms-transform: translate(-1px, -1px);
+      -o-transform: translate(-1px, -1px);
+      transform: translate(-1px, -1px);
     }
     .hostname {
       -moz-border-radius: 5px 0px 0px 0px;
