@@ -12,14 +12,16 @@
                     <div class="col-md-10"><label for="filterOwn">Show only my
                         quests:</label></div>
                     <div class="col-md-2">
-                        <span id="filterOwn" role="checkbox" class="glyphicon glyphicon-ok btn-glyph"
-                                ng-class="{'selected': qc.filterOwn}"
-                                ng-click="qc.filterOwn = !qc.filterOwn; qc.filterOwnChanged()">
+                        <span id="filterOwn" role="checkbox"
+                              class="glyphicon glyphicon-ok btn-glyph"
+                              ng-class="{'selected': qc.filterOwn}"
+                              ng-click="qc.filterOwn = !qc.filterOwn; qc.filterOwnChanged()">
                         </span>
                     </div>
                 </div>
                 <div>
-                    <label for="creatorFilter">Filter by creator's username:</label>
+                    <label for="creatorFilter">Filter by creator's
+                        username:</label>
                 </div>
                 <div class="row">
                     <div class="col-md-10">
@@ -30,8 +32,9 @@
                         </form>
                     </div>
                     <div class="col-md-2">
-                         <span role="button" aria-label="Clear creator filter" class="glyphicon glyphicon-remove-sign btn-glyph"
-                                ng-click="qc.filterByCreator = ''; qc.filterOwn = false">
+                         <span role="button" aria-label="Clear creator filter"
+                               class="glyphicon glyphicon-remove-sign btn-glyph"
+                               ng-click="qc.filterByCreator = ''; qc.filterOwn = false">
                         </span>
                     </div>
                 </div>
@@ -41,12 +44,14 @@
                 <div class="row">
                     <div class="col-md-10">
                         <form ng-submit="qc.runNewFilter()">
-                            <input id="queryFilter" type="text" ng-model="qc.queryInput" />
+                            <input id="queryFilter" type="text"
+                                   ng-model="qc.queryInput"/>
                         </form>
                     </div>
                     <div class="col-md-2">
-                        <span role="button" aria-label="Clear query filter" class="glyphicon glyphicon-remove-sign btn-glyph"
-                                ng-click="qc.queryInput = ''">
+                        <span role="button" aria-label="Clear query filter"
+                              class="glyphicon glyphicon-remove-sign btn-glyph"
+                              ng-click="qc.queryInput = ''">
                         </span>
                     </div>
                 </div>
@@ -54,7 +59,8 @@
                     <div class="col-md-10">
                     </div>
                     <div class="col-md-2">
-                        <button type="button" ng-click="qc.runNewFilter()">GO</button>
+                        <button type="button" ng-click="qc.runNewFilter()">GO
+                        </button>
                     </div>
                 </div>
                 <div style="padding: 5px 0px 5px 0px">
@@ -66,17 +72,27 @@
                         </select>
                     </label>
                 </div>
-                <div class="quest-list-page-selector" style="padding-bottom: 5px;">
+                <div class="quest-list-page-selector"
+                     style="padding-bottom: 5px;">
                     <strong>Page:</strong>
-                    <button style="float:none" type="button" ng-click="qc.pageFirst()">First</button>
-                    <button style="float:none" type="button" ng-click="qc.pagePrev()">Prev</button>
+                    <button style="float:none" type="button"
+                            ng-click="qc.pageFirst()">First
+                    </button>
+                    <button style="float:none" type="button"
+                            ng-click="qc.pagePrev()">Prev
+                    </button>
                     <select style="margin-left: 0px;" ng-model="qc.pageSetting"
                             ng-model-options="qc.limitOptions"
                             ng-options="pageVal for pageVal in qc.pageValues()"></select>
-                    <button style="float:none" type="button" ng-click="qc.pageNext()">Next</button>
-                    <button style="float:none" type="button" ng-click="qc.pageLast()">Last</button>
+                    <button style="float:none" type="button"
+                            ng-click="qc.pageNext()">Next
+                    </button>
+                    <button style="float:none" type="button"
+                            ng-click="qc.pageLast()">Last
+                    </button>
                 </div>
-                <div ng-if="qc.errorMessage" class="error-message" ng-bind="qc.errorMessage"></div>
+                <div ng-if="qc.errorMessage" class="error-message"
+                     ng-bind="qc.errorMessage"></div>
             </div>
             <div class="quest-list-entry selected"
                  ng-if="!qc.selectedQuest && !qc.errorMessage">
@@ -87,7 +103,7 @@
             <div class="overviews">
                 <div class="quest-list-entry"
                      ng-repeat="quest in qc.questData | limitTo:qc.limit:qc.offset track by quest.id"
-                     ng-class="(qc.selectedQuest.id == quest.id) ? 'selected': ''"
+                     ng-class="[(qc.selectedQuest.id == quest.id) ? 'selected': '', quest.overDue ? 'overdue': '']"
                      ng-click="qc.newQuestSelection(quest)">
                     <div>
                         <strong>Quest {{quest.id}}</strong>
@@ -96,7 +112,10 @@
                     <div quest-progress-bar class="progbar" data="quest"></div>
                     <div><span style="font-size: .8em">Embarked on: {{quest.embarkTime}}</span>
                     </div>
-                    <div><span style="font-size: .8em">Created by: {{quest.creator}}</span></div>
+                    <div ng-if="quest.targetTime"><span style="font-size: .8em">Due on: {{quest.targetTime}}</span>
+                    </div>
+                    <div><span style="font-size: .8em">Created by: {{quest.creator}}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -111,11 +130,21 @@
                         <div quest-progress-chart
                              colors="qc.colors"
                              types="qc.types"
-                             data="qc.selectedQuestDetails"></div>
+                             data="qc.selectedQuestDetails">
+                        </div>
                         <div class="quest-overview">
-                    <span>
-                        {{qc.selectedQuestDetails.totalLabors}} total labors.  {{qc.selectedQuestDetails.openLabors}} remain open.
-                    </span>
+                            <span>
+                                {{qc.selectedQuestUniqueLabors}} total labors.
+                            </span>
+                            <span ng-if="qc.selectedQuestStartingLabors">
+                                {{qc.selectedQuestStartingLabors}} labors unstarted.
+                            </span>
+                            <span ng-if="qc.selectedQuestInProgLabors">
+                                {{qc.selectedQuestInProgLabors}} labors in progress.
+                            </span>
+                            <span ng-if="qc.selectedQuestCompletedLabors">
+                                {{qc.selectedQuestCompletedLabors}} labors completed.
+                            </span>
                         </div>
                         <div class="quest-labors">
                             <div class="header row">
@@ -139,7 +168,8 @@
                                                     owner.indexOf('@') == -1 ? '@' + qc.domain : ''
                                                 }}"
                                                    target="_blank">
-                                                    <img src="/img/send_email_15.png" alt="Send email to {{owner}}" />
+                                                    <img src="/img/send_email_15.png"
+                                                         alt="Send email to {{owner}}"/>
                                                 </a>
                                             </span>
                                         </div>
@@ -152,9 +182,14 @@
                                                     {{owner}}
                                                 </span>
                                             </div>
-                                            <div class="col-md-2">{{host}}</div>
-                                            <div class="col-md-3">{{qc.hostOwners[host]}}</div>
-                                            <div class="col-md-4">{{laborType}}</div>
+                                            <div class="col-md-2">{{host}}
+                                            </div>
+                                            <div class="col-md-3">
+                                                {{qc.hostOwners[host]}}
+                                            </div>
+                                            <div class="col-md-4">
+                                                {{laborType}}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -181,7 +216,7 @@
                                     ng-disabled="qc.selectedLabors.length == 0">
                                 <img ng-if="qc.createInProgress"
                                      src="/img/loading_15.gif"
-                                     style="margin: 5px; float: left" />
+                                     style="margin: 5px; float: left"/>
                                 Throw Events
                             </button>
                         </div>
@@ -192,13 +227,22 @@
     </div>
     <div ng-cloak class="modal-wrapper fade" ng-if="qc.createEventsModal">
         <div id="confirmModal" class="modal-dialog" role="dialog">
-            <div class="dialog-callout">The event <code>{{qc.selectedEventType.category}} {{qc.selectedEventType.state}}</code> means: {{qc.selectedEventType.description}}</div>
+            <div class="dialog-callout">The event <code>{{qc.selectedEventType.category}}
+                {{qc.selectedEventType.state}}</code> means:
+                {{qc.selectedEventType.description}}
+            </div>
             <div class="dialog-text">
-                Are you sure you want to create a <code>{{qc.selectedEventType.category}} {{qc.selectedEventType.state}}</code> event for {{qc.selectedLabors.length}} servers?
+                Are you sure you want to create a <code>{{qc.selectedEventType.category}}
+                {{qc.selectedEventType.state}}</code> event for
+                {{qc.selectedLabors.length}} servers?
             </div>
             <div class="dialog-buttons">
-                <button style="float: none" class="big-button be-positive" ng-click="qc.createEvents()">Yes</button>
-                <button style="float: none" class="big-button" ng-click="qc.createEventsModal = false">No</button>
+                <button style="float: none" class="big-button be-positive"
+                        ng-click="qc.createEvents()">Yes
+                </button>
+                <button style="float: none" class="big-button"
+                        ng-click="qc.createEventsModal = false">No
+                </button>
             </div>
         </div>
     </div>
