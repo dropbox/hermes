@@ -96,22 +96,42 @@
                         raphael.clear();
 
                         // add the quest info to the top left
-                        var title = raphael.text(0, titleFontSize, "Quest " + data[0].id)
-                            .attr('text-anchor', 'start')
-                            .attr('font-size', titleFontSize)
-                            .attr('font-family', "Titillium Web");
+                        var title = raphael.text(0, titleFontSize,
+                            "Quest " + data[0].id)
+                            .attr({
+                                'text-anchor': 'start',
+                                'font-size': titleFontSize,
+                                'font-family': "Titillium Web"
+                            });
 
-                        var creator = raphael.text(0, titleFontSize + legendFontSize * 2, "Created by: " + data[0].creator)
-                            .attr('text-anchor', 'start')
-                            .attr('font-size', legendFontSize)
-                            .attr('font-family', "Titillium Web");
+                        var creator = raphael.text(0, titleFontSize
+                            + legendFontSize * 2,
+                            "Created by: " + data[0].creator)
+                            .attr({
+                                'text-anchor': 'start',
+                                'font-size': legendFontSize,
+                                'font-family': "Titillium Web"
+                            });
 
                         // add the quest description
                         var desc = raphael.text(0, legendY - legendSpacing /1.5)
-                            .attr('text-anchor', 'start')
-                            .attr('font-size', legendFontSize)
-                            .attr('font-family', "Titillium Web");
+                            .attr({
+                                'text-anchor': 'start',
+                                'font-size': legendFontSize,
+                                'font-family': "Titillium Web"
+                            });
+
                         wrapText(data[0].description, desc, width *.35);
+
+                        if (data[0].overDue) {
+                            raphael.text(legendX, titleFontSize, "OVERDUE")
+                                .attr({
+                                    'font-size': titleFontSize,
+                                    'font-family': "Titillium Web",
+                                    'fill': "#953D2D",
+                                    'text-anchor': 'start'
+                                });
+                        }
 
                         // draw out the legend on the right
                         var i = 0;
@@ -122,7 +142,11 @@
                             var y = legendY + (i * legendSpacing * 1.1);
                             var text = raphael.text(
                                 x, y, type
-                            ).attr('font-size', legendFontSize).attr('font-family', "Titillium Web").attr('text-anchor', 'start')
+                            ).attr({
+                                    'font-size': legendFontSize,
+                                    'font-family': "Titillium Web",
+                                    'text-anchor': 'start'
+                                });
 
                             var boxX = x - legendSpacing- (legendSpacing/4);
                             var boxY = y - legendSpacing/2;

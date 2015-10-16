@@ -3,17 +3,21 @@
 @c-selected: #72b6ec;
 
 @dark-blue: #232f3e;
-@light-blue: #9cbfea;
+@light-blue: #97B2D3;
+@xlight-blue: #CADFF8;
 @blue: #688ab4;
 @light-gray: #dce1e6;
 @xlight-gray: #e7ecf1;
 @med-gray: #7e8184;
 @dark-gray: #3A3C3D;
-@burnt-orange: #c97429;
+@orange: #C96C37;
+@light-orange: #E9905E;
+@xlight-orange: #FFCCAF;
 @red: #c92929;
 @light-red: #E6CFD0;
 @xlight-red:#EA9C9C;
 @dark-red: #944D4D;
+@xdark-red: #6A1C0E;
 @red-gray: #4D2828;
 @white: #ffffff;
 @black: #000000;
@@ -22,15 +26,17 @@
 @text-color: @white;
 @alt-row-color: @xlight-gray;
 @selected-color: @light-blue;
+@overdue-selected-color: @light-orange;
 @unselected-color: @light-gray;
+@overdue-unselected-color: @light-gray;
 @input-outline-color: @med-gray;
-@btn-color: @burnt-orange;
+@btn-color: @blue;
 @btn-text-color: @white;
 @btn-color2: @blue;
 @shadow-color: @dark-gray;
 @error-color: @red;
 @success-color: @blue;
-@link-color: @burnt-orange;
+@link-color: @blue;
 
 
 // Width variables (appears count calculates by raw css)
@@ -332,24 +338,25 @@ a {
 
 .quest-list-entry {
   //border-bottom: @selected-color 1px solid;
+  //border: 5px solid @unselected-color;
   background: @unselected-color;
-  padding: 10px 10px 20px 10px;
+  padding: 10px 10px 10px 10px;
   transition: 0.15s ease-out all;
   -webkit-transition: 0.15s ease-out all;
   -moz-transition: 0.15s ease-out all;
   -ms-transition: 0.15s ease-out all;
   -o-transition: 0.15s ease-out all;
-  transition: 0.15s ease-out all;
   -webkit-transform: none;
   -moz-transform: none;
   -ms-transform: none;
   -o-transform: none;
   transform: none;
   &.overdue {
-    color:@dark-red;
-    background: @light-red;
+    //color:@orange;
+    //background: @light-red;
     &.selected {
-      background: @xlight-red;
+      //color: @black;
+      background: @selected-color;
     }
   }
 
@@ -360,7 +367,7 @@ a {
   }
 
   &:last-child {
-    border-bottom: none;
+    //border-bottom: none;
     -moz-border-radius: 0px 0px 5px 5px;
     -webkit-border-radius: 0px 0px 5px 5px;
     border-radius: 0px 0px 5px 5px;

@@ -216,24 +216,7 @@
 
                 // see which quests are overdue
                 for (var idx in vm.questData) {
-                    var quest = vm.questData[idx];
-                    if (quest.targetTime) {
-                        var dateRegex = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/;
-                        var dateArray = dateRegex.exec(quest.targetTime);
-                        var targetDate = new Date(
-                            (+dateArray[1]),
-                            (+dateArray[2]) - 1, // Careful, month starts at 0!
-                            (+dateArray[3]),
-                            (+dateArray[4]),
-                            (+dateArray[5]),
-                            (+dateArray[6])
-                        );
-
-                        if (targetDate - new Date() <= 0) quest.overDue = true;
-                        else quest.overDue = false;
-                    } else {
-                        quest.overDue = false;
-                    }
+                    evalDueDate(vm.questData[idx]);
                 }
 
                 // find the quest requested and make that the selection
@@ -255,6 +238,30 @@
                     newQuestSelection(vm.questData[index]);
                 }
             });
+        }
+
+        /**
+         * Determine if the quest is overdue and add a property to indicate
+         * @param quest the quest to analyze
+         */
+        function evalDueDate(quest) {
+            if (quest.targetTime) {
+                var dateRegex = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/;
+                var dateArray = dateRegex.exec(quest.targetTime);
+                var targetDate = new Date(
+                    (+dateArray[1]),
+                    (+dateArray[2]) - 1, // Careful, month starts at 0!
+                    (+dateArray[3]),
+                    (+dateArray[4]),
+                    (+dateArray[5]),
+                    (+dateArray[6])
+                );
+
+                if (targetDate - new Date() <= 0) quest.overDue = true;
+                else quest.overDue = false;
+            } else {
+                quest.overDue = false;
+            }
         }
 
         function newQuestSelection(quest) {
@@ -290,6 +297,7 @@
             ]).then(function(data) {
                 vm.hostOwners = data[0];
                 vm.selectedQuestDetails = data[1];
+                evalDueDate(vm.selectedQuestDetails);
 
                 $location.update_path('/v1/quests/' + quest.id, false);
                 analyzeLabors(data[0], data[1]);

@@ -49,8 +49,8 @@
                         console.log(data[0].overDue);
 
                         if (data[0].overDue) {
-                            colors = ['#944D4D', '#4D2828'];
-                            textColor = '#c92929';
+                            colors = ['#944D4D', '#6A1C0E'];
+                            textColor = '#6A1C0E';
                         }
 
                         // erase everything
