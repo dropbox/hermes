@@ -13,7 +13,7 @@
                         quests:</label></div>
                     <div class="col-md-2">
                         <span id="filterOwn" role="checkbox"
-                              class="glyphicon glyphicon-ok btn-glyph"
+                              class="glyphicon glyphicon-check btn-glyph"
                               ng-class="{'selected': qc.filterOwn}"
                               ng-click="qc.filterOwn = !qc.filterOwn; qc.filterOwnChanged()">
                         </span>
@@ -116,6 +116,36 @@
                     </div>
                     <div><span style="font-size: .8em">Created by: {{quest.creator}}</span>
                     </div>
+                </div>
+            </div>
+            <div class="quest-list-filter" style="border: none; -webkit-border-radius: 0px 0px 5px 5px;-moz-border-radius: 0px 0px 5px 5px;border-radius: 0px 0px 5px 5px;">
+                <div style="padding: 5px 0px 5px 0px">
+                    <label>
+                        Limit:
+                        <select ng-model="qc.limitSetting"
+                                ng-model-options="qc.limitOptions"
+                                ng-options="optValue for optValue in qc.limitValues()">
+                        </select>
+                    </label>
+                </div>
+                <div class="quest-list-page-selector"
+                     style="padding-bottom: 5px;">
+                    <strong>Page:</strong>
+                    <button style="float:none" type="button"
+                            ng-click="qc.pageFirst()">First
+                    </button>
+                    <button style="float:none" type="button"
+                            ng-click="qc.pagePrev()">Prev
+                    </button>
+                    <select style="margin-left: 0px;" ng-model="qc.pageSetting"
+                            ng-model-options="qc.limitOptions"
+                            ng-options="pageVal for pageVal in qc.pageValues()"></select>
+                    <button style="float:none" type="button"
+                            ng-click="qc.pageNext()">Next
+                    </button>
+                    <button style="float:none" type="button"
+                            ng-click="qc.pageLast()">Last
+                    </button>
                 </div>
             </div>
         </div>
