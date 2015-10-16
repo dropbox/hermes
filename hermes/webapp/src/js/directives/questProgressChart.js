@@ -2,7 +2,7 @@
  * directive for building quest progress bars with Raphael
  */
 (function() {
-    function questProgressChart ($timeout) {
+    function questProgressChart ($timeout, $window) {
         return {
             restrict: 'A',
             scope: {
@@ -13,10 +13,10 @@
             },
             link: function ($scope, $ele, $attrs) {
                 var width = $ele[0].offsetWidth;
-                var graphHeight = 300;
-                var legendFontSize = graphHeight * .04;
-                var legendSpacing = graphHeight * .06;
-                var titleFontSize = graphHeight * .08;
+                var graphHeight = 200;
+                var legendFontSize = graphHeight * .06;
+                var legendSpacing = graphHeight * .09;
+                var titleFontSize = graphHeight * .12;
 
 
                 var renderTimeout;
@@ -43,6 +43,17 @@
                         totalLabors += types[idx];
                     }
                 });
+
+                $window.onresize = function () {
+                    $scope.$apply();
+                };
+
+                $scope.$watch(function () {
+                    return angular.element($window)[0].innerWidth;
+                }, function () {
+                    $scope.render([$scope.data]);
+                });
+
 
                 $scope.$watch('colors', function (newData) {
                     colors = newData;
@@ -74,8 +85,9 @@
                     }
 
                     renderTimeout = $timeout(function () {
-                        var legendX = width * .75;
-                        var legendY = ((graphHeight *.6) + ((numberOfTypes-1)* legendSpacing)) / 2;
+                        var width = $ele[0].offsetWidth;
+                        var legendX = width * .70;
+                        var legendY = ((graphHeight *.9) + ((numberOfTypes-1)* legendSpacing)) / 2;
                         var pieX = width * .5;
                         var pieY = graphHeight * .5;
                         var pieR = graphHeight * .45;
@@ -89,12 +101,17 @@
                             .attr('font-size', titleFontSize)
                             .attr('font-family', "Titillium Web");
 
-                        // add the quest description
-                        var desc = raphael.text(0, legendY)
+                        var creator = raphael.text(0, titleFontSize + legendFontSize * 2, "Created by: " + data[0].creator)
                             .attr('text-anchor', 'start')
                             .attr('font-size', legendFontSize)
                             .attr('font-family', "Titillium Web");
-                        wrapText(data[0].description, desc, width *.25);
+
+                        // add the quest description
+                        var desc = raphael.text(0, legendY - legendSpacing /1.5)
+                            .attr('text-anchor', 'start')
+                            .attr('font-size', legendFontSize)
+                            .attr('font-family', "Titillium Web");
+                        wrapText(data[0].description, desc, width *.35);
 
                         // draw out the legend on the right
                         var i = 0;
@@ -148,5 +165,5 @@
     }
 
     angular.module('hermesApp').directive('questProgressChart', questProgressChart);
-    questProgressChart.$inject = ['$timeout'];
+    questProgressChart.$inject = ['$timeout', '$window'];
 })();

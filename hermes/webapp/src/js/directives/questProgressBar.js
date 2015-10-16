@@ -2,7 +2,7 @@
  * directive for building quest progress bars with Raphael
  */
 (function() {
-    function questProgressBar ($timeout) {
+    function questProgressBar ($timeout, $window) {
         return {
             restrict: 'A',
             scope: {
@@ -21,6 +21,16 @@
                     $scope.render([newData]);
                 }, true);
 
+                $window.onresize = function () {
+                    $scope.$apply();
+                };
+
+                $scope.$watch(function () {
+                    return angular.element($window)[0].innerWidth;
+                }, function () {
+                    $scope.render([$scope.data]);
+                });
+
                 $scope.render = function (data) {
                     if (!data || !isVisible) return;
                     if (renderTimeout) clearTimeout(renderTimeout);
@@ -33,6 +43,16 @@
                         var barHeight = graphHeight * .3;
                         var percentXLoc = data[0].percentComplete * barWidth / 100;
 
+                        var colors = ['#7b8994','#3d464d'];
+                        var textColor = '#3d464d';
+
+                        console.log(data[0].overDue);
+
+                        if (data[0].overDue) {
+                            colors = ['#944D4D', '#4D2828'];
+                            textColor = '#c92929';
+                        }
+
                         // erase everything
                         raphael.clear();
 
@@ -41,7 +61,7 @@
                             0, barBaseLine - barHeight,
                             barWidth, barHeight
                         );
-                        fullBar.attr({'fill': '#7b8994'});
+                        fullBar.attr({'fill': colors[0]});
                         fullBar.attr({'stroke-width': 0});
 
                         // color in the part to represent the percentage complete
@@ -49,13 +69,13 @@
                             0, barBaseLine - barHeight,
                             percentXLoc, barHeight
                         );
-                        percentBar.attr({'fill': '#3d464d'});
+                        percentBar.attr({'fill': colors[1]});
                         percentBar.attr({'stroke-width': 0});
 
                         // draw the little line that points up to the percentage label
                         var pathStr = "M" + percentXLoc + "," + (barBaseLine - (barHeight * 1.5))
                             + " L" + percentXLoc + "," + barBaseLine;
-                        raphael.path(pathStr).attr({'stroke': '#3d464d'});
+                        raphael.path(pathStr).attr({'stroke': colors[1]});
 
                         // add the percentage amount text
                         var label = raphael.text(
@@ -63,7 +83,9 @@
                             (barBaseLine - (barHeight * 2)),
                             data[0].percentComplete + "%"
                         ).attr({
-                            'font-size': barHeight
+                            'font-size': barHeight,
+                            'fill': textColor,
+                            'font-family': "Titillium Web",
                         });
 
                         var bb = label.getBBox();
@@ -83,5 +105,5 @@
     }
 
     angular.module('hermesApp').directive('questProgressBar', questProgressBar);
-    questProgressBar.$inject = ['$timeout'];
+    questProgressBar.$inject = ['$timeout', '$window'];
 })();

@@ -14,6 +14,10 @@
         vm.questData = null;
         vm.selectedQuest = null;
         vm.selectedQuestDetails = null;
+        vm.selectedQuestUniqueLabors = 0;
+        vm.selectedQuestInProgLabors = 0;
+        vm.selectedQuestStartingLabors = 0;
+        vm.selectedQuestCompletedLabors = 0;
         vm.labors = null;
         vm.selectedLabors = [];
         vm.types = null;
@@ -210,6 +214,28 @@
                 vm.offset = questData['offset'] || vm.offset;
                 vm.totalQuests = questData['totalQuests'] || vm.totalQuests;
 
+                // see which quests are overdue
+                for (var idx in vm.questData) {
+                    var quest = vm.questData[idx];
+                    if (quest.targetTime) {
+                        var dateRegex = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/;
+                        var dateArray = dateRegex.exec(quest.targetTime);
+                        var targetDate = new Date(
+                            (+dateArray[1]),
+                            (+dateArray[2]) - 1, // Careful, month starts at 0!
+                            (+dateArray[3]),
+                            (+dateArray[4]),
+                            (+dateArray[5]),
+                            (+dateArray[6])
+                        );
+
+                        if (targetDate - new Date() <= 0) quest.overDue = true;
+                        else quest.overDue = false;
+                    } else {
+                        quest.overDue = false;
+                    }
+                }
+
                 // find the quest requested and make that the selection
                 var index = -1;
                 for (var idx in vm.questData) {
@@ -236,6 +262,10 @@
             smoothScroll(detailsDiv, {duration: 700, easing: 'easeInOutQuad', offset: 100});
             vm.selectedQuest = quest;
             vm.selectedQuestDetails = null;
+            vm.selectedQuestUniqueLabors = 0;
+            vm.selectedQuestInProgLabors = 0;
+            vm.selectedQuestStartingLabors = 0;
+            vm.selectedQuestCompletedLabors = 0;
             vm.hostOwners = null;
             vm.labors = null;
             vm.selectedLabors = [];
@@ -260,6 +290,7 @@
             ]).then(function(data) {
                 vm.hostOwners = data[0];
                 vm.selectedQuestDetails = data[1];
+
                 $location.update_path('/v1/quests/' + quest.id, false);
                 analyzeLabors(data[0], data[1]);
             });
@@ -294,6 +325,7 @@
 
             // sort the unique labors into a buckets based on the owner and labor type
             var sortedLabors = {};
+            vm.selectedQuestUniqueLabors = Object.keys(laborsUnique).length;
             vm.types = {};
             for (var idx in laborsUnique) {
                 var hostname = laborsUnique[idx]['host']['hostname'];
@@ -312,6 +344,7 @@
 
                 // if this labor is completed, we will file it by the complete event type
                 if (laborsUnique[idx]['completionEvent']) {
+                    vm.selectedQuestCompletedLabors++;
                     var completionEventType = laborsUnique[idx]['completionEvent']['eventType'];
                     var key = completionEventType['category'] + " " + completionEventType['state'];
                     // update the count of labors by type
@@ -348,6 +381,12 @@
                     }
 
                 } else { // for incomplete labors, file by the creating event type
+                    if (laborsUnique[idx]['startingLaborId']) {
+                        vm.selectedQuestInProgLabors++;
+                    } else {
+                        vm.selectedQuestStartingLabors++;
+                    }
+
                     var creationEventType = laborsUnique[idx]['creationEvent']['eventType'];
                     var key = creationEventType['category'] + " " + creationEventType['state'];
 

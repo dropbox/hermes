@@ -11,6 +11,10 @@
 @dark-gray: #3A3C3D;
 @burnt-orange: #c97429;
 @red: #c92929;
+@light-red: #E6CFD0;
+@xlight-red:#EA9C9C;
+@dark-red: #944D4D;
+@red-gray: #4D2828;
 @white: #ffffff;
 @black: #000000;
 
@@ -327,7 +331,7 @@ a {
 }
 
 .quest-list-entry {
-  border-bottom: @selected-color 1px solid;
+  //border-bottom: @selected-color 1px solid;
   background: @unselected-color;
   padding: 10px 10px 20px 10px;
   transition: 0.15s ease-out all;
@@ -341,6 +345,20 @@ a {
   -ms-transform: none;
   -o-transform: none;
   transform: none;
+  &.overdue {
+    color:@dark-red;
+    background: @light-red;
+    &.selected {
+      background: @xlight-red;
+    }
+  }
+
+  &:not(.overdue) {
+    &.selected {
+      background: @selected-color;
+    }
+  }
+
   &:last-child {
     border-bottom: none;
     -moz-border-radius: 0px 0px 5px 5px;
@@ -360,10 +378,6 @@ a {
       transform: translate(-1px, -1px);
     }
   }
-}
-
-.quest-list-entry.selected {
-  background: @selected-color;
 }
 
 .quest-list-entry.ng-enter {
