@@ -116,13 +116,16 @@ def main():
     # generate and send emails
     for owner in info:
         msg = (
-            "Hello {}:\n\nYou have open Hermes labors "
-            "which need to be addressed ASAP.\n".format(owner)
+            "Hello {}:\n\nYou have open Hermes labors.  Due dates, if any, "
+            "are noted with each quest.".format(owner)
         )
 
         msg += (
-            "\nTo see more information or throw event "
-            "manually, please visit {}/v1/labors\n\n".format(settings.frontend)
+            "\nTo throw an event manually, you can run the following command "
+            "on a shell server:"
+            "\n\n"
+            "$ hermes event create [event] --host [hostname].\n\n"
+            "Or you can visit {}/v1/labors\n\n".format(settings.frontend)
         )
 
         for quest_id in info[owner]:
@@ -131,15 +134,19 @@ def main():
                 msg += "QUEST {}  [created by {}]:\n".format(
                     quest_id, quest.creator
                 )
-                msg += "  \"{}\"\n".format(textwrap.fill(
+                if quest.target_time:
+                    msg += "Due: {}\n".format(quest.target_time)
+                msg += "Description: \"{}\"\n".format(textwrap.fill(
                     quest.description,
-                    width=60, subsequent_indent="  "
+                    width=60, subsequent_indent=""
                 ))
-                msg += "  href: {}/v1/quests/{}\n\n".format(
+                msg += "Href: {}/v1/quests/{}\n\n".format(
                     settings.frontend, quest_id
                 )
             else:
                 msg += "  Labors not associated with a quest:\n\n"
+
+            msg += "Machines with labors:\n"
 
             for hostname in sorted(info[owner][quest_id]):
                 msg += "    {} ({})\n".format(
