@@ -144,6 +144,7 @@ def test_lifecycle_complex2(sample_data1):
     fates = sample_data1.query(Fate).all()
     fate1 = fates[0]
     fate2 = fates[1]
+    fate4 = fates[3]
 
     hosts = sample_data1.query(Host).all()
     host1 = hosts[0]
@@ -151,7 +152,7 @@ def test_lifecycle_complex2(sample_data1):
 
     # Throw event A and C
     Event.create(sample_data1, host1, "system", fate1.creation_event_type)
-    Event.create(sample_data1, host2, "system", fate2.creation_event_type)
+    Event.create(sample_data1, host2, "system", fate4.creation_event_type)
 
     event = (
         sample_data1.query(Event)
@@ -159,7 +160,7 @@ def test_lifecycle_complex2(sample_data1):
     )
 
     assert event.host == host2
-    assert event.event_type == fate2.creation_event_type
+    assert event.event_type == fate4.creation_event_type
 
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 2
@@ -172,7 +173,7 @@ def test_lifecycle_complex2(sample_data1):
 
     # Throw event B
     Event.create(
-        sample_data1, host1, "system", fate1.completion_event_type
+        sample_data1, host1, "system", fate2.creation_event_type
     )
 
     event = (
@@ -181,7 +182,7 @@ def test_lifecycle_complex2(sample_data1):
     )
 
     assert event.host == host1
-    assert event.event_type == fate1.completion_event_type
+    assert event.event_type == fate2.creation_event_type
 
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 2

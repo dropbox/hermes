@@ -1179,7 +1179,6 @@ class FatesHandler(ApiHandler):
             Content-Type: application/json
             {
                 "creationEventTypeId": 1,
-                "completionEventTypeId": 2,
                 "description": "This is a fate",
                 "follows_id": 1,
                 "for_creator": true,
@@ -1197,14 +1196,13 @@ class FatesHandler(ApiHandler):
                 "href": "/api/v1/fates/3",
                 "id": 3,
                 "creationEventTypeId": 1,
-                "completionEventTypeId": 2,
-                "follows": 1,
+                "follows_id": 1,
+                "precedes_ids": [],
                 "for_creator": true,
                 "description": "This is a fate"
             }
 
         :reqjson int creationEventTypeId: the ID of the EventType that triggers this Fate
-        :regjson int completionEventTypeId: the ID of the EventType that closes Labors created by this Fate
         :regjson int follows: (*optional*) The ID of the Fate this Fate must come after, or null
         :regjson string description: (*optional*) The human readable description this Fate
 
@@ -1221,7 +1219,6 @@ class FatesHandler(ApiHandler):
 
         try:
             creation_event_type_id = self.jbody["creationEventTypeId"]
-            completion_event_type_id = self.jbody["completionEventTypeId"]
             follows_id = self.jbody.get("follows_id")
             for_creator = self.jbody.get("for_creator", False)
             for_owner = self.jbody.get("for_owner", True)
@@ -1241,17 +1238,9 @@ class FatesHandler(ApiHandler):
             self.write_error(400, message="Bad creation event type")
             return
 
-        completion_event_type = (
-            self.session.query(EventType).get(completion_event_type_id)
-        )
-
-        if completion_event_type is None:
-            self.write_error(400, message="Bad event type")
-            return
-
         try:
             fate = Fate.create(
-                self.session, creation_event_type, completion_event_type,
+                self.session, creation_event_type,
                 follows_id=follows_id, for_creator=for_creator,
                 for_owner=for_owner,
                 description=description
@@ -1294,8 +1283,8 @@ class FatesHandler(ApiHandler):
                         "id": 1,
                         "href": "/api/v1/fates/1",
                         "creationEventTypeId": 1,
-                        "completionEventType": 2,
                         "follows_id": null,
+                        "precedes_ids": [],
                         "for_creator": 0,
                         "precedes_ids": [3, 5],
                         "description": "This is a fate",
@@ -1355,8 +1344,8 @@ class FateHandler(ApiHandler):
                 "id": 1,
                 "href": "/api/v1/fates/1",
                 "creationEventTypeId": 1,
-                "completionEventType": 2,
                 "follows_id": null,
+                "precedes_ids": [],
                 "for_creator": false,
                 "for_owner": true,
                 "description": string,
@@ -1408,8 +1397,8 @@ class FateHandler(ApiHandler):
                 "id": 3,
                 "href": "/api/v1/fates/3",
                 "creationEventTypeId": 1,
-                "completionEventType": 2,
                 "follows_id": 1,
+                "precedes_id": [],
                 "for_creator": false,
                 "for_owner": true
                 "description": "New desc"

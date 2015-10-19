@@ -28,19 +28,28 @@ VALUES
 
 INSERT INTO fates
 VALUES
-	(1,1,2, NULL, 0, 1, 'A system that needs a reboot can be cleared by rebooting the machine.');
+	(1,1,NULL, 0, 1, 'Reboot or release the system.');
 
 INSERT INTO fates
 VALUES
-	(2,3,4, NULL, 0, 1, 'A system that needs maintenance made ready before maintenance can occur.');
+	(2,2,1, 0, 1, 'A reboot finishes labors.');
 
 INSERT INTO fates
 VALUES
-	(3,4,5,2, 1, 0, 'Maintenance must be performed on a system that is prepped.');
+	(3,4,1, 0, 1, 'A release finishes labors');
 
 INSERT INTO fates
 VALUES
-	(4,1,4,NULL, 0, 1, 'A system that needs a reboot can simply be released');
+	(4,3,NULL, 0, 1, 'Release or acknowledge downtime');
+
+INSERT INTO fates
+VALUES
+	(5,4,4, 0, 1, 'Perform maintenance');
+
+INSERT INTO fates
+VALUES
+	(6,5,5, 1, 0, 'Maintenance must be performed on a system that is prepped.');
+
 
 INSERT INTO hosts
     VALUES (1, 'example.dropbox.com');

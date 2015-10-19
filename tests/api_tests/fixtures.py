@@ -116,5 +116,7 @@ def sample_data1_server(tornado_server):
     client.post("/fates/", json=fates["fate1"])
     client.post("/fates/", json=fates["fate2"])
     client.post("/fates/", json=fates["fate3"])
+    client.post("/fates/", json=fates["fate4"])
+    client.post("/fates/", json=fates["fate5"])
 
     return client
