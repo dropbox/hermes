@@ -631,11 +631,12 @@ def list_quests(args):
     logging.debug("list_quests()")
 
     response = request_get(
-        "/api/v1/quests?filterClosed=true&limit=all&expand=labors"
+        "/api/v1/quests?filterClosed=true&limit=all&progressInfo=true"
     )
     quests = response.json()["quests"]
 
     print "OPEN QUESTS:"
+    print "\t* Labors: unstarted/in-progress/completed/total\n\n"
     for quest in quests:
         if args.user and quest["creator"] != args.user:
             continue
@@ -656,16 +657,10 @@ def list_quests(args):
             target_time = target_time.astimezone(tz.tzlocal())
             print"\tTarget Completion: {}".format(target_time)
 
-        labors_remaining = 0
-        for labor in quest["labors"]:
-            if labor["completionTime"] is None:
-                labors_remaining += 1
-
-        total_labors = len(quest["labors"])
-        print "\n\t{:.2%} complete.  {} total labors.  {} remain open.\n".format(
-            (total_labors - labors_remaining)/total_labors,
-            total_labors,
-            labors_remaining
+        print "\n\t{}% complete. Labors: {}/{}/{}/{}\n".format(
+            quest["percentComplete"], quest["unstartedLabors"],
+            quest["inprogressLabors"], quest["completedLabors"],
+            quest["totalLabors"]
         )
 
 
@@ -684,7 +679,14 @@ def show_quest(args):
     remaining = []
     remaining_types = {}
     completed = []
+    total_labors = 0
+    total_unstarted = 0
     for labor in quest["labors"]:
+        if labor["startingLaborId"] is None:
+            total_labors += 1
+            if labor["completionTime"] is None:
+                total_unstarted += 1
+
         if len(labor["host"]["hostname"]) > max_width:
             max_width = len(labor["host"]["hostname"])
 
@@ -743,7 +745,6 @@ def show_quest(args):
                     labor["creationEvent"]["eventType"]["state"]
                 )
 
-        total_labors = len(quest["labors"])
         labors_remaining = len(remaining)
         labors_completed = len(completed)
         if labors_remaining:

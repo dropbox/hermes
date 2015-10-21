@@ -313,6 +313,23 @@ def test_quest_lifecycle(sample_data1_server):
         strip=["creationTime", "completionTime"]
     )
 
+    # Ensure that the quest doesn't have a completion time yet
+    # Also, test two meta features: progress info and filtering to show only open labors
+    assert_success(
+        client.get("/quests/1?progressInfo=true"),
+        {
+            "creator": "johnny@example.com",
+            "description": "This is a quest almighty",
+            "id": 1,
+            "totalLabors": 3,
+            "unstartedLabors": 3,
+            "inprogressLabors": 0,
+            "completedLabors": 0,
+            "percentComplete": 0.0,
+        },
+        strip=["embarkTime", "creationTime", "completionTime", "targetTime"]
+    )
+
     # Throw events that should trigger intermediate labors
     client.create(
         "/events",
@@ -425,8 +442,10 @@ def test_quest_lifecycle(sample_data1_server):
             "creator": "johnny@example.com",
             "description": "This is a quest almighty",
             "id": 1,
-            "openLabors": 3,
-            "totalLabors": 6,
+            "totalLabors": 3,
+            "unstartedLabors": 0,
+            "inprogressLabors": 3,
+            "completedLabors": 0,
             "percentComplete": 50.0,
             "labors": [
                 {
@@ -613,6 +632,23 @@ def test_quest_lifecycle(sample_data1_server):
                         "questId": 1}]
         },
         strip=["creationTime", "completionTime"]
+    )
+
+    assert_success(
+        client.get("/quests/1?progressInfo=true&onlyOpenLabors=true&expand=labors"),
+        {
+            "creator": "johnny@example.com",
+            "description": "This is a quest almighty",
+            "id": 1,
+            "totalLabors": 3,
+            "unstartedLabors": 0,
+            "inprogressLabors": 0,
+            "completedLabors": 3,
+            "percentComplete": 100.0,
+            "labors": [
+            ]
+        },
+        strip=["embarkTime", "creationTime", "completionTime", "targetTime"]
     )
 
 

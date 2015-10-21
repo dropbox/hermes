@@ -2079,23 +2079,7 @@ class QuestsHandler(ApiHandler):
                 expand=set(expand)
             )
             if progress_info:
-                labor_count = self.session.query(Labor).filter(
-                    Labor.quest_id == quest.id
-                ).count()
-                open_labors_count = self.session.query(Labor).filter(
-                    and_(
-                        Labor.quest_id == quest.id,
-                        Labor.completion_time == None
-                    )
-                ).count()
-
-                percent_complete = round(
-                    (labor_count - open_labors_count) / labor_count * 100,
-                    2
-                )
-                quest_json['totalLabors'] = labor_count
-                quest_json['openLabors'] = open_labors_count
-                quest_json['percentComplete'] = percent_complete
+                quest_json = quest.calcuate_progress(quest_json)
             quests_json.append(quest_json)
 
         json = {
@@ -2159,31 +2143,15 @@ class QuestHandler(ApiHandler):
         if not quest:
             raise exc.NotFound("No such Quest {} found".format(id))
 
-        json = quest.to_dict(
+        out = quest.to_dict(
             base_uri=self.href_prefix, expand=set(expand),
             only_open_labors=only_open_labors
         )
 
         if progress_info:
-            labor_count = self.session.query(Labor).filter(
-                Labor.quest_id == quest.id
-            ).count()
-            open_labors_count = self.session.query(Labor).filter(
-                and_(
-                    Labor.quest_id == quest.id,
-                    Labor.completion_time == None
-                )
-            ).count()
+            out = quest.calcuate_progress(out)
 
-            percent_complete = round(
-                (labor_count - open_labors_count) / labor_count * 100,
-                2
-            )
-            json['totalLabors'] = labor_count
-            json['openLabors'] = open_labors_count
-            json['percentComplete'] = percent_complete
-
-        self.success(json)
+        self.success(out)
 
     def put(self, id):
         """**Update a Quest**

@@ -1311,6 +1311,50 @@ class Quest(Model):
                 msg
             )
 
+    def calcuate_progress(self, json):
+        """Calcuate quest progress, add it to the json body and return it"""
+        total_labor_count = self.session.query(Labor).filter(
+            Labor.quest_id == self.id
+        ).count()
+        total_complete_count = self.session.query(Labor).filter(
+            and_(
+                Labor.quest_id == self.id,
+                Labor.completion_time != None,
+            )
+        ).count()
+        unique_labor_count = self.session.query(Labor).filter(
+            and_(
+                Labor.quest_id == self.id,
+                Labor.starting_labor_id == None
+            )
+        ).count()
+        unstarted_labors_count = self.session.query(Labor).filter(
+            and_(
+                Labor.quest_id == self.id,
+                Labor.completion_time == None,
+                Labor.starting_labor_id == None
+            )
+        ).count()
+        inprogress_labors_count = self.session.query(Labor).filter(
+            and_(
+                Labor.quest_id == self.id,
+                Labor.completion_time == None,
+                Labor.starting_labor_id != None
+            )
+        ).count()
+        completed_labors_count = unique_labor_count - unstarted_labors_count - inprogress_labors_count
+        percent_complete = round(
+            (total_complete_count) / total_labor_count * 100,
+            2
+        )
+        json['totalLabors'] = unique_labor_count
+        json['unstartedLabors'] = unstarted_labors_count
+        json['inprogressLabors'] = inprogress_labors_count
+        json['completedLabors'] = completed_labors_count
+        json['percentComplete'] = percent_complete
+
+        return json
+
     def href(self, base_uri):
         """Create an HREF value for this object
 
