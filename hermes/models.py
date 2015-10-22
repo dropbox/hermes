@@ -284,21 +284,6 @@ class EventType(Model):
             ).order_by(desc(Event.timestamp))
         )
 
-    def get_associated_fates(self):
-        """Get Fates associated with this EventType
-
-        Returns:
-            query for the associated Fates
-        """
-        return (
-            self.session.query(Fate).filter(
-                or_(
-                    Fate.creation_event_type == self,
-                    Fate.completion_event_type == self,
-                )
-            )
-        )
-
     def href(self, base_uri):
         """Create an HREF value for this object
 
@@ -525,10 +510,7 @@ class Fate(Model):
     Attributes:
         id: the unique database id
         creation_type: the EventType that creates an Labor based on this Fate
-        completion_type: the EventType that closes an Labor created by this
-            Fate
-        follows: indicates that this Fate only comes into affect if fulfilling
-            the Fate with this specified id
+        follows: indicates that this Fate completes the indicated Fate
         precedes: indicates which Fates are chained to come after this Fate
         for_creator: if true, the labor created will be designated for the quest creator
         for_owner: if true, the labor creator will be designated for the server owner
@@ -554,15 +536,6 @@ class Fate(Model):
         foreign_keys=[creation_type_id]
     )
 
-    completion_type_id = Column(
-        Integer, ForeignKey("event_types.id"), nullable=False, index=True
-    )
-
-    completion_event_type = relationship(
-        EventType, lazy="joined", backref="auto_completes",
-        foreign_keys=[completion_type_id]
-    )
-
     follows_id = Column(
         Integer, ForeignKey("fates.id"), nullable=True, index=True
     )
@@ -577,11 +550,11 @@ class Fate(Model):
     description = Column(String(2048), nullable=True)
     __table_args__ = (
         UniqueConstraint(
-            creation_type_id, completion_type_id, follows_id,
+            creation_type_id, follows_id,
             name='_creation_completion_uc'
         ),
         Index(
-            "fate_idx", id, creation_type_id, completion_type_id, follows_id
+            "fate_idx", id, creation_type_id, follows_id
         ),
     )
 
@@ -592,7 +565,7 @@ class Fate(Model):
     @classmethod
     def create(
             cls, session,
-            creation_event_type, completion_event_type, follows_id=None,
+            creation_event_type, follows_id=None,
             for_creator=False, for_owner=True, description=None
     ):
         """Create a Fate
@@ -600,8 +573,6 @@ class Fate(Model):
         Args:
             creation_event_type: an EventType that will trigger
                 an labor creation
-            completion_event_type: an EventType that will trigger
-                an labor completion
             follows_id: id of the Fate this new Fate will follow; None if non-intermediate
             for_creator: if true, Fate will create labors for the quest creator
             for_owner: if true, Fate will create labors for the server owner
@@ -610,22 +581,17 @@ class Fate(Model):
         Returns:
             a newly created Fate
         """
-        if creation_event_type is None or completion_event_type is None:
+        if creation_event_type is None:
             raise exc.ValidationError(
-                "Creation EventType and completion EventType are required"
+                "Creation EventType is required"
             )
 
         if follows_id:
             preceding_fate = session.query(Fate).get(follows_id)
             if not preceding_fate:
                 raise exc.ValidationError(
-                    "Fate cannot follow a non-existent Fate {}".format(follows_id)
-                )
-
-            if preceding_fate.completion_event_type != creation_event_type:
-                raise exc.ValidationError(
-                    "Creation EventType for this Fate and the completion "
-                    "EventType for the preceding Fate do not match"
+                    "Fate cannot follow a non-existent Fate {}"
+                        .format(follows_id)
                 )
 
         if not for_creator and not for_owner:
@@ -637,7 +603,6 @@ class Fate(Model):
         try:
             obj = cls(
                 creation_event_type=creation_event_type,
-                completion_event_type=completion_event_type,
                 follows_id=follows_id,
                 for_creator=for_creator,
                 for_owner=for_owner,
@@ -664,26 +629,23 @@ class Fate(Model):
             session: an active database session
         """
         fates = session.query(Fate).all()
-        Fate._all_fates = []
-        Fate._intermediate_fates = []
+        Fate._all_fates = dict()
         Fate._starting_fates = []
         for fate in fates:
             fate_dict = {
                 "id": fate.id,
-                "completion_type_id": fate.completion_type_id,
                 "creation_type_id": fate.creation_type_id,
                 "follows_id": fate.follows_id,
                 "precedes_ids": [
                     linked_fate.id for linked_fate in fate.precedes
-                ],
+                    ],
                 "for_creator": fate.for_creator,
                 "for_owner": fate.for_owner
             }
-            Fate._all_fates.append(fate_dict)
-            if fate.follows_id:
-                Fate._intermediate_fates.append(fate_dict)
-            else:
+            Fate._all_fates[fate.id] = fate_dict
+            if not fate.follows_id:
                 Fate._starting_fates.append(fate_dict)
+
 
     @classmethod
     def get_all_fates(cls, session):
@@ -790,6 +752,7 @@ class Fate(Model):
                     new_labor_dict = {
                         "host_id": host.id,
                         "creation_event_id": event.id,
+                        "fate_id": fate["id"],
                         "quest_id": quest.id if quest else None,
                         "for_creator": fate["for_creator"],
                         "for_owner": fate["for_owner"]
@@ -797,25 +760,16 @@ class Fate(Model):
                     if new_labor_dict not in all_new_labors:
                         all_new_labors.append(new_labor_dict)
 
-            # Now, let's look at all the Fates that this EventType fulfills
-            # and pull them into an array for quicker processing
-            relevant_fates = []
-            for fate in all_fates:
-                if (
-                    fate["completion_type_id"] == event_type.id
-                ):
-                    relevant_fates.append(fate)
-
-            # And with that list of relevant Fates, we can look for
-            # open Labors where the Labor's creation EventType matches
-            # the Fate's creation EventType.  We will collect the matching
-            # Labors into an array for batch achievement
+            # Now we can look at the open labors and see if the fate that
+            # created it has a child fate.  If so, we will create the next
+            # labor.  If not, we will close this labor.
             if host.id in labors_by_hostid:
                 for labor in labors_by_hostid[host.id]:
-                    for fate in relevant_fates:
+                    creating_fate = all_fates[labor.fate_id]
+                    for fate_id in creating_fate['precedes_ids']:
+                        fate = all_fates[fate_id]
                         if (
-                            labor.creation_event.event_type.id
-                            == fate["creation_type_id"]
+                            event_type.id == fate["creation_type_id"]
                         ):
                             all_achieved_labors.append({
                                 "labor": labor,
@@ -831,7 +785,7 @@ class Fate(Model):
                             if fate["precedes_ids"]:
                                 designations = Fate.get_designations(
                                     all_fates,
-                                    fate['precedes_ids']
+                                    fate["precedes_ids"]
                                 )
 
                                 new_labor_dict = {
@@ -842,6 +796,7 @@ class Fate(Model):
                                         else labor.id
                                     ),
                                     "creation_event_id": event.id,
+                                    "fate_id": fate["id"],
                                     "quest_id": (
                                         labor.quest.id if labor.quest else None
                                     ),
@@ -864,8 +819,8 @@ class Fate(Model):
         for_owner = False
         for_creator = False
 
-        for fate in fates:
-            if fate["id"] in ids:
+        for fate in fates.values():
+            if fate['id'] in ids:
                 for_owner = for_owner or fate["for_owner"]
                 for_creator = for_creator or fate["for_creator"]
 
@@ -904,7 +859,6 @@ class Fate(Model):
         out = {
             "id": self.id,
             "creationEventTypeId": self.creation_type_id,
-            "completionEventTypeId": self.completion_type_id,
             "follows_id": self.follows_id,
             "precedes_ids": [labor.id for labor in self.precedes],
             "forCreator": self.for_creator,
@@ -914,9 +868,6 @@ class Fate(Model):
 
         if "eventtypes" in expand:
             out['creationEventType'] = self.creation_event_type.to_dict(
-                base_uri=base_uri, expand=set(expand)
-            )
-            out['completionEventType'] = self.completion_event_type.to_dict(
                 base_uri=base_uri, expand=set(expand)
             )
 
@@ -1360,6 +1311,50 @@ class Quest(Model):
                 msg
             )
 
+    def calcuate_progress(self, json):
+        """Calcuate quest progress, add it to the json body and return it"""
+        total_labor_count = self.session.query(Labor).filter(
+            Labor.quest_id == self.id
+        ).count()
+        total_complete_count = self.session.query(Labor).filter(
+            and_(
+                Labor.quest_id == self.id,
+                Labor.completion_time != None,
+            )
+        ).count()
+        unique_labor_count = self.session.query(Labor).filter(
+            and_(
+                Labor.quest_id == self.id,
+                Labor.starting_labor_id == None
+            )
+        ).count()
+        unstarted_labors_count = self.session.query(Labor).filter(
+            and_(
+                Labor.quest_id == self.id,
+                Labor.completion_time == None,
+                Labor.starting_labor_id == None
+            )
+        ).count()
+        inprogress_labors_count = self.session.query(Labor).filter(
+            and_(
+                Labor.quest_id == self.id,
+                Labor.completion_time == None,
+                Labor.starting_labor_id != None
+            )
+        ).count()
+        completed_labors_count = unique_labor_count - unstarted_labors_count - inprogress_labors_count
+        percent_complete = round(
+            (total_complete_count) / total_labor_count * 100,
+            2
+        )
+        json['totalLabors'] = unique_labor_count
+        json['unstartedLabors'] = unstarted_labors_count
+        json['inprogressLabors'] = inprogress_labors_count
+        json['completedLabors'] = completed_labors_count
+        json['percentComplete'] = percent_complete
+
+        return json
+
     def href(self, base_uri):
         """Create an HREF value for this object
 
@@ -1423,6 +1418,7 @@ class Labor(Model):
     Attributes:
         id: the unique database id
         starting_labor_id: the database id of the labor that started chain of intermediate labors
+        fate_id: the fate that lead to the creation of this labor
         quest: the Quest to this this Labor belongs
         host: the Host to which this Labor pertains
         for_creator: if true, the labor will be designated for the quest creator
@@ -1445,6 +1441,10 @@ class Labor(Model):
     id = Column(Integer, primary_key=True)
 
     starting_labor_id = Column(Integer, nullable=True, index=True)
+    fate_id = Column(
+        Integer, ForeignKey("fates.id"), nullable=False, index=True
+    )
+    fate = relationship(Fate, lazy="joined")
 
     quest_id = Column(
         Integer, ForeignKey("quests.id"), nullable=True, index=True
@@ -1656,6 +1656,7 @@ class Labor(Model):
             "startingLaborId": self.starting_labor_id,
             "questId": self.quest_id,
             "hostId": self.host_id,
+            "fateId": self.fate_id,
             "forCreator": self.for_creator,
             "forOwner": self.for_owner,
             "creationTime": str(self.creation_time),
@@ -1671,6 +1672,9 @@ class Labor(Model):
                 if self.ack_time else None
             )
         }
+
+        if "fates" in expand:
+            out['fate'] = self.fate.to_dict(base_uri=base_uri, expand=set(expand))
 
         if "quests" in expand:
             if self.quest:

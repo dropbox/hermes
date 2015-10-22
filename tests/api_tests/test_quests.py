@@ -279,6 +279,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 3,
                         "targetTime": str(target_time),
                         "hostId": 1,
+                        "fateId": 3,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 1,
@@ -290,6 +291,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 4,
                         "targetTime": str(target_time),
                         "hostId": 2,
+                        "fateId": 3,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 2,
@@ -301,6 +303,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 5,
                         "targetTime": str(target_time),
                         "hostId": 3,
+                        "fateId": 3,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 3,
@@ -308,6 +311,23 @@ def test_quest_lifecycle(sample_data1_server):
                         "questId": 1}],
         },
         strip=["creationTime", "completionTime"]
+    )
+
+    # Ensure that the quest doesn't have a completion time yet
+    # Also, test two meta features: progress info and filtering to show only open labors
+    assert_success(
+        client.get("/quests/1?progressInfo=true"),
+        {
+            "creator": "johnny@example.com",
+            "description": "This is a quest almighty",
+            "id": 1,
+            "totalLabors": 3,
+            "unstartedLabors": 3,
+            "inprogressLabors": 0,
+            "completedLabors": 0,
+            "percentComplete": 0.0,
+        },
+        strip=["embarkTime", "creationTime", "completionTime", "targetTime"]
     )
 
     # Throw events that should trigger intermediate labors
@@ -344,6 +364,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 3,
                         "targetTime": str(target_time),
                         "hostId": 1,
+                        "fateId": 3,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 1,
@@ -355,6 +376,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 4,
                         "targetTime": str(target_time),
                         "hostId": 2,
+                        "fateId": 3,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 2,
@@ -366,28 +388,31 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventId": 5,
                         "targetTime": str(target_time),
                         "hostId": 3,
+                        "fateId": 3,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 3,
                         "startingLaborId": None,
                         "questId": 1},
-                        {"ackTime": None,
+                       {"ackTime": None,
                         "ackUser": None,
                         "completionEventId": None,
                         "creationEventId": 6,
                         "targetTime": str(target_time),
                         "hostId": 1,
+                        "fateId": 4,
                         "id": 4,
                         "forOwner": False,
                         "forCreator": True,
                         "startingLaborId": 1,
                         "questId": 1},
-                        {"ackTime": None,
+                       {"ackTime": None,
                         "ackUser": None,
                         "completionEventId": None,
                         "creationEventId": 7,
                         "targetTime": str(target_time),
                         "hostId": 2,
+                        "fateId": 4,
                         "forOwner": False,
                         "forCreator": True,
                         "id": 5,
@@ -401,6 +426,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "hostId": 3,
                         "forOwner": False,
                         "forCreator": True,
+                        "fateId": 4,
                         "id": 6,
                         "startingLaborId": 3,
                         "questId": 1}]
@@ -416,8 +442,10 @@ def test_quest_lifecycle(sample_data1_server):
             "creator": "johnny@example.com",
             "description": "This is a quest almighty",
             "id": 1,
-            "openLabors": 3,
-            "totalLabors": 6,
+            "totalLabors": 3,
+            "unstartedLabors": 0,
+            "inprogressLabors": 3,
+            "completedLabors": 0,
             "percentComplete": 50.0,
             "labors": [
                 {
@@ -429,6 +457,7 @@ def test_quest_lifecycle(sample_data1_server):
                     "forOwner": False,
                     "forCreator": True,
                     "id": 4,
+                    "fateId": 4,
                     "startingLaborId": 1,
                     "questId": 1
                 },
@@ -441,6 +470,7 @@ def test_quest_lifecycle(sample_data1_server):
                     "forOwner": False,
                     "forCreator": True,
                     "id": 5,
+                    "fateId": 4,
                     "startingLaborId": 2,
                     "questId": 1
                 },
@@ -453,6 +483,7 @@ def test_quest_lifecycle(sample_data1_server):
                     "forOwner": False,
                     "forCreator": True,
                     "id": 6,
+                    "fateId": 4,
                     "startingLaborId": 3,
                     "questId": 1
                 }
@@ -497,6 +528,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forOwner": True,
                         "forCreator": False,
                         "id": 1,
+                        "fateId": 3,
                         "startingLaborId": None,
                         "questId": 1},
                        {"ackTime": None,
@@ -508,6 +540,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forOwner": True,
                         "forCreator": False,
                         "id": 2,
+                        "fateId": 3,
                         "startingLaborId": None,
                         "questId": 1},
                        {"ackTime": None,
@@ -519,9 +552,10 @@ def test_quest_lifecycle(sample_data1_server):
                         "forOwner": True,
                         "forCreator": False,
                         "id": 3,
+                        "fateId": 3,
                         "startingLaborId": None,
                         "questId": 1},
-                        {"ackTime": None,
+                       {"ackTime": None,
                         "ackUser": None,
                         "completionEventId": 9,
                         "creationEventId": 6,
@@ -530,9 +564,10 @@ def test_quest_lifecycle(sample_data1_server):
                         "forOwner": False,
                         "forCreator": True,
                         "id": 4,
+                        "fateId": 4,
                         "startingLaborId": 1,
                         "questId": 1},
-                        {"ackTime": None,
+                       {"ackTime": None,
                         "ackUser": None,
                         "completionEventId": 10,
                         "creationEventId": 7,
@@ -540,6 +575,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "hostId": 2,
                         "forOwner": False,
                         "forCreator": True,
+                        "fateId": 4,
                         "id": 5,
                         "startingLaborId": 2,
                         "questId": 1},
@@ -551,6 +587,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "hostId": 3,
                         "forOwner": False,
                         "forCreator": True,
+                        "fateId": 4,
                         "id": 6,
                         "startingLaborId": 3,
                         "questId": 1}]
@@ -578,6 +615,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forOwner": True,
                         "forCreator": False,
                         "id": 3,
+                        "fateId": 3,
                         "startingLaborId": None,
                         "questId": 1},
                        {"ackTime": None,
@@ -589,10 +627,28 @@ def test_quest_lifecycle(sample_data1_server):
                         "forOwner": False,
                         "forCreator": True,
                         "id": 6,
+                        "fateId": 4,
                         "startingLaborId": 3,
                         "questId": 1}]
         },
         strip=["creationTime", "completionTime"]
+    )
+
+    assert_success(
+        client.get("/quests/1?progressInfo=true&onlyOpenLabors=true&expand=labors"),
+        {
+            "creator": "johnny@example.com",
+            "description": "This is a quest almighty",
+            "id": 1,
+            "totalLabors": 3,
+            "unstartedLabors": 0,
+            "inprogressLabors": 0,
+            "completedLabors": 3,
+            "percentComplete": 100.0,
+            "labors": [
+            ]
+        },
+        strip=["embarkTime", "creationTime", "completionTime", "targetTime"]
     )
 
 

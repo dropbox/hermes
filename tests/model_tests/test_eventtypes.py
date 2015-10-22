@@ -73,18 +73,3 @@ def test_get_latest_events(session):
     assert events1[0] == last_type1
     assert events2[0] == last_type2
 
-
-def test_get_associated_fates(sample_data1):
-    event_type3 = sample_data1.query(EventType).get(3)
-    event_type4 = sample_data1.query(EventType).get(4)
-
-    fates_with_et3 = event_type3.get_associated_fates().all()
-    fates_with_et4 = event_type4.get_associated_fates().all()
-
-    assert len(fates_with_et3) == 1
-    assert len(fates_with_et4) == 3
-
-    assert fates_with_et3[0].description == 'A system that needs maintenance made ready before maintenance can occur.'
-    assert fates_with_et4[0].description == 'Maintenance must be performed on a system that is prepped.'
-    assert fates_with_et4[1].description == 'A system that needs maintenance made ready before maintenance can occur.'
-

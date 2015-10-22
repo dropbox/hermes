@@ -315,7 +315,7 @@ def test_complex_chaining1(sample_data2):
     assert len(event_types) == 7
 
     fates = sample_data2.query(Fate).all()
-    assert len(fates) == 6
+    assert len(fates) == 8
 
     hosts = [
         sample_data2.query(Host).filter(
@@ -398,7 +398,7 @@ def test_complex_chaining2(sample_data2):
     assert len(event_types) == 7
 
     fates = sample_data2.query(Fate).all()
-    assert len(fates) == 6
+    assert len(fates) == 8
 
     hosts = [sample_data2.query(Host).get(1)]
 
@@ -435,6 +435,7 @@ def test_complex_chaining2(sample_data2):
         sample_data2, hosts[0], "system",
         EventType.get_event_type(sample_data2, "system-maintenance", "needed")
     )
+    assert len(bravo_quest.get_open_labors().all()) == 1
     assert bravo_quest.get_open_labors().all()[0].creation_event == event1
     assert bravo_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[0].id
     assert len(bravo_quest.labors) == 2
@@ -497,7 +498,7 @@ def test_complex_chaining3(sample_data2):
     assert len(event_types) == 7
 
     fates = sample_data2.query(Fate).all()
-    assert len(fates) == 6
+    assert len(fates) == 8
 
     hosts = [sample_data2.query(Host).get(1)]
 
