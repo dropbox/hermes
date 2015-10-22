@@ -314,6 +314,11 @@
                 return;
             }
 
+            vm.selectedQuestUniqueLabors = questData['totalLabors'];
+            vm.selectedQuestStartingLabors = questData['unstartedLabors'];
+            vm.selectedQuestInProgLabors = questData['inprogressLabors'];
+            vm.selectedQuestCompletedLabors = questData['completedLabors'];
+
             // keep the latest labor with an given id or starting_labor_id
             // FIXME: This should all be done by the backend but isn't supported yet
             var laborsUnique  = {};
@@ -333,7 +338,6 @@
 
             // sort the unique labors into a buckets based on the owner and labor type
             var sortedLabors = {};
-            vm.selectedQuestUniqueLabors = Object.keys(laborsUnique).length;
             vm.types = {};
             for (var idx in laborsUnique) {
                 var hostname = laborsUnique[idx]['host']['hostname'];
@@ -352,7 +356,6 @@
 
                 // if this labor is completed, we will file it by the complete event type
                 if (laborsUnique[idx]['completionEvent']) {
-                    vm.selectedQuestCompletedLabors++;
                     var completionEventType = laborsUnique[idx]['completionEvent']['eventType'];
                     var key = completionEventType['category'] + " " + completionEventType['state'];
                     // update the count of labors by type
@@ -389,12 +392,6 @@
                     }
 
                 } else { // for incomplete labors, file by the creating event type
-                    if (laborsUnique[idx]['startingLaborId']) {
-                        vm.selectedQuestInProgLabors++;
-                    } else {
-                        vm.selectedQuestStartingLabors++;
-                    }
-
                     var creationEventType = laborsUnique[idx]['creationEvent']['eventType'];
                     var key = creationEventType['category'] + " " + creationEventType['state'];
 

@@ -48,7 +48,7 @@ VALUES
 
 INSERT INTO fates
 VALUES
-	(6,5,5, 1, 0, 'Maintenance must be performed on a system that is prepped.');
+	(6,5,5, 1, 0, 'Maintenance completed');
 
 
 INSERT INTO hosts
