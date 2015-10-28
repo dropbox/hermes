@@ -1180,8 +1180,8 @@ class FatesHandler(ApiHandler):
             {
                 "creationEventTypeId": 1,
                 "description": "This is a fate",
-                "follows_id": 1,
-                "for_creator": true,
+                "followsId": 1,
+                "forCreator": true,
             }
 
         **Example response:**
@@ -1196,9 +1196,9 @@ class FatesHandler(ApiHandler):
                 "href": "/api/v1/fates/3",
                 "id": 3,
                 "creationEventTypeId": 1,
-                "follows_id": 1,
-                "precedes_ids": [],
-                "for_creator": true,
+                "followsId": 1,
+                "precedesIds": [],
+                "forCreator": true,
                 "description": "This is a fate"
             }
 
@@ -1219,9 +1219,9 @@ class FatesHandler(ApiHandler):
 
         try:
             creation_event_type_id = self.jbody["creationEventTypeId"]
-            follows_id = self.jbody.get("follows_id")
-            for_creator = self.jbody.get("for_creator", False)
-            for_owner = self.jbody.get("for_owner", True)
+            follows_id = self.jbody.get("followsId")
+            for_creator = self.jbody.get("forCreator", False)
+            for_owner = self.jbody.get("forOwner", True)
             description = self.jbody["description"]
         except KeyError as err:
             raise exc.BadRequest(
@@ -1283,10 +1283,10 @@ class FatesHandler(ApiHandler):
                         "id": 1,
                         "href": "/api/v1/fates/1",
                         "creationEventTypeId": 1,
-                        "follows_id": null,
-                        "precedes_ids": [],
-                        "for_creator": 0,
-                        "precedes_ids": [3, 5],
+                        "followsId": null,
+                        "precedesIds": [],
+                        "forCreator": 0,
+                        "precedesIds": [3, 5],
                         "description": "This is a fate",
                     },
                     ...
@@ -1344,10 +1344,10 @@ class FateHandler(ApiHandler):
                 "id": 1,
                 "href": "/api/v1/fates/1",
                 "creationEventTypeId": 1,
-                "follows_id": null,
-                "precedes_ids": [],
-                "for_creator": false,
-                "for_owner": true,
+                "followsId": null,
+                "precedesIds": [],
+                "forCreator": false,
+                "forOwner": true,
                 "description": string,
             }
 
@@ -1382,7 +1382,7 @@ class FateHandler(ApiHandler):
 
             {
                 "description": "New desc",
-                "follows_id": 1
+                "followsId": 1
             }
 
         **Example response:**
@@ -1397,10 +1397,10 @@ class FateHandler(ApiHandler):
                 "id": 3,
                 "href": "/api/v1/fates/3",
                 "creationEventTypeId": 1,
-                "follows_id": 1,
-                "precedes_id": [],
-                "for_creator": false,
-                "for_owner": true
+                "followsId": 1,
+                "precedesId": [],
+                "forCreator": false,
+                "forOwner": true
                 "description": "New desc"
             }
 
@@ -1427,8 +1427,8 @@ class FateHandler(ApiHandler):
         try:
             if "description" in self.jbody:
                 fate = fate.update(description=self.jbody["description"])
-            if "follows_id" in self.jbody:
-                fate = fate.update(follows_id=self.jbody['follows_id'])
+            if "followsId" in self.jbody:
+                fate = fate.update(follows_id=self.jbody['followsId'])
 
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))

@@ -28,6 +28,14 @@ UPDATE `labors` SET `fate_id`=1;
 ALTER TABLE `labors` ADD FOREIGN KEY `ix_labors_fate_id` (`fate_id`) REFERENCES FATES(`id`);
 
 
-update `labors` l SET `fate_id`=(
-select f.id from `events` e, `event_types` et, `fates` f where l.creation_event_id = e.id and e.event_type_id = et.id and f.creation_type_id = et.id
-)
+UPDATE `labors` l
+SET `fate_id` = (
+  SELECT f.id
+  FROM `events` e, `event_types` et, `fates` f
+  WHERE l.creation_event_id = e.id AND e.event_type_id = et.id AND
+        f.creation_type_id = et.id
+);
+
+INSERT INTO fates
+VALUES
+	(6,4,1, 0, 1, 'A release finishes labors');

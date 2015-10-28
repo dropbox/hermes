@@ -91,8 +91,12 @@
                     addNodeLabel(vm.paper, settings, node);
                 }
 
-                vm.paper.setViewBox(0, 0, vm.paper.width, vm.paper.height, true);
-                vm.panZoom = vm.paper.panzoom({ initialZoom: 1, initialPosition: { x: 0, y: 0} });
+                vm.paper.setViewBox(0, 0, vm.paper.width + 500, vm.paper.height + 500, true);
+                vm.panZoom = vm.paper.panzoom({
+                    initialZoom: 1,
+                    initialPosition: { x: 0, y: 0},
+                    maxZoom: 1,
+                });
                 vm.panZoom.enable();
             }
 

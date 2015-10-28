@@ -23,7 +23,7 @@ def test_bad_creation(sample_data1_server):
                 "creationEventTypeId": 6,
                 "forOwner": False,
                 "forCreator": False,
-                "precedes_ids": [],
+                "precedesIds": [],
                 "description":"New fate"
             }
         ),
@@ -56,7 +56,7 @@ def test_creation(sample_data1_server):
         client.create(
             "/fates/",
             creationEventTypeId=7,
-            follows_id=6,
+            followsId=6,
             description="New fate2"
         ),
         "/api/v1/fates/7"
@@ -67,10 +67,10 @@ def test_creation(sample_data1_server):
         {
             "id": 6,
             "creationEventTypeId": 6,
-            "follows_id": None,
+            "followsId": None,
             "forOwner": True,
             "forCreator": False,
-            "precedes_ids": [7],
+            "precedesIds": [7],
             "description": "New fate"
         }
     )
@@ -80,10 +80,10 @@ def test_creation(sample_data1_server):
         {
             "id": 7,
             "creationEventTypeId": 7,
-            "follows_id": 6,
+            "followsId": 6,
             "forOwner": True,
             "forCreator": False,
-            "precedes_ids": [],
+            "precedesIds": [],
             "description": "New fate2"
         }
     )
@@ -105,10 +105,10 @@ def test_update(sample_data1_server):
         {
             "id": 6,
             "creationEventTypeId": 6,
-            "follows_id": None,
+            "followsId": None,
             "forOwner": True,
             "forCreator": False,
-            "precedes_ids": [],
+            "precedesIds": [],
             "description": "New fate"
         }
     )
@@ -116,15 +116,15 @@ def test_update(sample_data1_server):
     assert_success(
         client.update(
             "/fates/6",
-            follows_id=1
+            followsId=1
         ),
         {
             "id": 6,
             "creationEventTypeId": 6,
-            "follows_id": 1,
+            "followsId": 1,
             "forOwner": True,
             "forCreator": False,
-            "precedes_ids": [],
+            "precedesIds": [],
             "description": "New fate"
         }
     )
@@ -137,10 +137,10 @@ def test_update(sample_data1_server):
         {
             "id": 6,
             "creationEventTypeId": 6,
-            "follows_id": 1,
+            "followsId": 1,
             "forOwner": True,
             "forCreator": False,
-            "precedes_ids": [],
+            "precedesIds": [],
             "description": "New desc"
         }
     )
@@ -148,16 +148,16 @@ def test_update(sample_data1_server):
     assert_success(
         client.update(
             "/fates/6",
-            follows_id=None,
+            followsId=None,
             description="Another desc"
         ),
         {
             "id": 6,
             "creationEventTypeId": 6,
-            "follows_id": None,
+            "followsId": None,
             "forOwner": True,
             "forCreator": False,
-            "precedes_ids": [],
+            "precedesIds": [],
             "description": "Another desc"
         }
     )
@@ -167,10 +167,10 @@ def test_update(sample_data1_server):
         {
             "id": 6,
             "creationEventTypeId": 6,
-            "follows_id": None,
+            "followsId": None,
             "forOwner": True,
             "forCreator": False,
-            "precedes_ids": [],
+            "precedesIds": [],
             "description": "Another desc"
         }
     )
