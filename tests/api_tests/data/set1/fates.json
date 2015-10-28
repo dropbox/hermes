@@ -5,7 +5,7 @@
   },
   "fate2": {
     "creationEventTypeId": 2,
-    "follows_id": 1,
+    "followsId": 1,
     "description": "A system that needs a reboot can be cleared by rebooting the machine."
   },
   "fate3": {
@@ -14,14 +14,14 @@
   },
   "fate4": {
     "creationEventTypeId": 4,
-    "follows_id": 3,
+    "followsId": 3,
     "description": "A system that needs maintenance made ready before maintenance can occur."
   },
   "fate5": {
     "creationEventTypeId": 5,
-    "follows_id": 4,
-    "for_creator": true,
-    "for_owner": false,
+    "followsId": 4,
+    "forCreator": true,
+    "forOwner": false,
     "description": "Maintenance must be performed on a system that is prepped."
   }
 }

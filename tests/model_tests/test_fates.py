@@ -102,7 +102,7 @@ def test_designation_constraint(sample_data1):
 
 def test_uniqueness_by_follows_id(sample_data1):
     """We should be able to create a fate with the same event_types if the
-    follows_id is unique"""
+    followsId is unique"""
 
     event_type5 = sample_data1.query(EventType).get(5)
 

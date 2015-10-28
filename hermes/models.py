@@ -859,8 +859,8 @@ class Fate(Model):
         out = {
             "id": self.id,
             "creationEventTypeId": self.creation_type_id,
-            "follows_id": self.follows_id,
-            "precedes_ids": [labor.id for labor in self.precedes],
+            "followsId": self.follows_id,
+            "precedesIds": [labor.id for labor in self.precedes],
             "forCreator": self.for_creator,
             "forOwner": self.for_owner,
             "description": self.description,

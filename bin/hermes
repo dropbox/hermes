@@ -166,7 +166,7 @@ def print_labor(labor, fates):
     else:
         target_time_str = ""
 
-    print "[{}] {}: \n\tcreated on {} {} \n\tby event {} {}".format(
+    print "({}) {}: \n\tcreated on {} {} \n\tby event {} {}".format(
         labor["id"],
         labor["host"]["hostname"],
         creation_time,
@@ -190,7 +190,10 @@ def print_labor(labor, fates):
 
     print "\n\tPossible Resolutions:"
     for fate in fates:
-        if fate["creationEventTypeId"] == labor["creationEvent"]["eventType"]["id"]:
+        if (
+            fate["creationEventTypeId"]
+                == labor["creationEvent"]["eventType"]["id"]
+        ):
             print "{}".format(textwrap.fill(
                 fate["description"], width=60,
                 initial_indent="\t* ", subsequent_indent="\t   "
@@ -216,7 +219,7 @@ def list_event_types(args):
     )
     for event_type in event_types["eventTypes"]:
         print "{}{}{}".format(
-            str.ljust("[" + str(event_type["id"]) + "]", max_length + 3),
+            str.ljust("(" + str(event_type["id"]) + ")", max_length + 3),
             str.ljust(str(event_type["category"]), 20),
             str.ljust(str(event_type["state"]), 20)
         )
@@ -247,25 +250,22 @@ def list_fates(args):
     response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
     fates = response.json()["fates"]
 
-    print "FATES:  \n[id] created by => completed by\n"
+    print "FATES:  \n(id) created by => completed by\n"
     for fate in fates:
-        if not fate.get("follows_id"):
-            created_by_str = (
+        if not fate.get("precedesIds"):
+            print "({}) {}".format(
+                fate["id"],
                 fate["creationEventType"]["category"] + " "
                 + fate["creationEventType"]["state"]
             )
         else:
-            created_by_str = (
-                "(follows Fate {})".format(fate["follows_id"])
+            print "({}) {} => {}".format(
+                fate["id"],
+                fate["creationEventType"]["category"] + " "
+                + fate["creationEventType"]["state"],
+                fate["precedesIds"]
             )
-        print "[{}] {} => {}".format(
-            fate["id"],
-            created_by_str,
-            (
-                fate["completionEventType"]["category"]
-                + " " + fate["completionEventType"]["state"]
-            )
-        )
+
         print textwrap.fill(
             fate["description"], width=60,
             initial_indent="\t", subsequent_indent="\t"
@@ -281,18 +281,11 @@ def create_fate(args):
             "--creation-category and creation-state."
         )
         return
-    if not args.xt and not (args.xc and args.xs):
-        print (
-            "To create a fate, you must specify either --completion-type,\nor "
-            "--completion-category and completion-state."
-        )
-        return
 
     response = request_get("/api/v1/eventtypes?limit=all")
     event_types = response.json()["eventTypes"]
 
     creation_event_type = None
-    completion_event_type = None
 
     for event_type in event_types:
         if args.cc == event_type["category"] \
@@ -301,24 +294,13 @@ def create_fate(args):
         elif args.ct == str(event_type["id"]):
             creation_event_type = event_type
 
-        if args.xc == event_type["category"] \
-                and args.xs == event_type["state"]:
-            completion_event_type = event_type
-        elif args.xt == str(event_type["id"]):
-            completion_event_type = event_type
-
     if not creation_event_type:
         print "Creation event type not found."
         return
 
-    if not completion_event_type:
-        print "Completion event type not found."
-        return
-
     json = {
         "creationEventTypeId": creation_event_type["id"],
-        "completionEventTypeId": completion_event_type["id"],
-        "follows_id": args.follows_id,
+        "followsId": args.follows_id,
         "description": args.description
     }
 
@@ -643,7 +625,7 @@ def list_quests(args):
         embark_time = parser.parse(quest["embarkTime"])
         embark_time = embark_time.replace(tzinfo=tz.tzutc())
         embark_time = embark_time.astimezone(tz.tzlocal())
-        print "[{}] by {}.\n\tEmbarked on {}".format(
+        print "({}) by {}.\n\tEmbarked on {}".format(
             quest["id"], quest["creator"],
             embark_time
         )
@@ -667,7 +649,7 @@ def list_quests(args):
 def show_quest(args):
     logging.debug("show_quest(%d)", args.quest_id)
     url = (
-        "/api/v1/quests/{}?filterClosed=true&limit=all"
+        "/api/v1/quests/{}?filterClosed=true&limit=all&progressInfo=true"
         "&expand=labors&expand=hosts&expand=events&expand=eventtypes".format(
             args.quest_id
         )
@@ -745,19 +727,20 @@ def show_quest(args):
                     labor["creationEvent"]["eventType"]["state"]
                 )
 
-        labors_remaining = len(remaining)
-        labors_completed = len(completed)
-        if labors_remaining:
+        if remaining:
             print "\n\tOPEN LABORS BY TYPE:"
             for type in remaining_types.iterkeys():
                 print "\t\t{}: {}".format(
                     type,
                     remaining_types[type]
                 )
-        print "\n\t{:.2%} complete.  {} total labors.  {} remain open.\n".format(
-            labors_completed/total_labors,
-            total_labors,
-            labors_remaining
+        print "\n\t{}% complete. {} not started, {} in progress, \n\t" \
+              "{} completed, and {} total labors\n".format(
+            quest["percentComplete"],
+            quest["unstartedLabors"],
+            quest["inprogressLabors"],
+            quest["completedLabors"],
+            quest["totalLabors"]
         )
     else:
         if args.completed_only or args.all:
@@ -928,21 +911,8 @@ def parse_cli_args():
         dest="ct", type=str
     )
     fate_create_subparser.add_argument(
-        "-xc", "--completion-category",
-        help="The category of the completion event type",
-        dest="xc", type=str
-    )
-    fate_create_subparser.add_argument(
-        "-xs", "--completion-state", help="The state of the completion event type",
-        dest="xs", type=str
-    )
-    fate_create_subparser.add_argument(
-        "-xt", "--completion-type", help="The ID of the completion event type",
-        dest="xt", type=str
-    )
-    fate_create_subparser.add_argument(
         "--follows", type=int, default=None, dest="follows_id",
-        help="This Fate follows the Fate identified by ID here."
+        help="This Fate follows the Fate identified by ID."
     )
     fate_create_subparser.add_argument(
         "--description", help="The human readable description of this fate",

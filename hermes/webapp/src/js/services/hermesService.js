@@ -284,14 +284,14 @@
                 // first, let's graph out the nodes and the edges,
                 // but we won't add positions until afterwards
                 for (var x in fates) {
-                    if (!fates[x]["follows_id"]) {
+                    if (!fates[x]["followsId"]) {
                         parseFate(fates, fates[x])
                     }
                 }
 
                 function parseFate(fates, fate) {
                     var rootId;
-                    if (!fate["follows_id"]) {
+                    if (!fate["followsId"]) {
                         rootId = createRootNode(fate["creationEventType"]);
                     } else {
                         rootId = createChildNode(fate["creationEventType"], fate["id"])
@@ -299,7 +299,7 @@
 
                     var children = [];
                     for (var x in fates) {
-                        if (fate['precedes_ids'].indexOf(fates[x]['id']) != -1) {
+                        if (fate['precedesIds'].indexOf(fates[x]['id']) != -1) {
                             children.push(parseFate(fates, fates[x]));
                         }
                     }
