@@ -258,16 +258,17 @@
 
             var XINC = 0.5;
             var YINC = .2;
-            var baseY = 0;  // used to track y coords when laying out graph
 
             return getFates().then(processFates).then(function() {
                 var baseX = 0;
+                var baseY = 0; // used to track y coords when laying out graph
 
                 // Go back through the nodes and assign them coordinates for
                 // display
                 for (var idx in graphData.nodes) {
                     if (graphData.nodes[idx]["id"][0] == "r") {
-                        layoutGraph(baseX, graphData.nodes[idx]);
+                        baseY = layoutGraph(baseX, baseY, graphData.nodes[idx]);
+                        baseY += YINC;
                     }
                 }
 
@@ -292,9 +293,9 @@
                 function parseFate(fates, fate) {
                     var rootId;
                     if (!fate["followsId"]) {
-                        rootId = createRootNode(fate["creationEventType"]);
+                        rootId = createRootNode(fate["creationEventType"], fate['description']);
                     } else {
-                        rootId = createChildNode(fate["creationEventType"], fate["id"])
+                        rootId = createChildNode(fate["creationEventType"], fate["id"], fate['description'])
                     }
 
                     var children = [];
@@ -316,7 +317,7 @@
             /**
              * Create a node that will be the start of a chain
              */
-            function createRootNode(creationEventType) {
+            function createRootNode(creationEventType, fateDesc) {
                 var id = 'r' + creationEventType["id"];
 
                 for (var node_id in graphData.nodes) {
@@ -332,7 +333,8 @@
                     id: id,
                     size: 1,
                     type: 'rootNode',
-                    label: creationEventType["category"] + ' ' + creationEventType["state"]
+                    //label: creationEventType["category"] + ' ' + creationEventType["state"]
+                    label: fateDesc,
                 };
 
                 graphData.nodes.push(node);
@@ -343,14 +345,15 @@
             /**
              * Create a node that will be a child of the fate identified
              */
-            function createChildNode(completionEventType, fateId) {
+            function createChildNode(completionEventType, fateId, fateDesc) {
                 var id = "f" + fateId + "c";
 
                 var node = {
                     id: id,
                     size: 1,
                     type: 'childNode',
-                    label: completionEventType["category"] + ' ' + completionEventType["state"]
+                    //label: completionEventType["category"] + ' ' + completionEventType["state"]
+                    label: fateDesc
                 };
 
                 graphData.nodes.push(node);
@@ -377,7 +380,7 @@
              * Go back through the nodes and assign them coordinates for
              * display
              */
-            function layoutGraph(baseX, node) {
+            function layoutGraph(baseX, baseY, node) {
                 // update the x and y coords of this node
                 node["x"] = baseX;
                 node["y"] = baseY;
@@ -387,13 +390,18 @@
 
                 // find all children and iterate
                 var foundChildren = false;
+                var firstChild = true;
                 for (var idx in graphData.edges) {
                     if (graphData.edges[idx]["source"] == node["id"]) {
                         var childNode = findNode(graphData.edges[idx]["target"])
                         if (childNode) {
                             foundChildren = true;
-                            layoutGraph(baseX, childNode);
-                            baseY += YINC;
+                            if (!firstChild) {
+                                baseY += YINC;
+                            } else {
+                                firstChild = false;
+                            }
+                            baseY = layoutGraph(baseX, baseY, childNode);
                         }
                     }
                 }
@@ -401,6 +409,8 @@
                 if (!foundChildren) {
                     node["type"] = "endNode";
                 }
+
+                return baseY;
             }
 
             /**

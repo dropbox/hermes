@@ -39,12 +39,19 @@
             function redrawGraph() {
                 vm.paper.clear();
 
+                var graphSet = vm.paper.set();
+
+                var svg = document.querySelector("svg");
+                svg.removeAttribute("width");
+                svg.removeAttribute("height");
+
                 // we declare our settings here so they can be changed dynamically as needed
                 var settings = {
                     'xScale': 600,
                     'xOffset': 100,
                     'yScale': 500,
-                    'yOffset': 140,
+                    'yOffset': 90,
+                    'padding': 20,
                     'rootNodeStyle': {
                         'fill': "#000"
                     },
@@ -64,7 +71,7 @@
                 for (var idx in vm.graphData.edges) {
                     var edge = vm.graphData.edges[idx];
 
-                    drawEdge(vm.paper, settings, edge);
+                    drawEdge(vm.paper, settings, edge, graphSet);
                 }
 
                 // draw our nodes
@@ -73,31 +80,33 @@
                     switch (node["type"]) {
                         case "rootNode":
                             drawRootNode(
-                                vm.paper, settings, node
+                                vm.paper, settings, node, graphSet
                             );
                             break;
                         case "childNode":
                             drawChildNode(
-                                vm.paper, settings, node
+                                vm.paper, settings, node, graphSet
                             );
                             break;
                         case "endNode":
                             drawEndNode(
-                                vm.paper, settings, node
+                                vm.paper, settings, node, graphSet
                             );
                             break;
                     }
 
-                    addNodeLabel(vm.paper, settings, node);
+                    addNodeLabel(vm.paper, settings, node, graphSet);
                 }
 
-                vm.paper.setViewBox(0, 0, vm.paper.width + 500, vm.paper.height + 500, true);
-                vm.panZoom = vm.paper.panzoom({
-                    initialZoom: 1,
-                    initialPosition: { x: 0, y: 0},
-                    maxZoom: 1,
-                });
-                vm.panZoom.enable();
+                var paperBox = graphSet.getBBox();
+                var xPad = paperBox.x - settings['padding'];
+                var yPad = paperBox.y - settings['padding'];
+
+                console.log(paperBox);
+                vm.paper.setViewBox(xPad, yPad, paperBox.width + (settings['padding'] * 2),
+                    paperBox.height + (settings['padding'] * 2), true);
+                vm.paper.setSize(paperBox.width + (settings['padding'] * 2),
+                    paperBox.height + (settings['padding'] * 2));
             }
 
             /**
@@ -107,13 +116,15 @@
              * @param style the style to use for this node
              * @param node the node to draw
              */
-            function drawRootNode(paper, settings, node) {
+            function drawRootNode(paper, settings, node, graphSet) {
 
                 var x = node['x'] * settings['xScale'] + settings['xOffset'];
                 var y = node['y'] * settings['yScale'] + settings['yOffset'];
 
                 var circle = paper.circle(x, y, 8);
                 circle.attr({'fill': '#000'});
+
+                graphSet.push(circle);
             }
 
             /**
@@ -123,12 +134,13 @@
              * @param style the style to use for this node
              * @param node the node to draw
              */
-            function drawChildNode(paper, settings, node) {
+            function drawChildNode(paper, settings, node, graphSet) {
                 var x = node['x'] * settings['xScale'] + settings['xOffset'];
                 var y = node['y'] * settings['yScale'] + settings['yOffset'];
 
                 var circle = paper.circle(x, y, 8);
                 circle.attr({'fill': '#000'});
+                graphSet.push(circle);
 
                 var circle2 = paper.circle(x, y, 6);
                 circle2.attr({ 'fill': '#fff'});
@@ -141,12 +153,13 @@
              * @param style the style to use for this node
              * @param node the node to draw
              */
-            function drawEndNode(paper, settings, node) {
+            function drawEndNode(paper, settings, node, graphSet) {
                 var x = node['x'] * settings['xScale'] + settings['xOffset'];
                 var y = node['y'] * settings['yScale'] + settings['yOffset'];
 
                 var circle = paper.circle(x, y, 8);
                 circle.attr({'fill': '#000'});
+                graphSet.push(circle);
 
                 var circle2 = paper.circle(x, y, 6);
                 circle2.attr({ 'fill': '#fff'});
@@ -161,13 +174,34 @@
              * @param settings the settings to use
              * @param node the node to label
              */
-            function addNodeLabel(paper, settings, node) {
+            function addNodeLabel(paper, settings, node, graphSet) {
                 var x = node['x'] * settings['xScale'] + settings['xOffset'];
                 var y = node['y'] * settings['yScale'] + settings['yOffset'] - 32;
-                var label = paper.text(x, y, node["label"].replace(' ', '\n'));
+                var label = paper.text(x, y, node["label"]);
+
+
+                var maxWidth = (settings['xScale'] / 2);
+                // do some word wrapping here by testing the bounding box
+
+                var labelWords = node['label'].replace(/(\r\n|\n|\r)/gm, '').split(" ");
+                var wrappedText = '';
+                for (var idx in labelWords) {
+                    label.attr("text", wrappedText + " " + labelWords[idx]);
+                    if (label.getBBox().width > maxWidth) {
+                        wrappedText += '\n' + labelWords[idx];
+                    } else {
+                        wrappedText += ' ' + labelWords[idx];
+                    }
+                }
                 label.attr({
                     'font-size': 16,
                 });
+                var bb = label.getBBox();
+                var h = Math.abs(bb.y2) - Math.abs(bb.y);
+                label.attr({
+                    'y': node['y'] * settings['yScale'] + settings['yOffset'] - 16 - (h/2)
+                });
+                graphSet.push(label);
             }
 
             /**
@@ -176,7 +210,7 @@
              * @param settings our settings
              * @param edge the edge we want to draw
              */
-            function drawEdge(paper, settings, edge) {
+            function drawEdge(paper, settings, edge, graphSet) {
                 var node1 = getNodeById(edge['source']);
                 var node2 = getNodeById(edge['target']);
                 if (!node1 || !node2) {
@@ -192,9 +226,9 @@
                 var pathStr = "M" + x1 + "," + y1
                     + " C" + (x1 + indent) + "," + y1 + "," + x1 + "," + y2 + "," + (x1 + indent) + "," + y2
                     + " L" + x2 + "," + y2;
-                paper.path(pathStr).attr({'stroke': '#000'});
+                graphSet.push(paper.path(pathStr).attr({'stroke': '#000'}));
 
-                addEdgeLabel(paper, settings, edge, (x1 + indent), y2);
+                //addEdgeLabel(paper, settings, edge, (x1 + indent), y2);
             }
 
             /**
