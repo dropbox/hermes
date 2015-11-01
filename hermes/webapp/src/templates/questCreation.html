@@ -64,19 +64,18 @@
         <!-- ROW TWO -->
         <div class="row panel-row">
             <div class="col-md-6 create-panel">
-                <div><label>Start with event:
-                    <select ng-model="qc.eventTypesSelection"
+                <div><label>Start with fate:
+                    <select ng-model="qc.fateSelection"
                             ng-model-options="qc.selectOptions"
-                            ng-options="optValue.category + ' ' + optValue.state for optValue in qc.startingEventTypes">
+                            ng-options="optValue.description for optValue in qc.startingFates">
                     </select>
                 </label></div>
-                <div class="mini-description">"{{qc.selectedEventType.description}}"</div>
             </div>
             <div class="col-md-4 helper-panel">
                 <div>
-                    <strong>Need help picking a starting event?</strong>
+                    <strong>Need help picking a starting fate?</strong>
                     <p>Use the explorer to
-see all the possible events and the chain of labors that
+see all the possible fates and the chain of labors that
 will satisfy them.</p>
                     <button type="button" ng-click="qc.showFatesModal = true">Fates Explorer</button>
                 </div>

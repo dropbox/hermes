@@ -20,8 +20,10 @@ def _stripper(obj, strip):
     if isinstance(obj, dict):
         json = {}
         for key, value in obj.iteritems():
+            if isinstance(value, basestring):
+                value = str(value)
             if key not in strip:
-                json[key] = _stripper(value, strip)
+                json[str(key)] = _stripper(value, strip)
 
         return json
     elif isinstance(obj, list):

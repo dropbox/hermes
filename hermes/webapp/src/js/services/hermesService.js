@@ -109,7 +109,7 @@
          * Get a list of all open labors, along with quest details
          */
         function getOpenLabors(options) {
-            var url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes";
+            var url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes&expand=fates";
 
             if (options['filterByOwner']) {
                 url += "&userQuery=" + encodeURIComponent(options['filterByOwner']);
@@ -177,7 +177,7 @@
          * @param id the id of the quest we care about
          */
         function getQuestDetails(id) {
-            return $http.get("/api/v1/quests/" + id + "/?progressInfo=true&limit=all&expand=labors&expand=hosts&expand=events&expand=eventtypes")
+            return $http.get("/api/v1/quests/" + id + "/?progressInfo=true&limit=all&expand=labors&expand=hosts&expand=events&expand=eventtypes&expand=fates")
                 .then(getQuestComplete)
                 .catch(getQuestFailed);
 
@@ -233,13 +233,18 @@
          * @returns {*}
          */
         function getFates() {
+            if (fates) {
+                var promise = $q.defer();
+                promise.resolve(fates);
+                return promise.promise;
+            }
             return $http.get("/api/v1/fates?expand=eventtypes&limit=all")
                 .then(getFatesComplete)
                 .catch(getFatesFailed);
 
             function getFatesComplete(response) {
-                //console.debug("Got Fates! " + response.data.fates);
-                return response.data.fates;
+                fates = response.data.fates;
+                return fates;
             }
 
             function getFatesFailed(error) {
@@ -301,13 +306,15 @@
                     var children = [];
                     for (var x in fates) {
                         if (fate['precedesIds'].indexOf(fates[x]['id']) != -1) {
-                            children.push(parseFate(fates, fates[x]));
+                            var childId = parseFate(fates, fates[x]);
+                            children.push(childId);
+                            createEdge(fate['id'], rootId, childId, fates[x]['creationEventType']);
                         }
                     }
-
-                    for (var y in children) {
-                        createEdge(fate['id'], rootId, children[y], fate['description']);
-                    }
+                    //
+                    //for (var y in children) {
+                    //    createEdge(fate['id'], rootId, children[y], fate['completionEventType']);
+                    //}
 
                     return rootId;
                 }
@@ -364,13 +371,13 @@
             /**
              * Create an edge between two nodes
              */
-            function createEdge(fateId, nodeId1, nodeId2, desc) {
+            function createEdge(fateId, nodeId1, nodeId2, completionEventType) {
                 var edge = {
                     id: "fe" + fateId,
                     source: nodeId1,
                     target: nodeId2,
                     type: 'fateFlow',
-                    label: desc
+                    label: completionEventType['category'] + " " + completionEventType['state']
                 };
 
                 graphData.edges.push(edge);
@@ -454,7 +461,7 @@
          * @returns {*}
          */
         function getUserThrowableEventTypes() {
-            return $http.get("/api/v1/eventtypes?limit=all&state=ready")
+            return $http.get("/api/v1/eventtypes?limit=all&state=acknowledge")
                 .then(getCompleted)
                 .catch(getFailed);
 

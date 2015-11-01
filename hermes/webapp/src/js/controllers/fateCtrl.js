@@ -102,7 +102,6 @@
                 var xPad = paperBox.x - settings['padding'];
                 var yPad = paperBox.y - settings['padding'];
 
-                console.log(paperBox);
                 vm.paper.setViewBox(xPad, yPad, paperBox.width + (settings['padding'] * 2),
                     paperBox.height + (settings['padding'] * 2), true);
                 vm.paper.setSize(paperBox.width + (settings['padding'] * 2),
@@ -213,6 +212,7 @@
             function drawEdge(paper, settings, edge, graphSet) {
                 var node1 = getNodeById(edge['source']);
                 var node2 = getNodeById(edge['target']);
+                console.log(node2);
                 if (!node1 || !node2) {
                     return;
                 }
@@ -228,7 +228,7 @@
                     + " L" + x2 + "," + y2;
                 graphSet.push(paper.path(pathStr).attr({'stroke': '#000'}));
 
-                //addEdgeLabel(paper, settings, edge, (x1 + indent), y2);
+                addEdgeLabel(paper, settings, edge, (x1 + indent), y2);
             }
 
             /**

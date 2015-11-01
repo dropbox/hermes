@@ -437,7 +437,7 @@ def test_quest_lifecycle(sample_data1_server):
     # Ensure that the quest doesn't have a completion time yet
     # Also, test two meta features: progress info and filtering to show only open labors
     assert_success(
-        client.get("/quests/1?progressInfo=true&onlyOpenLabors=true&expand=labors"),
+        client.get("/quests/1?progressInfo=true&onlyOpenLabors=true&expand=labors&expand=eventtypes&expand=fates"),
         {
             "creator": "johnny@example.com",
             "description": "This is a quest almighty",
@@ -458,6 +458,21 @@ def test_quest_lifecycle(sample_data1_server):
                     "forCreator": True,
                     "id": 4,
                     "fateId": 4,
+                    "fate": {
+                        "creationEventType": {
+                            "category": "system-maintenance",
+                            "state": "ready",
+                            "id": 4,
+                            "description": "This system is ready for maintenance.",
+                        },
+                        "creationEventTypeId": 4,
+                        "description": "A system that needs maintenance made ready before maintenance can occur.",
+                        "followsId": 3,
+                        "forCreator": False,
+                        "forOwner": True,
+                        "id": 4,
+                        "precedesIds": [5],
+                    },
                     "startingLaborId": 1,
                     "questId": 1
                 },
@@ -471,6 +486,21 @@ def test_quest_lifecycle(sample_data1_server):
                     "forCreator": True,
                     "id": 5,
                     "fateId": 4,
+                    "fate": {
+                        "creationEventType": {
+                            "category": "system-maintenance",
+                            "state": "ready",
+                            "id": 4,
+                            "description": "This system is ready for maintenance.",
+                        },
+                        "creationEventTypeId": 4,
+                        "description": "A system that needs maintenance made ready before maintenance can occur.",
+                        "followsId": 3,
+                        "forCreator": False,
+                        "forOwner": True,
+                        "id": 4,
+                        "precedesIds": [5],
+                    },
                     "startingLaborId": 2,
                     "questId": 1
                 },
@@ -484,6 +514,21 @@ def test_quest_lifecycle(sample_data1_server):
                     "forCreator": True,
                     "id": 6,
                     "fateId": 4,
+                    "fate": {
+                        "creationEventType": {
+                            "category": "system-maintenance",
+                            "state": "ready",
+                            "id": 4,
+                            "description": "This system is ready for maintenance.",
+                        },
+                        "creationEventTypeId": 4,
+                        "description": "A system that needs maintenance made ready before maintenance can occur.",
+                        "followsId": 3,
+                        "forCreator": False,
+                        "forOwner": True,
+                        "id": 4,
+                        "precedesIds": [5],
+                    },
                     "startingLaborId": 3,
                     "questId": 1
                 }

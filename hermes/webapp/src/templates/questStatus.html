@@ -238,7 +238,7 @@
                     Throw <select ng-disabled="qc.selectedLabors.length == 0"
                                   ng-model="qc.throwableEventTypesSelection"
                                   ng-model-options="qc.selectOptions"
-                                  ng-options="optValue.category + ' ' + optValue.state for optValue in qc.throwableTypes">
+                                  ng-options="optValue.description for optValue in qc.throwableTypes">
                     </select> for {{qc.selectedLabors.length}} selected hosts.
                     </span>
                             <button class="create-button be-positive"

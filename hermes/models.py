@@ -324,10 +324,6 @@ class EventType(Model):
                 fate.to_dict(base_uri=base_uri, expand=set(expand))
                 for fate in self.auto_creates
             ]
-            out['autoCompletes'] = [
-                fate.to_dict(base_uri=base_uri, expand=set(expand))
-                for fate in self.auto_completes
-            ]
 
         if base_uri:
             out['href'] = self.href(base_uri)
