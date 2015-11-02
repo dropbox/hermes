@@ -6,7 +6,7 @@
 
         vm.user = null;
         vm.hostList = [];
-        vm.selectedEventType = null;
+        vm.selectedFate = null;
         vm.description = null;
         vm.today = new Date();
         vm.targetDate = new Date();
@@ -25,6 +25,7 @@
 
         vm.queriedHosts = [];
         vm.startingEventTypes = null;
+        vm.startingFates = [];
 
         vm.selectOptions = {
             updateOn: 'default change blur',
@@ -32,9 +33,17 @@
             allowInvalid: true
         };
 
-        hermesService.getStartingEventTypes().then(function(eventTypes) {
-            vm.startingEventTypes = eventTypes;
-            vm.selectedEventType = eventTypes[0];
+
+        hermesService.getFates().then(function(fates) {
+            vm.startingFates = [];
+            for (var idx in fates) {
+                if (!fates[idx]['followsId']) {
+                    vm.startingFates.push(fates[idx]);
+                }
+            }
+            if (vm.startingFates.length != 0) {
+                vm.selectedFate = vm.startingFates[0];
+            }
         });
 
         hermesService.getCurrentUser().then(function(user){
@@ -50,7 +59,7 @@
         vm.removeHost = removeHost;
         vm.addHost = addHost;
         vm.moveQueriedToQueued = moveQueriedToQueued;
-        vm.eventTypesSelection = eventTypesSelection;
+        vm.fateSelection = fateSelection;
         vm.createQuest = createQuest;
         vm.calDateClasser = calDateClasser;
 
@@ -71,8 +80,8 @@
                 vm.errorMessages.push("Cannot create a quest with an empty list of hosts.");
             }
 
-            if (!vm.selectedEventType) {
-                vm.errorMessages.push("Cannot create a quest without a event type");
+            if (!vm.selectedFate) {
+                vm.errorMessages.push("Cannot create a quest without a starting fate.");
             }
 
             if (!vm.description) {
@@ -89,7 +98,7 @@
             }
 
             vm.result = hermesService.createQuest(vm.user, vm.hostList,
-                vm.selectedEventType, vm.targetDate, vm.description)
+                vm.selectedFate.creationEventType, vm.targetDate, vm.description)
                 .then(function(response) {
                     vm.createInProgress = false;
                     vm.hostList = [];
@@ -106,11 +115,11 @@
         /**
          * The getter/setter for event types
          */
-        function eventTypesSelection(selection) {
+        function fateSelection(selection) {
             if (angular.isDefined(selection)) {
-                vm.selectedEventType = selection;
+                vm.selectedFate = selection;
             } else {
-                return vm.selectedEventType;
+                return vm.selectedFate;
             }
 
         }
@@ -127,10 +136,15 @@
             vm.queryInProgress = true;
             hermesService.runQuery(vm.queryString).then(function(hosts) {
                 vm.queryInProgress = false;
-                if (hosts) {
+                if (hosts && hosts.length != 0) {
+                    console.log(hosts);
                     vm.queriedHosts = hosts;
+                } else {
+                    console.log("EMPTY!");
+                    vm.queryErrorMessage = "Query returned no results.";
                 }
             }).catch(function(error) {
+                console.log("ERROR!");
                 vm.queryInProgress = false;
                 vm.queryErrorMessage = "Failed to run query!  " + error.statusText;
             });

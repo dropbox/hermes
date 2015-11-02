@@ -7,8 +7,9 @@
         vm.errorMessage = null;
         vm.hostOwnerInput = null;
         vm.filterOwn = false;
+        vm.fates = false;
         vm.queryInput = null;
-        vm.filterEventType = null;
+        vm.filterFate = null;
         vm.selectedEventType = null;
 
         vm.laborData = null;
@@ -17,6 +18,7 @@
         vm.hostOwners = null;
         vm.throwableTypes = null;
         vm.allTypes = null;
+        vm.allFates = null;
         vm.createInProgress = false;
         vm.limit = 10;
         vm.offset = 0;
@@ -34,7 +36,7 @@
         vm.deselectAll = deselectAll;
         vm.filterOwnChanged = filterOwnChanged;
         vm.throwableEventTypesSelection = throwableEventTypesSelection;
-        vm.filterEventTypesSelection = filterEventTypesSelection;
+        vm.filterFatesSelection = filterFatesSelection;
         vm.createEvents = createEvents;
 
 
@@ -72,10 +74,15 @@
             vm.queryInput = $routeParams.byQuery;
         }
 
-        hermesService.getAllEventTypes().then(function(types) {
-            var allTypes = [null];
-            vm.allTypes = allTypes.concat(types);
-            vm.filterEventType = vm.allTypes[0];
+        hermesService.getFates().then(function(fates) {
+            vm.allFates = [null];
+            for (var idx in fates) {
+                if (fates[idx].precedesIds.length != 0) {
+                    vm.allFates.push(fates[idx]);
+                }
+            }
+            vm.filterFate = vm.allFates[0];
+            vm.fates = fates;
         });
 
         hermesService.getUserThrowableEventTypes().then(function(types) {
@@ -183,11 +190,11 @@
             }
         }
 
-        function filterEventTypesSelection(selection) {
+        function filterFatesSelection(selection) {
             if (angular.isDefined(selection)) {
-                vm.filterEventType = selection;
+                vm.filterFate = selection;
             } else {
-                return vm.filterEventType;
+                return vm.filterFate;
             }
         }
 
@@ -231,9 +238,9 @@
                 $location.search('byQuery', null, false);
             }
 
-            if (vm.filterEventType) {
-                options['filterByCategory'] = vm.filterEventType.category;
-                options['filterByState'] = vm.filterEventType.state;
+            if (vm.filterFate) {
+                options['filterByCategory'] = vm.filterFate.creationEventType.category;
+                options['filterByState'] = vm.filterFate.creationEventType.state;
             }
 
             hermesService.getOpenLabors(options).then(function (data) {

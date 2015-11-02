@@ -46,8 +46,6 @@
                         var colors = ['#7b8994','#3d464d'];
                         var textColor = '#3d464d';
 
-                        console.log(data[0].overDue);
-
                         if (data[0].overDue) {
                             colors = ['#944D4D', '#6A1C0E'];
                             textColor = '#6A1C0E';

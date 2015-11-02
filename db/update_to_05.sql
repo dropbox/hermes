@@ -23,10 +23,10 @@ VALUES
 	(5,5,4, 1, 0, 'Maintenance completed');
 
 ALTER TABLE `labors` ADD `fate_id` INT(11)  NOT NULL  DEFAULT 0 AFTER `starting_labor_id`;
+ALTER TABLE `labors` ADD INDEX `ix_labors_fate_id` (`fate_id`);
 
 UPDATE `labors` SET `fate_id`=1;
-ALTER TABLE `labors` ADD FOREIGN KEY `ix_labors_fate_id` (`fate_id`) REFERENCES FATES(`id`);
-
+ALTER TABLE `labors` ADD FOREIGN KEY (`fate_id`) REFERENCES `fates` (`id`);
 
 UPDATE `labors` l
 SET `fate_id` = (
@@ -39,3 +39,4 @@ SET `fate_id` = (
 INSERT INTO fates
 VALUES
 	(6,4,1, 0, 1, 'A release finishes labors');
+

@@ -109,7 +109,7 @@
          * Get a list of all open labors, along with quest details
          */
         function getOpenLabors(options) {
-            var url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes";
+            var url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes&expand=fates";
 
             if (options['filterByOwner']) {
                 url += "&userQuery=" + encodeURIComponent(options['filterByOwner']);
@@ -177,7 +177,7 @@
          * @param id the id of the quest we care about
          */
         function getQuestDetails(id) {
-            return $http.get("/api/v1/quests/" + id + "/?progressInfo=true&limit=all&expand=labors&expand=hosts&expand=events&expand=eventtypes")
+            return $http.get("/api/v1/quests/" + id + "/?progressInfo=true&limit=all&expand=labors&expand=hosts&expand=events&expand=eventtypes&expand=fates")
                 .then(getQuestComplete)
                 .catch(getQuestFailed);
 
@@ -233,13 +233,18 @@
          * @returns {*}
          */
         function getFates() {
+            if (fates) {
+                var promise = $q.defer();
+                promise.resolve(fates);
+                return promise.promise;
+            }
             return $http.get("/api/v1/fates?expand=eventtypes&limit=all")
                 .then(getFatesComplete)
                 .catch(getFatesFailed);
 
             function getFatesComplete(response) {
-                //console.debug("Got Fates! " + response.data.fates);
-                return response.data.fates;
+                fates = response.data.fates;
+                return fates;
             }
 
             function getFatesFailed(error) {
@@ -258,16 +263,17 @@
 
             var XINC = 0.5;
             var YINC = .2;
-            var baseY = 0;  // used to track y coords when laying out graph
 
             return getFates().then(processFates).then(function() {
                 var baseX = 0;
+                var baseY = 0; // used to track y coords when laying out graph
 
                 // Go back through the nodes and assign them coordinates for
                 // display
                 for (var idx in graphData.nodes) {
                     if (graphData.nodes[idx]["id"][0] == "r") {
-                        layoutGraph(baseX, graphData.nodes[idx]);
+                        baseY = layoutGraph(baseX, baseY, graphData.nodes[idx]);
+                        baseY += YINC;
                     }
                 }
 
@@ -292,21 +298,23 @@
                 function parseFate(fates, fate) {
                     var rootId;
                     if (!fate["followsId"]) {
-                        rootId = createRootNode(fate["creationEventType"]);
+                        rootId = createRootNode(fate["creationEventType"], fate['description']);
                     } else {
-                        rootId = createChildNode(fate["creationEventType"], fate["id"])
+                        rootId = createChildNode(fate["creationEventType"], fate["id"], fate['description'])
                     }
 
                     var children = [];
                     for (var x in fates) {
                         if (fate['precedesIds'].indexOf(fates[x]['id']) != -1) {
-                            children.push(parseFate(fates, fates[x]));
+                            var childId = parseFate(fates, fates[x]);
+                            children.push(childId);
+                            createEdge(fate['id'], rootId, childId, fates[x]['creationEventType']);
                         }
                     }
-
-                    for (var y in children) {
-                        createEdge(fate['id'], rootId, children[y], fate['description']);
-                    }
+                    //
+                    //for (var y in children) {
+                    //    createEdge(fate['id'], rootId, children[y], fate['completionEventType']);
+                    //}
 
                     return rootId;
                 }
@@ -316,7 +324,7 @@
             /**
              * Create a node that will be the start of a chain
              */
-            function createRootNode(creationEventType) {
+            function createRootNode(creationEventType, fateDesc) {
                 var id = 'r' + creationEventType["id"];
 
                 for (var node_id in graphData.nodes) {
@@ -332,7 +340,8 @@
                     id: id,
                     size: 1,
                     type: 'rootNode',
-                    label: creationEventType["category"] + ' ' + creationEventType["state"]
+                    //label: creationEventType["category"] + ' ' + creationEventType["state"]
+                    label: fateDesc,
                 };
 
                 graphData.nodes.push(node);
@@ -343,14 +352,15 @@
             /**
              * Create a node that will be a child of the fate identified
              */
-            function createChildNode(completionEventType, fateId) {
+            function createChildNode(completionEventType, fateId, fateDesc) {
                 var id = "f" + fateId + "c";
 
                 var node = {
                     id: id,
                     size: 1,
                     type: 'childNode',
-                    label: completionEventType["category"] + ' ' + completionEventType["state"]
+                    //label: completionEventType["category"] + ' ' + completionEventType["state"]
+                    label: fateDesc
                 };
 
                 graphData.nodes.push(node);
@@ -361,13 +371,13 @@
             /**
              * Create an edge between two nodes
              */
-            function createEdge(fateId, nodeId1, nodeId2, desc) {
+            function createEdge(fateId, nodeId1, nodeId2, completionEventType) {
                 var edge = {
                     id: "fe" + fateId,
                     source: nodeId1,
                     target: nodeId2,
                     type: 'fateFlow',
-                    label: desc
+                    label: completionEventType['category'] + " " + completionEventType['state']
                 };
 
                 graphData.edges.push(edge);
@@ -377,7 +387,7 @@
              * Go back through the nodes and assign them coordinates for
              * display
              */
-            function layoutGraph(baseX, node) {
+            function layoutGraph(baseX, baseY, node) {
                 // update the x and y coords of this node
                 node["x"] = baseX;
                 node["y"] = baseY;
@@ -387,13 +397,18 @@
 
                 // find all children and iterate
                 var foundChildren = false;
+                var firstChild = true;
                 for (var idx in graphData.edges) {
                     if (graphData.edges[idx]["source"] == node["id"]) {
                         var childNode = findNode(graphData.edges[idx]["target"])
                         if (childNode) {
                             foundChildren = true;
-                            layoutGraph(baseX, childNode);
-                            baseY += YINC;
+                            if (!firstChild) {
+                                baseY += YINC;
+                            } else {
+                                firstChild = false;
+                            }
+                            baseY = layoutGraph(baseX, baseY, childNode);
                         }
                     }
                 }
@@ -401,6 +416,8 @@
                 if (!foundChildren) {
                     node["type"] = "endNode";
                 }
+
+                return baseY;
             }
 
             /**
@@ -444,7 +461,7 @@
          * @returns {*}
          */
         function getUserThrowableEventTypes() {
-            return $http.get("/api/v1/eventtypes?limit=all&state=ready")
+            return $http.get("/api/v1/eventtypes?limit=all&state=acknowledge")
                 .then(getCompleted)
                 .catch(getFailed);
 

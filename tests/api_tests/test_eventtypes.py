@@ -43,11 +43,11 @@ def test_creation(tornado_server):
         client.get("/eventtypes"),
         {
             "eventTypes": [{
-                          "id": 1,
-                          "category": "foo",
-                          "state": "bar",
-                          "description": "This is a test",
-                      }],
+                "id": 1,
+                "category": "foo",
+                "state": "bar",
+                "description": "This is a test",
+            }],
             "limit": 10,
             "offset": 0,
             "totalEventTypes": 1,
@@ -76,19 +76,22 @@ def test_creation(tornado_server):
         ), "/api/v1/eventtypes/2"
     )
     assert_success(
-        client.get("/eventtypes", params={"category": "foo", "state": "baz"}),
+        client.get("/eventtypes?expand=fates",
+                   params={"category": "foo", "state": "baz"}),
         {
             "eventTypes": [{
-                          "id": 2,
-                          "category": "foo",
-                          "state": "baz",
-                          "description": "This is a second test",
-                      }],
+                "id": 2,
+                "category": "foo",
+                "state": "baz",
+                "description": "This is a second test",
+                "autoCreates": []
+            }],
             "limit": 10,
             "offset": 0,
             "totalEventTypes": 1
         }
     )
+
 
 def test_create_multiple(tornado_server):
     client = Client(tornado_server)
@@ -152,13 +155,14 @@ def test_update(tornado_server):
 
     assert_error(client.update("/eventtypes/1"), 400)
 
+
 def test_filter_by_creating_types(sample_data1_server):
     client = sample_data1_server
 
     assert_success(
-        client.get("/eventtypes?startingTypes=true"),{
-        "limit": 10,
-        "offset": 0,
-        "totalEventTypes": 2
-    }, strip=['eventTypes']
+        client.get("/eventtypes?startingTypes=true"), {
+            "limit": 10,
+            "offset": 0,
+            "totalEventTypes": 2
+        }, strip=['eventTypes']
     )

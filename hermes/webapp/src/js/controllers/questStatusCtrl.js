@@ -356,8 +356,7 @@
 
                 // if this labor is completed, we will file it by the complete event type
                 if (laborsUnique[idx]['completionEvent']) {
-                    var completionEventType = laborsUnique[idx]['completionEvent']['eventType'];
-                    var key = completionEventType['category'] + " " + completionEventType['state'];
+                    var key = laborsUnique[idx]['completionEvent']['eventType']['description'];
                     // update the count of labors by type
                     vm.types[key] ? vm.types[key]++ : vm.types[key] = 1;
 
@@ -392,8 +391,9 @@
                     }
 
                 } else { // for incomplete labors, file by the creating event type
-                    var creationEventType = laborsUnique[idx]['creationEvent']['eventType'];
-                    var key = creationEventType['category'] + " " + creationEventType['state'];
+                    //var creationEventType = laborsUnique[idx]['creationEvent']['eventType'];
+                    //var key = creationEventType['category'] + " " + creationEventType['state'];
+                    var key = laborsUnique[idx]['fate']['description'];
 
                     // update the count of labors by type
                     vm.types[key] ? vm.types[key]++ : vm.types[key] = 1;

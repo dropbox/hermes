@@ -48,13 +48,13 @@
                     </div>
                 </div>
                 <div style="margin-top: 5px">
-                    <label for="event-type-selection">Filter by labor's event type:</label>
+                    <label for="event-type-selection">Filter by labor:</label>
                 </div>
                 <div class="row">
                     <div class="col-md-10">
-                        <select style="margin-left: 0" id="event-type-selection" ng-model="lsc.filterEventTypesSelection"
+                        <select style="margin-left: 0" id="event-type-selection" ng-model="lsc.filterFatesSelection"
                                 ng-model-options="lsc.selectOptions"
-                                ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.allTypes">
+                                ng-options="optValue.description for optValue in lsc.allFates">
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -96,7 +96,7 @@
                     Throw <select ng-disabled="lsc.selected.length == 0"
                             ng-model="lsc.throwableEventTypesSelection"
                             ng-model-options="lsc.selectOptions"
-                            ng-options="optValue.category + ' ' + optValue.state for optValue in lsc.throwableTypes">
+                            ng-options="optValue.description for optValue in lsc.throwableTypes">
                         </select> for {{lsc.selected.length}} selected hosts.
                     </span>
                     <button class="create-button be-positive" ng-click="lsc.createEventsModal = true" ng-disabled="lsc.selected.length == 0">
@@ -132,10 +132,24 @@
                          ng-click="lsc.toggleSelect(labor.id)"
                          ng-class="lsc.selected.indexOf(labor.id) != -1 ? 'selected': ''">
                         <div class="row">
-                            <div class="hostname col-md-6">{{labor.host.hostname}}</div>
-                            <div class="labor-type col-md-6">{{labor.creationEvent.eventType.category}} {{labor.creationEvent.eventType.state}}</div>
-                        </div>
-                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="hostname col-md-12"><strong>{{labor.host.hostname}}:</strong> {{labor.fate.description}}</div>
+                                    <div class="info-panel col-md-12">
+                                        <div style="float: left">
+                                            <strong>Labor For:&nbsp;</strong>
+                                        </div>
+                                        <div>
+                                            <div ng-if="labor.forOwner == true">
+                                                Server Owner
+                                            </div>
+                                            <div ng-if="labor.forCreator == true">
+                                                Quest Creator
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="info-panel col-md-6">
                                 <div class="label-holder">
                                     <strong>Tags:</strong>
@@ -151,19 +165,6 @@
                                             {{tag}}
                                         </li>
                                     </ul>
-                                </div>
-                            </div>
-                            <div class="info-panel col-md-6">
-                                <div class="label-holder">
-                                    <strong>Labor For:</strong>
-                                </div>
-                                <div class="details">
-                                    <div ng-if="labor.forOwner == true">
-                                        Server Owner
-                                    </div>
-                                    <div ng-if="labor.forCreator == true">
-                                        Quest Creator
-                                    </div>
                                 </div>
                             </div>
                         </div>
