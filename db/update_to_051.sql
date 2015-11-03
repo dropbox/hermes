@@ -57,13 +57,13 @@ VALUES
 	(1,1,NULL,0,1,'Reboot or release the system'),
 	(2,2,1,0,1,'System rebooted'),
 	(3,3,NULL,0,1,'Release or acknowledge downtime'),
-	(4,4,3,0,1,'Perform maintenance'),
+	(4,4,3,1,0,'Perform maintenance'),
 	(5,5,4,1,0,'Maintenance completed'),
-	(6,6,3,0,1,'Acknowledge maintenance'),
+	(6,6,3,1,0,'Perform online maintenance'),
 	(7,5,6,1,0,'Maintenance completed'),
-	(8,7,3,0,1,'Maintenance cancelled'),
-	(9,7,4,0,1,'Maintenance cancelled'),
-	(10,7,6,0,1,'Maintenance cancelled');
+	(8,7,3,1,0,'Maintenance cancelled'),
+	(9,7,4,1,0,'Maintenance cancelled'),
+	(10,7,6,1,0,'Maintenance cancelled');
 
 /*!40000 ALTER TABLE fates ENABLE KEYS */;
 UNLOCK TABLES;

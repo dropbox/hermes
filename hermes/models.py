@@ -689,7 +689,7 @@ class Fate(Model):
         return Fate._starting_fates
 
     @classmethod
-    def question_the_fates(cls, session, events, quest=None):
+    def question_the_fates(cls, session, events, quest=None, starting_fates=None):
         """Look through the Fates and see if we need to create or close
         Labors based on these Events.
 
@@ -716,7 +716,8 @@ class Fate(Model):
 
         # Get all the fates, in various categories, for easy reference
         all_fates = Fate.get_all_fates(session)
-        starting_fates = Fate.get_starting_fates(session)
+        if not starting_fates:
+            starting_fates = Fate.get_starting_fates(session)
 
         # Query the database for open labors for hosts of which we have an event
         open_labors = (
@@ -779,11 +780,6 @@ class Fate(Model):
                             # subsequent labors to see if the labor should be
                             # for the quest creator, server owner, or both.
                             if fate["precedes_ids"]:
-                                designations = Fate.get_designations(
-                                    all_fates,
-                                    fate["precedes_ids"]
-                                )
-
                                 new_labor_dict = {
                                     "host_id": host.id,
                                     "starting_labor_id": (
@@ -796,8 +792,8 @@ class Fate(Model):
                                     "quest_id": (
                                         labor.quest.id if labor.quest else None
                                     ),
-                                    "for_creator": designations["for_creator"],
-                                    "for_owner": designations["for_owner"],
+                                    "for_creator": fate["for_creator"],
+                                    "for_owner": fate["for_owner"],
                                 }
                                 if new_labor_dict not in all_new_labors:
                                     all_new_labors.append(new_labor_dict)
@@ -809,21 +805,6 @@ class Fate(Model):
             Labor.achieve_many(session, all_achieved_labors)
         session.flush()
         session.commit()
-
-    @classmethod
-    def get_designations(cls, fates, ids):
-        for_owner = False
-        for_creator = False
-
-        for fate in fates.values():
-            if fate['id'] in ids:
-                for_owner = for_owner or fate["for_owner"]
-                for_creator = for_creator or fate["for_creator"]
-
-        return {
-            "for_owner": for_owner,
-            "for_creator": for_creator
-        }
 
     def href(self, base_uri):
         """Create an HREF value for this object
@@ -966,7 +947,7 @@ class Event(Model):
         return event
 
     @classmethod
-    def create_many(cls, session, events, tx, quest=None):
+    def create_many(cls, session, events, tx, quest=None, fates=None):
         """Create multiple Events
 
         Args:
@@ -975,6 +956,7 @@ class Event(Model):
             tx: transaction id tied to these bulk creations
             quest: optional if events tied to quests
             flush: indicate if we should flush after we are done
+            fate: the explicit list of fates of use when evaluating for labor creations
         """
         log.debug("Event.create_many()")
 
@@ -991,7 +973,9 @@ class Event(Model):
                 hook.on_event(event)
 
         # refer to fates to see if these events should close or open any labors
-        Fate.question_the_fates(session, events, quest=quest)
+        Fate.question_the_fates(
+            session, events, quest=quest, starting_fates=fates
+        )
 
     def href(self, base_uri):
         """Create an HREF value for this object
@@ -1063,8 +1047,8 @@ class Quest(Model):
 
     @classmethod
     def create(
-            cls, session, creator, hosts, creation_event_type, target_time=None,
-            create=True, description=None
+            cls, session, creator, hosts, creation_event_type,
+            target_time=None, create=True, description=None, fate_id=None
     ):
         """Create a new Quest.
 
@@ -1096,6 +1080,11 @@ class Quest(Model):
         if creation_event_type is None:
             raise exc.ValidationError("Quest must have an EventType")
 
+        if fate_id:
+            fate = session.query(Fate).id(fate_id)
+        else:
+            fate = None
+
         try:
             quest = cls(
                 creator=creator, description=description,
@@ -1118,7 +1107,21 @@ class Quest(Model):
                     "event_type_id": creation_event_type.id,
                     "tx": quest.id
                 })
-            Event.create_many(session, events_to_create, quest.id, quest=quest)
+            if fate:
+                Event.create_many(
+                    session,
+                    events_to_create,
+                    quest.id,
+                    quest=quest,
+                    fates=[fate]
+                )
+            else:
+                Event.create_many(
+                    session,
+                    events_to_create,
+                    quest.id,
+                    quest=quest
+                )
         else:
             open_labors = (
                 session.query(Labor).filter(

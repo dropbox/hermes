@@ -241,7 +241,7 @@ def test_quest_lifecycle(sample_data1_server):
 
     target_time = datetime.utcnow() + timedelta(days=7)
 
-    # Create a quest
+    # Create a quest with system-maintenance required
     assert_created(
         client.create(
             "/quests",
@@ -468,8 +468,8 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventTypeId": 4,
                         "description": "A system that needs maintenance made ready before maintenance can occur.",
                         "followsId": 3,
-                        "forCreator": False,
-                        "forOwner": True,
+                        "forOwner": False,
+                        "forCreator": True,
                         "id": 4,
                         "precedesIds": [5],
                     },
@@ -496,8 +496,8 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventTypeId": 4,
                         "description": "A system that needs maintenance made ready before maintenance can occur.",
                         "followsId": 3,
-                        "forCreator": False,
-                        "forOwner": True,
+                        "forOwner": False,
+                        "forCreator": True,
                         "id": 4,
                         "precedesIds": [5],
                     },
@@ -524,8 +524,8 @@ def test_quest_lifecycle(sample_data1_server):
                         "creationEventTypeId": 4,
                         "description": "A system that needs maintenance made ready before maintenance can occur.",
                         "followsId": 3,
-                        "forCreator": False,
-                        "forOwner": True,
+                        "forOwner": False,
+                        "forCreator": True,
                         "id": 4,
                         "precedesIds": [5],
                     },

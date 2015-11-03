@@ -277,9 +277,13 @@ def test_longer_chain(sample_data2):
     labors = sample_data2.query(Labor).all()
     assert len(labors) == 0
 
+    # system-maintenance audit
     event_type_a = sample_data2.query(EventType).get(1)
+    # system-maintenance needed
     event_type_b = sample_data2.query(EventType).get(2)
+    # system-maintenance ready
     event_type_c = sample_data2.query(EventType).get(3)
+    # system-maintenance completed
     event_type_d = sample_data2.query(EventType).get(4)
 
     host = sample_data2.query(Host).get(1)
@@ -307,14 +311,14 @@ def test_longer_chain(sample_data2):
     assert len(labors) == 1
     assert len(host.labors) == 2
     assert labors[0].starting_labor_id == starting_labor_id
-    assert labors[0].for_creator is True
+    assert labors[0].for_creator is False
 
     event_c = Event.create(sample_data2, host, "system", event_type_c)
     labors = Labor.get_open_unacknowledged(sample_data2)
     assert len(labors) == 1
     assert len(host.labors) == 3
     assert labors[0].starting_labor_id == starting_labor_id
-    assert labors[0].for_creator is False
+    assert labors[0].for_creator is True
 
     # This last event closes the final labor but does not create a new labor
     event_d = Event.create(sample_data2, host, "system", event_type_d)
