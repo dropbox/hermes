@@ -15,13 +15,13 @@
   "fate4": {
     "creationEventTypeId": 4,
     "followsId": 3,
+    "forCreator": true,
+    "forOwner": false,
     "description": "A system that needs maintenance made ready before maintenance can occur."
   },
   "fate5": {
     "creationEventTypeId": 5,
     "followsId": 4,
-    "forCreator": true,
-    "forOwner": false,
     "description": "Maintenance must be performed on a system that is prepped."
   }
 }

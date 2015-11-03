@@ -28,15 +28,15 @@ VALUES
 
 INSERT INTO fates
 VALUES
-	(1,1,NULL, 0, 1, 'Reboot or release the system.');
+	(1,1,NULL, 0, 1, 'Reboot or release the system');
 
 INSERT INTO fates
 VALUES
-	(2,2,1, 0, 1, 'A reboot finishes labors.');
+	(2,2,1, 0, 1, 'System rebooted');
 
 INSERT INTO fates
 VALUES
-	(3,4,1, 0, 1, 'A release finishes labors');
+	(3,4,1, 0, 1, 'System released');
 
 INSERT INTO fates
 VALUES
@@ -44,7 +44,7 @@ VALUES
 
 INSERT INTO fates
 VALUES
-	(5,4,4, 0, 1, 'Perform maintenance');
+	(5,4,4, 1, 0, 'Perform maintenance');
 
 INSERT INTO fates
 VALUES
