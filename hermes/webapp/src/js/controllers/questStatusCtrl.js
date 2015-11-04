@@ -21,8 +21,10 @@
         vm.labors = null;
         vm.selectedLabors = [];
         vm.countByTypes = null;
-        vm.selectedEventType = null;
-        vm.throwableTypes = null;
+        vm.selectedCreatorType = null;
+        vm.selectedUserType = null;
+        vm.creatorThrowableTypes = null;
+        vm.userThrowableTypes = null;
         vm.createEventsModal = false;
         vm.createInProgress = false;
         vm.limit = 10;
@@ -39,7 +41,8 @@
         vm.filterOwnChanged = filterOwnChanged;
         vm.selectAll = selectAll;
         vm.deselectAll = deselectAll;
-        vm.throwableEventTypesSelection = throwableEventTypesSelection;
+        vm.creatorThrowableTypesSelection = creatorThrowableTypesSelection;
+        vm.userThrowableTypesSelection = userThrowableTypesSelection;
         vm.createEvents = createEvents;
 
         vm.selectOptions = {
@@ -78,8 +81,13 @@
         });
 
         hermesService.getCreatorThrowableEventsTypes().then(function(types) {
-            vm.throwableTypes = types;
-            vm.throwableEventTypesSelection(vm.throwableTypes[0])
+            vm.creatorThrowableTypes = types;
+            vm.creatorThrowableTypesSelection(vm.creatorThrowableTypes[0])
+        });
+
+        hermesService.getUserThrowableEventTypes().then(function(types) {
+            vm.userThrowableTypes = types;
+            vm.userThrowableTypesSelection(vm.userThrowableTypes);
         });
 
 
@@ -473,18 +481,29 @@
         /**
          * The getter/setter for event types
          */
-        function throwableEventTypesSelection(selection) {
+        function creatorThrowableTypesSelection(selection) {
             if (angular.isDefined(selection)) {
-                vm.selectedEventType = selection;
+                vm.selectedCreatorType = selection;
             } else {
-                return vm.selectedEventType;
+                return vm.selectedCreatorType;
+            }
+        }
+
+        /**
+         * The getter/setter for event types
+         */
+        function userThrowableTypesSelection(selection) {
+            if (angular.isDefined(selection)) {
+                vm.selectedUserType = selection;
+            } else {
+                return vm.selectedUserType;
             }
         }
 
         /**
          * Create events for the selected hosts
          */
-        function createEvents() {
+        function createEvents(type) {
             if (vm.createInProgress) return;
             vm.createEventsModal = false;
             vm.createInProgress = true;
@@ -495,8 +514,15 @@
                 return;
             }
 
+            var typeToThrow;
+            if (type == "creator") {
+                typeToThrow = vm.selectedCreatorType;
+            } else {
+                typeToThrow = vm.selectedUserType;
+            }
+
             vm.result = hermesService.createEvents(
-                vm.user, vm.selectedLabors, vm.selectedEventType,
+                vm.user, vm.selectedLabors, typeToThrow,
                 "Created by " + vm.user + " via Web UI."
             )
                 .then(function(response) {
