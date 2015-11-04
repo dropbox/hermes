@@ -20,7 +20,7 @@
         vm.selectedQuestCompletedLabors = 0;
         vm.labors = null;
         vm.selectedLabors = [];
-        vm.types = null;
+        vm.countByTypes = null;
         vm.selectedEventType = null;
         vm.throwableTypes = null;
         vm.createEventsModal = false;
@@ -276,7 +276,7 @@
             vm.hostOwners = null;
             vm.labors = null;
             vm.selectedLabors = [];
-            vm.types = null;
+            vm.countByTypes = null;
 
             // make an array of all the hostnames, and have the hermes service
             // give us back a hostname to owner mapping
@@ -338,7 +338,7 @@
 
             // sort the unique labors into a buckets based on the owner and labor type
             var sortedLabors = {};
-            vm.types = {};
+            vm.countByTypes = {};
             for (var idx in laborsUnique) {
                 var hostname = laborsUnique[idx]['host']['hostname'];
                 var owner = ownerData[hostname];
@@ -358,7 +358,7 @@
                 if (laborsUnique[idx]['completionEvent']) {
                     var key = laborsUnique[idx]['completionEvent']['eventType']['description'];
                     // update the count of labors by type
-                    vm.types[key] ? vm.types[key]++ : vm.types[key] = 1;
+                    vm.countByTypes[key] ? vm.countByTypes[key]++ : vm.countByTypes[key] = 1;
 
                     // sort into the bucket for this owner, if the labor is for the server owner
                     if (forOwner) {
@@ -396,7 +396,7 @@
                     var key = laborsUnique[idx]['fate']['description'];
 
                     // update the count of labors by type
-                    vm.types[key] ? vm.types[key]++ : vm.types[key] = 1;
+                    vm.countByTypes[key] ? vm.countByTypes[key]++ : vm.countByTypes[key] = 1;
 
                     // sort into the bucket for the server owner if the labor is for the owner
                     if (forOwner) {
