@@ -17,7 +17,10 @@
         }).when('/v1/fates', {
             templateUrl: '/templates/fateViewer.html',
             reloadOnSearch: false
-        }).otherwise({redirectTo: '/v1/quests/'});
+        }).when('/home', {
+            templateUrl: '/templates/userHome.html',
+            reloadOnSearch: false
+        }).otherwise({redirectTo: '/home/'});
 
         // use the HTML5 History API
         $locationProvider.html5Mode({

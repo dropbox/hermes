@@ -1,0 +1,9 @@
+<div ng-controller="UserHomeCtrl as ctrl" class="user-home">
+    <div class="row">
+        <div class="col-md-12 banner" ng-if="ctrl.user">Hello {{ctrl.user}}</div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-md-offset-3 quest-info"><button ng-if="ctrl.totalQuests != null" ng-click="ctrl.goToQuestsPage()">{{ctrl.totalQuests}} total open quests.<br/>{{ctrl.totalUserCreatedQuests}} created by you.</button></div>
+        <div class="col-md-3 labor-info"><button ng-if="ctrl.totalUserLabors != null" ng-click="ctrl.goToLaborsPage()">{{ctrl.totalLabors}} total open labors.<br/>{{ctrl.totalUserLabors}} are for you.</button></div>
+    </div>
+</div>

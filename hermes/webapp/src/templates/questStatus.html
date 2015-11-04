@@ -257,9 +257,8 @@
     </div>
     <div ng-cloak class="modal-wrapper fade" ng-if="qc.createEventsModal">
         <div id="confirmModal" class="modal-dialog" role="dialog">
-            <div class="dialog-callout">The event <code>{{qc.selectedEventType.category}}
-                {{qc.selectedEventType.state}}</code> means:
-                {{qc.selectedEventType.description}}
+            <div class="dialog-callout">
+                "{{qc.selectedEventType.description}}"
             </div>
             <div class="dialog-text">
                 Are you sure you want to create a <code>{{qc.selectedEventType.category}}

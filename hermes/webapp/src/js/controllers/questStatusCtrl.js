@@ -59,7 +59,7 @@
 
             // if user passed a filter-by-creator query param, that takes precedence.
             // otherwise, the default is to use the authenticate user
-            if ($routeParams.byCreator) {
+            if ($routeParams.byCreator || $routeParams.byCreator == "") {
                 vm.filterByCreator = $routeParams.byCreator;
                 vm.filterOwn = false;
             } else if (vm.user && !$routeParams.questId) {

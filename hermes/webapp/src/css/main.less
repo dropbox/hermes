@@ -698,12 +698,14 @@ a {
     padding: 20px;
   }
   .dialog-callout {
+    font-size: 1.5em;
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     background: @white;
     border-radius: 5px;
     margin: 10px;
     padding: 10px;
+    text-align: center;
   }
   .dialog-buttons {
     text-align: center;
@@ -903,4 +905,51 @@ a {
   -webkit-transition-duration: 0s;
   transition-delay: 0.05s;
   transition-duration: 0s;
+}
+
+.user-home {
+  button {
+    padding: 20px;
+    float: none;
+    margin-top: 2em;
+    &.ng-enter {
+      margin-top: 3em;
+      opacity: 0;
+      -webkit-transition: 0.5s ease-out all;
+      -moz-transition: 0.5s ease-out all;
+      -ms-transition: 0.5s ease-out all;
+      -o-transition: 0.5s ease-out all;
+      transition: 0.5s ease-out all;;
+    }
+    &.ng-enter-active {
+      margin-top: 2em;
+      opacity: 1;
+    }
+  }
+  .banner {
+    font-size: 3em;
+    text-align: center;
+    margin-top: 3em;
+    &.ng-enter {
+      margin-top: 2em;
+      opacity: 0;
+      -webkit-transition: 0.5s ease-out all;
+      -moz-transition: 0.5s ease-out all;
+      -ms-transition: 0.5s ease-out all;
+      -o-transition: 0.5s ease-out all;
+      transition: 0.5s ease-out all;;
+    }
+    &.ng-enter-active {
+      margin-top: 3em;
+      opacity: 1;
+    }
+  }
+  .quest-info {
+    font-size: 1.5em;
+    text-align: center;
+  }
+  .labor-info {
+    font-size: 1.5em;
+    text-align: center;
+  }
 }
