@@ -109,7 +109,13 @@
          * Get a list of all open labors, along with quest details
          */
         function getOpenLabors(options) {
-            var url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes&expand=fates";
+
+            var url;
+            if (options['overviewOnly']) {
+                url = "/api/v1/labors/?open=true";
+            } else {
+                url = "/api/v1/labors/?open=true&expand=hosts&limit=all&expand=quests&expand=events&expand=eventtypes&expand=fates";
+            }
 
             if (options['filterByOwner']) {
                 url += "&userQuery=" + encodeURIComponent(options['filterByOwner']);
@@ -148,7 +154,12 @@
          */
         function getOpenQuests(options) {
 
-            var url = "/api/v1/quests?filterClosed=true&progressInfo=true&expand=hosts&expand=labors&limit=all";
+            var url;
+            if (options['overviewOnly']) {
+                url = "/api/v1/quests?filterClosed=true&progressInfo=true&limit=all"
+            } else {
+                url = "/api/v1/quests?filterClosed=true&progressInfo=true&expand=hosts&expand=labors&limit=all";
+            }
 
             if (options['filterByCreator']) {
                 url += "&byCreator=" + encodeURIComponent(options['filterByCreator']);

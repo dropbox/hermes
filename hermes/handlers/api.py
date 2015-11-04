@@ -1500,7 +1500,7 @@ class LaborsHandler(ApiHandler):
         :query string hostname: (*optional*) filter Labors by a particular hostname
         :query string startingLaborId: (*optional*) get Labors by the Id or the Id of the starting labor
         :query string hostQuery: (*optional*) the query to send to the plugin to come up with the list of hostnames
-        :query string userQuery: (*optional*) get labors for machines ownen by this user or for which this user is responsible
+        :query string userQuery: (*optional*) get labors for machines owned by this user or for which this user is responsible
         :query string category: (*optional*) limit labors to ones where the starting event type is of this category
         :query string state: (*optional*) limit labors to ones where the starting event type is of this state
         :query boolean open: if true, filter Labors to those still open
@@ -1618,9 +1618,9 @@ class LaborsHandler(ApiHandler):
             hostnames = list(
                 set(host_query_hostnames) & set(user_query_hostnames)
             )
-        elif host_query_hostnames:
+        elif host_query:
             hostnames = host_query_hostnames
-        elif user_query_hostnames:
+        elif user_query:
             hostnames = user_query_hostnames
 
         # if we are just doing a simple host_query, we can just filter by
