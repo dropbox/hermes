@@ -923,18 +923,28 @@ a {
     padding: 20px;
     float: none;
     margin-top: 2em;
+    background: @btn-color;
+    min-width: 250px;
     &.ng-enter {
       margin-top: 3em;
-      opacity: 0;
+      opacity: 0.25;
+      background: @med-gray;
       -webkit-transition: 0.5s ease-out all;
       -moz-transition: 0.5s ease-out all;
       -ms-transition: 0.5s ease-out all;
       -o-transition: 0.5s ease-out all;
       transition: 0.5s ease-out all;;
+      -webkit-box-shadow: 0 0 5px 5px @med-gray;
+      -moz-box-shadow: 0 0 5px 5px @med-gray;
+      box-shadow: 0 0 5px 5px @med-gray;
     }
     &.ng-enter-active {
       margin-top: 2em;
       opacity: 1;
+      background: @btn-color;
+      -webkit-box-shadow: 0 0 0px 0px @med-gray;
+      -moz-box-shadow: 0 0 0px 0px @med-gray;
+      box-shadow: 0 0 0px 0px @med-gray;
     }
   }
   .banner {
@@ -962,5 +972,21 @@ a {
   .labor-info {
     font-size: 1.5em;
     text-align: center;
+  }
+  .quest-info-holder {
+    text-align: center;
+    margin-top: 3em;
+    background: @med-gray;
+    padding: 20px;
+    opacity: 0.25;
+    display: inline-block;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    min-width: 250px;
+    color: @light-gray;
+    -webkit-box-shadow: 0 0 5px 5px @med-gray;
+    -moz-box-shadow: 0 0 5px 5px @med-gray;
+    box-shadow: 0 0 5px 5px @med-gray;
   }
 }

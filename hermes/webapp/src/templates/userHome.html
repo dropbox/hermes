@@ -3,7 +3,27 @@
         <div class="col-md-12 banner" ng-if="ctrl.user">Hello {{ctrl.user}}</div>
     </div>
     <div class="row">
-        <div class="col-md-3 col-md-offset-3 quest-info"><button ng-if="ctrl.totalQuests != null" ng-click="ctrl.goToQuestsPage()">{{ctrl.totalQuests}} total open quests.<br/>{{ctrl.totalUserCreatedQuests}} created by you.</button></div>
-        <div class="col-md-3 labor-info"><button ng-if="ctrl.totalUserLabors != null" ng-click="ctrl.goToLaborsPage()">{{ctrl.totalLabors}} total open labors.<br/>{{ctrl.totalUserLabors}} {{ctrl.totalUserLabors == 1 ? "is" : "are"}} for you.</button></div>
+        <div class="col-md-3 col-md-offset-3 quest-info">
+            <button ng-if="ctrl.totalQuests != null"
+                    ng-click="ctrl.goToQuestsPage()">{{ctrl.totalQuests}} total
+                open quests.<br/>{{ctrl.totalUserCreatedQuests}} created by
+                you.
+            </button>
+            <div ng-if="ctrl.totalQuests == null" class="quest-info-holder">
+                Loading<br/>
+                Info
+            </div>
+        </div>
+        <div class="col-md-3 labor-info">
+            <button ng-if="ctrl.totalUserLabors != null"
+                    ng-click="ctrl.goToLaborsPage()">{{ctrl.totalLabors}} total
+                open labors.<br/>{{ctrl.totalUserLabors}}
+                {{ctrl.totalUserLabors == 1 ? "is" : "are"}} for you.
+            </button>
+            <div ng-if="ctrl.totalUserLabors == null" class="quest-info-holder">
+                Loading<br/>
+                Info
+            </div>
+        </div>
     </div>
 </div>
