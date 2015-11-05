@@ -20,9 +20,11 @@
         vm.selectedQuestCompletedLabors = 0;
         vm.labors = null;
         vm.selectedLabors = [];
-        vm.types = null;
-        vm.selectedEventType = null;
-        vm.throwableTypes = null;
+        vm.countByTypes = null;
+        vm.selectedCreatorType = null;
+        vm.selectedUserType = null;
+        vm.creatorThrowableTypes = null;
+        vm.userThrowableTypes = null;
         vm.createEventsModal = false;
         vm.createInProgress = false;
         vm.limit = 10;
@@ -39,7 +41,8 @@
         vm.filterOwnChanged = filterOwnChanged;
         vm.selectAll = selectAll;
         vm.deselectAll = deselectAll;
-        vm.throwableEventTypesSelection = throwableEventTypesSelection;
+        vm.creatorThrowableTypesSelection = creatorThrowableTypesSelection;
+        vm.userThrowableTypesSelection = userThrowableTypesSelection;
         vm.createEvents = createEvents;
 
         vm.selectOptions = {
@@ -78,8 +81,13 @@
         });
 
         hermesService.getCreatorThrowableEventsTypes().then(function(types) {
-            vm.throwableTypes = types;
-            vm.throwableEventTypesSelection(vm.throwableTypes[0])
+            vm.creatorThrowableTypes = types;
+            vm.creatorThrowableTypesSelection(vm.creatorThrowableTypes[0])
+        });
+
+        hermesService.getUserThrowableEventTypes().then(function(types) {
+            vm.userThrowableTypes = types;
+            vm.userThrowableTypesSelection(vm.userThrowableTypes);
         });
 
 
@@ -276,7 +284,7 @@
             vm.hostOwners = null;
             vm.labors = null;
             vm.selectedLabors = [];
-            vm.types = null;
+            vm.countByTypes = null;
 
             // make an array of all the hostnames, and have the hermes service
             // give us back a hostname to owner mapping
@@ -338,7 +346,7 @@
 
             // sort the unique labors into a buckets based on the owner and labor type
             var sortedLabors = {};
-            vm.types = {};
+            vm.countByTypes = {};
             for (var idx in laborsUnique) {
                 var hostname = laborsUnique[idx]['host']['hostname'];
                 var owner = ownerData[hostname];
@@ -358,7 +366,7 @@
                 if (laborsUnique[idx]['completionEvent']) {
                     var key = laborsUnique[idx]['completionEvent']['eventType']['description'];
                     // update the count of labors by type
-                    vm.types[key] ? vm.types[key]++ : vm.types[key] = 1;
+                    vm.countByTypes[key] ? vm.countByTypes[key]++ : vm.countByTypes[key] = 1;
 
                     // sort into the bucket for this owner, if the labor is for the server owner
                     if (forOwner) {
@@ -396,7 +404,7 @@
                     var key = laborsUnique[idx]['fate']['description'];
 
                     // update the count of labors by type
-                    vm.types[key] ? vm.types[key]++ : vm.types[key] = 1;
+                    vm.countByTypes[key] ? vm.countByTypes[key]++ : vm.countByTypes[key] = 1;
 
                     // sort into the bucket for the server owner if the labor is for the owner
                     if (forOwner) {
@@ -473,18 +481,29 @@
         /**
          * The getter/setter for event types
          */
-        function throwableEventTypesSelection(selection) {
+        function creatorThrowableTypesSelection(selection) {
             if (angular.isDefined(selection)) {
-                vm.selectedEventType = selection;
+                vm.selectedCreatorType = selection;
             } else {
-                return vm.selectedEventType;
+                return vm.selectedCreatorType;
+            }
+        }
+
+        /**
+         * The getter/setter for event types
+         */
+        function userThrowableTypesSelection(selection) {
+            if (angular.isDefined(selection)) {
+                vm.selectedUserType = selection;
+            } else {
+                return vm.selectedUserType;
             }
         }
 
         /**
          * Create events for the selected hosts
          */
-        function createEvents() {
+        function createEvents(type) {
             if (vm.createInProgress) return;
             vm.createEventsModal = false;
             vm.createInProgress = true;
@@ -495,8 +514,15 @@
                 return;
             }
 
+            var typeToThrow;
+            if (type == "creator") {
+                typeToThrow = vm.selectedCreatorType;
+            } else {
+                typeToThrow = vm.selectedUserType;
+            }
+
             vm.result = hermesService.createEvents(
-                vm.user, vm.selectedLabors, vm.selectedEventType,
+                vm.user, vm.selectedLabors, typeToThrow,
                 "Created by " + vm.user + " via Web UI."
             )
                 .then(function(response) {

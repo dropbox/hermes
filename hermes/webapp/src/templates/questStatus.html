@@ -159,7 +159,7 @@
                     <div ng-if="qc.labors" class="quest-details">
                         <div quest-progress-chart
                              colors="qc.colors"
-                             types="qc.types"
+                             types="qc.countByTypes"
                              data="qc.selectedQuestDetails">
                         </div>
                         <div class="quest-overview">
@@ -225,7 +225,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="quest-actions">
+                        <div ng-if="qc.selectedQuest['creator'] == qc.user" class="quest-actions">
                             <button style="float:left"
                                     ng-click="qc.selectAll()">
                                 Select All
@@ -234,15 +234,40 @@
                                     ng-click="qc.deselectAll()">
                                 Deselect All
                             </button>
-                    <span>
-                    Throw <select ng-disabled="qc.selectedLabors.length == 0"
-                                  ng-model="qc.throwableEventTypesSelection"
-                                  ng-model-options="qc.selectOptions"
-                                  ng-options="optValue.description for optValue in qc.throwableTypes">
-                    </select> for {{qc.selectedLabors.length}} selected hosts.
-                    </span>
+                            <span>
+                            Throw <select ng-disabled="qc.selectedLabors.length == 0"
+                                          ng-model="qc.creatorThrowableTypesSelection"
+                                          ng-model-options="qc.selectOptions"
+                                          ng-options="optValue.description for optValue in qc.creatorThrowableTypes">
+                            </select> for {{qc.selectedLabors.length}} selected hosts.
+                            </span>
                             <button class="create-button be-positive"
-                                    ng-click="qc.createEventsModal = true"
+                                    ng-click="qc.createEventsModal = 'creator'"
+                                    ng-disabled="qc.selectedLabors.length == 0">
+                                <img ng-if="qc.createInProgress"
+                                     src="/img/loading_15.gif"
+                                     style="margin: 5px; float: left"/>
+                                Throw Events
+                            </button>
+                        </div>
+                        <div ng-if="qc.selectedQuest['creator'] != qc.user" class="quest-actions">
+                            <button style="float:left"
+                                    ng-click="qc.selectAll()">
+                                Select All
+                            </button>
+                            <button style="float:left"
+                                    ng-click="qc.deselectAll()">
+                                Deselect All
+                            </button>
+                            <span>
+                            Throw <select ng-disabled="qc.selectedLabors.length == 0"
+                                          ng-model="qc.userThrowableTypesSelection"
+                                          ng-model-options="qc.selectOptions"
+                                          ng-options="optValue.description for optValue in qc.userThrowableTypes">
+                            </select> for {{qc.selectedLabors.length}} selected hosts.
+                            </span>
+                            <button class="create-button be-positive"
+                                    ng-click="qc.createEventsModal = 'user'"
                                     ng-disabled="qc.selectedLabors.length == 0">
                                 <img ng-if="qc.createInProgress"
                                      src="/img/loading_15.gif"
@@ -255,19 +280,39 @@
             </div>
         </div>
     </div>
-    <div ng-cloak class="modal-wrapper fade" ng-if="qc.createEventsModal">
+    <div ng-cloak class="modal-wrapper fade" ng-if="qc.createEventsModal == 'creator'">
         <div id="confirmModal" class="modal-dialog" role="dialog">
             <div class="dialog-callout">
-                "{{qc.selectedEventType.description}}"
+                "{{qc.selectedCreatorType.description}}"
             </div>
             <div class="dialog-text">
-                Are you sure you want to create a <code>{{qc.selectedEventType.category}}
-                {{qc.selectedEventType.state}}</code> event for
+                Are you sure you want to create a <code>{{qc.selectedCreatorType.category}}
+                {{qc.selectedCreatorType.state}}</code> event for
                 {{qc.selectedLabors.length}} servers?
             </div>
             <div class="dialog-buttons">
                 <button style="float: none" class="big-button be-positive"
-                        ng-click="qc.createEvents()">Yes
+                        ng-click="qc.createEvents('creator')">Yes
+                </button>
+                <button style="float: none" class="big-button"
+                        ng-click="qc.createEventsModal = false">No
+                </button>
+            </div>
+        </div>
+    </div>
+    <div ng-cloak class="modal-wrapper fade" ng-if="qc.createEventsModal == 'user'">
+        <div id="confirmModal2" class="modal-dialog" role="dialog">
+            <div class="dialog-callout">
+                "{{qc.selectedUserType.description}}"
+            </div>
+            <div class="dialog-text">
+                Are you sure you want to create a <code>{{qc.selectedUserType.category}}
+                {{qc.selectedUserType.state}}</code> event for
+                {{qc.selectedLabors.length}} servers?
+            </div>
+            <div class="dialog-buttons">
+                <button style="float: none" class="big-button be-positive"
+                        ng-click="qc.createEvents('user')">Yes
                 </button>
                 <button style="float: none" class="big-button"
                         ng-click="qc.createEventsModal = false">No

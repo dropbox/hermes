@@ -125,13 +125,16 @@ def main():
             "on a shell server:"
             "\n\n"
             "$ hermes event create [event] --host [hostname].\n\n"
-            "Or you can visit {}/v1/labors\n\n".format(settings.frontend)
+            "Or you can visit the quests linked below.\n\n".format(settings.frontend)
         )
 
         for quest_id in info[owner]:
             quest = find_quest(open_quests, quest_id)
             if quest:
-                msg += "QUEST {}  [created by {}]:\n".format(
+                msg += (
+                    "==[ QUEST {} ]================================\n"
+                    "Created by {}:\n"
+                ).format(
                     quest_id, quest.creator
                 )
                 if quest.target_time:
@@ -140,7 +143,7 @@ def main():
                     quest.description,
                     width=60, subsequent_indent=""
                 ))
-                msg += "Href: {}/v1/quests/{}\n\n".format(
+                msg += "Details: {}/v1/quests/{}\n\n".format(
                     settings.frontend, quest_id
                 )
             else:
