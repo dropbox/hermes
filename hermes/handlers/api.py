@@ -2079,7 +2079,7 @@ class QuestsHandler(ApiHandler):
                 expand=set(expand)
             )
             if progress_info:
-                quest_json = quest.calcuate_progress(quest_json)
+                quest_json = quest.calculate_progress(quest_json)
             quests_json.append(quest_json)
 
         json = {
@@ -2149,7 +2149,7 @@ class QuestHandler(ApiHandler):
         )
 
         if progress_info:
-            out = quest.calcuate_progress(out)
+            out = quest.calculate_progress(out)
 
         self.success(out)
 

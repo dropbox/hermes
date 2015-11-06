@@ -1310,42 +1310,40 @@ class Quest(Model):
                 msg
             )
 
-    def calcuate_progress(self, json):
+    def calculate_progress(self, json):
         """Calcuate quest progress, add it to the json body and return it"""
-        total_labor_count = self.session.query(Labor).filter(
+        labors = self.session.query(Labor).filter(
             Labor.quest_id == self.id
-        ).count()
-        total_complete_count = self.session.query(Labor).filter(
-            and_(
-                Labor.quest_id == self.id,
-                Labor.completion_time != None,
-            )
-        ).count()
-        unique_labor_count = self.session.query(Labor).filter(
-            and_(
-                Labor.quest_id == self.id,
-                Labor.starting_labor_id == None
-            )
-        ).count()
-        unstarted_labors_count = self.session.query(Labor).filter(
-            and_(
-                Labor.quest_id == self.id,
-                Labor.completion_time == None,
-                Labor.starting_labor_id == None
-            )
-        ).count()
-        inprogress_labors_count = self.session.query(Labor).filter(
-            and_(
-                Labor.quest_id == self.id,
-                Labor.completion_time == None,
-                Labor.starting_labor_id != None
-            )
-        ).count()
-        completed_labors_count = unique_labor_count - unstarted_labors_count - inprogress_labors_count
+        ).all()
+
+        total_complete_count = 0
+        unique_labor_count = 0
+        unstarted_labors_count = 0
+        inprogress_labors_count = 0
+
+        for labor in labors:
+            if labor.completion_time:
+                total_complete_count += 1
+
+            if not labor.starting_labor_id:
+                unique_labor_count += 1
+                if not labor.completion_time:
+                    unstarted_labors_count += 1
+
+            if not labor.completion_time and labor.starting_labor_id:
+                inprogress_labors_count += 1
+
+        completed_labors_count = (
+            unique_labor_count
+            - unstarted_labors_count
+            - inprogress_labors_count
+        )
+
         percent_complete = round(
-            (total_complete_count) / total_labor_count * 100,
+            total_complete_count / len(labors) * 100,
             2
         )
+
         json['totalLabors'] = unique_labor_count
         json['unstartedLabors'] = unstarted_labors_count
         json['inprogressLabors'] = inprogress_labors_count
