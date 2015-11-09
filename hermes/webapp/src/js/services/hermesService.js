@@ -156,7 +156,7 @@
 
             var url;
             if (options['overviewOnly']) {
-                url = "/api/v1/quests?filterClosed=true&progressInfo=true&limit=all"
+                url = "/api/v1/quests?filterClosed=true&limit=all"
             } else {
                 url = "/api/v1/quests?filterClosed=true&progressInfo=true&expand=hosts&expand=labors&limit=all";
             }
