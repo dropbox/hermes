@@ -1392,12 +1392,11 @@ class Quest(Model):
             "description": self.description,
         }
 
-        if only_open_labors:
-            labors = self.get_open_labors()
-        else:
-            labors = self.labors
-
         if "labors" in expand:
+            if only_open_labors:
+                labors = self.get_open_labors()
+            else:
+                labors = self.labors
             out['labors'] = [
                 labor.to_dict(base_uri=base_uri, expand=set(expand))
                 for labor in labors
