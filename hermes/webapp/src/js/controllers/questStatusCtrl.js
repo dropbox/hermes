@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    function QuestStatusCtrl(hermesService, $q, $routeParams, $location, smoothScroll) {
+    function QuestStatusCtrl(hermesService, $q, $routeParams, $location, smoothScroll, $cookies) {
         var vm = this;
 
         vm.errorMessage = null;
@@ -50,6 +50,9 @@
             getterSetter: true,
             allowInvalid: true
         };
+
+        // we track the "items per page" limit with cookies so grab any value we might have for this
+        vm.limit = $cookies.get("pageLimit") ? $cookies.get("pageLimit") : 50;
 
         hermesService.getCurrentUser().then(function (user) {
             if (user) {
@@ -102,6 +105,7 @@
             if (angular.isDefined(limit)) {
                 vm.limit = limit;
                 vm.offset = 0;
+                $cookies.put('pageLimit', limit);
             } else {
                 return "" + vm.limit;
             }
@@ -540,5 +544,12 @@
     }
 
     angular.module('hermesApp').controller('QuestStatusCtrl', QuestStatusCtrl);
-    QuestStatusCtrl.$inject = ['HermesService', '$q', '$routeParams', '$location', 'smoothScroll'];
+    QuestStatusCtrl.$inject = [
+        'HermesService',
+        '$q',
+        '$routeParams',
+        '$location',
+        'smoothScroll',
+        '$cookies'
+    ];
 })();

@@ -116,8 +116,9 @@ def main():
     # generate and send emails
     for owner in info:
         msg = (
-            "Hello {}:\n\nYou have open Hermes labors.  Due dates, if any, "
-            "are noted with each quest.".format(owner)
+            "This email is being sent to {} because that is the owner listed\n"
+            "in MDB for the systems with open Hermes labors listed below.\n\n"
+            "Due dates, if any, are noted with each quest.\n".format(owner)
         )
 
         msg += (
@@ -133,17 +134,17 @@ def main():
             if quest:
                 msg += (
                     "==[ QUEST {} ]================================\n"
-                    "Created by {}:\n"
+                    "CREATOR: {}\n"
                 ).format(
                     quest_id, quest.creator
                 )
                 if quest.target_time:
-                    msg += "Due: {}\n".format(quest.target_time)
-                msg += "Description: \"{}\"\n".format(textwrap.fill(
+                    msg += "DUE: {}\n".format(quest.target_time)
+                msg += "DESC: \"{}\"\n".format(textwrap.fill(
                     quest.description,
                     width=60, subsequent_indent=""
                 ))
-                msg += "Details: {}/v1/quests/{}\n\n".format(
+                msg += "LINK: {}/v1/quests/{}\n\n".format(
                     settings.frontend, quest_id
                 )
             else:

@@ -2,7 +2,15 @@
 
     'use strict';
 
-    var app = angular.module('hermesApp', ['ngAnimate', 'ngRoute', 'ngLocationUpdate', 'smoothScroll', 'ui.bootstrap']);
+    var app = angular.module('hermesApp',
+        [
+            'ngAnimate',
+            'ngRoute',
+            'ngLocationUpdate',
+            'smoothScroll',
+            'ui.bootstrap',
+            'ngCookies',
+        ]);
 
     app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
         $routeProvider.when('/v1/quests/:questId?', {

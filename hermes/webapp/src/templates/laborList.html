@@ -61,28 +61,10 @@
                         <button ng-click="lsc.runFilter()">GO</button>
                     </div>
                 </div>
-                <div ng-if="lsc.laborData && !lsc.errorMessage" style="padding: 5px 0px 5px 0px">
-                    <label>
-                        Limit:
-                        <select ng-model="lsc.limitSetting"
-                                ng-model-options="lsc.limitOptions"
-                                ng-options="optValue for optValue in lsc.limitValues()">
-                        </select>
-                    </label>
-                </div>
-                <div ng-if="lsc.laborData  && !lsc.errorMessage" class="labor-left-panel-page-selector">
-                    <strong>Page:</strong>
-                    <button style="float:none" type="button" ng-click="lsc.pageFirst()">First</button>
-                    <button style="float:none" type="button" ng-click="lsc.pagePrev()">Prev</button>
-                    <select style="margin-left: 0px;" ng-model="lsc.pageSetting"
-                            ng-model-options="lsc.limitOptions"
-                            ng-options="pageVal for pageVal in lsc.pageValues()"></select>
-                    <button style="float:none" type="button" ng-click="lsc.pageNext()">Next</button>
-                    <button style="float:none" type="button" ng-click="lsc.pageLast()">Last</button>
-                </div>
                 <div ng-if="lsc.errorMessage" class="error-message" ng-bind="lsc.errorMessage"></div>
             </div>
         </div>
+        <!--MAIN LIST OF LABORS AREA-->
         <div class="col-md-9">
             <div class="labor-list-wrapper">
                 <div class="labor-actions">
@@ -106,9 +88,31 @@
                 </div>
                 <div class="success-message" ng-if="lsc.createSuccessMessage">{{lsc.createSuccessMessage}}</div>
                 <div class="error-message" ng-if="lsc.createErrorMessage">{{lsc.createErrorMessage}}</div>
+                <div class="pageSelectorBar" ng-if="lsc.laborData">
+                    <span>Showing {{lsc.offset + 1}} to {{e = (lsc.offset|num) + (lsc.limit|num); e < lsc.totalLabors ? e: lsc.totalLabors }} of {{lsc.totalLabors}}</span>
+                    <span style="float: right">
+                        <label>
+                            Limit:
+                            <select style="margin-left: 0px;"
+                                    ng-model="lsc.limitSetting"
+                                    ng-model-options="lsc.limitOptions"
+                                    ng-options="optValue for optValue in lsc.limitValues()">
+                            </select>
+                        </label>
+                        <strong style="margin-left: 10px">Page:</strong>
+                        <button style="float:none" type="button" ng-click="lsc.pageFirst()">First</button>
+                        <button style="float:none" type="button" ng-click="lsc.pagePrev()">Prev</button>
+                        <select style="margin-left: 0px;" ng-model="lsc.pageSetting"
+                                ng-model-options="lsc.limitOptions"
+                                ng-options="pageVal for pageVal in lsc.pageValues()"></select>
+                        <button style="float:none" type="button" ng-click="lsc.pageNext()">Next</button>
+                        <button style="float:none" type="button" ng-click="lsc.pageLast()">Last</button>
+                    </span>
+                </div>
                 <div ng-if="!lsc.laborData && !lsc.errorMessage" style="padding: 10px;">
                     <img src="/img/loading.gif"/>
                 </div>
+                <!--LABOR ENTRY REPEATER-->
                 <div class="labor-list-row" ng-if="lsc.laborData  && !lsc.errorMessage"
                      ng-repeat="labor in (pageData = (lsc.laborData | limitTo:lsc.limit:lsc.offset)) track by labor.id">
                     <div class="quest-info" ng-if="labor.quest && labor.quest.id != pageData[$index-1].quest.id">
@@ -170,15 +174,26 @@
                         </div>
                     </div>
                 </div>
-                <div ng-if="lsc.laborData  && !lsc.errorMessage" class="labor-left-panel-page-selector">
-                    <strong>Page:</strong>
-                    <button style="float:none" type="button" ng-click="lsc.pageFirst()">First</button>
-                    <button style="float:none" type="button" ng-click="lsc.pagePrev()">Prev</button>
-                    <select style="margin-left: 0px;" ng-model="lsc.pageSetting"
-                            ng-model-options="lsc.limitOptions"
-                            ng-options="pageVal for pageVal in lsc.pageValues()"></select>
-                    <button style="float:none" type="button" ng-click="lsc.pageNext()">Next</button>
-                    <button style="float:none" type="button" ng-click="lsc.pageLast()">Last</button>
+                <div class="pageSelectorBar" ng-if="lsc.laborData">
+                    <span>Showing {{lsc.offset + 1}} to {{e = (lsc.offset|num) + (lsc.limit|num); e < lsc.totalLabors ? e: lsc.totalLabors }} of {{lsc.totalLabors}}</span>
+                    <span style="float: right">
+                        <label>
+                            Limit:
+                            <select style="margin-left: 0px;"
+                                    ng-model="lsc.limitSetting"
+                                    ng-model-options="lsc.limitOptions"
+                                    ng-options="optValue for optValue in lsc.limitValues()">
+                            </select>
+                        </label>
+                        <strong style="margin-left: 10px">Page:</strong>
+                        <button style="float:none" type="button" ng-click="lsc.pageFirst()">First</button>
+                        <button style="float:none" type="button" ng-click="lsc.pagePrev()">Prev</button>
+                        <select style="margin-left: 0px;" ng-model="lsc.pageSetting"
+                                ng-model-options="lsc.limitOptions"
+                                ng-options="pageVal for pageVal in lsc.pageValues()"></select>
+                        <button style="float:none" type="button" ng-click="lsc.pageNext()">Next</button>
+                        <button style="float:none" type="button" ng-click="lsc.pageLast()">Last</button>
+                    </span>
                 </div>
             </div>
         </div>
