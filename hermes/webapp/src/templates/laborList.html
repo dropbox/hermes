@@ -48,13 +48,29 @@
                     </div>
                 </div>
                 <div style="margin-top: 5px">
+                    <label for="queryFilter">Filter by hostname:</label>
+                </div>
+                <div class="row">
+                    <div class="col-md-10">
+                        <form ng-submit="lsc.runFilter()">
+                            <input id="hostnameFilter" type="text" ng-model="lsc.hostnameInput" />
+                        </form>
+                    </div>
+                    <div class="col-md-2">
+                        <span role="button" aria-label="Clear hostname filter"
+                              class="glyphicon glyphicon-remove-sign btn-glyph"
+                              ng-click="lsc.hostnameInput = ''">
+                        </span>
+                    </div>
+                </div>
+                <div style="margin-top: 5px">
                     <label for="event-type-selection">Filter by labor:</label>
                 </div>
                 <div class="row">
                     <div class="col-md-10">
                         <select style="margin-left: 0" id="event-type-selection" ng-model="lsc.filterFatesSelection"
                                 ng-model-options="lsc.selectOptions"
-                                ng-options="optValue.description for optValue in lsc.allFates">
+                                ng-options="optValue.description || '' for optValue in lsc.allFates">
                         </select>
                     </div>
                     <div class="col-md-2">

@@ -133,6 +133,10 @@
                 url += "&state=" + encodeURIComponent(options['filterByState']);
             }
 
+            if (options['filterByHostname']) {
+                url += "&hostname=" + encodeURIComponent(options['filterByHostname']);
+            }
+
             return $http.get(url)
                 .then(getLaborsComplete)
                 .catch(getLaborsFailed);
