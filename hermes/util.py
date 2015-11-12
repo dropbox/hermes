@@ -7,6 +7,7 @@ import requests
 import smtplib
 
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 from .settings import settings
 
@@ -45,7 +46,7 @@ def slack_message(message):
         log.warn("Error writing to Slack: {}".format(exc.message))
 
 
-def email_message(recipients, subject, message):
+def email_message(recipients, subject, message, html_message=None):
     """Email a message to a user.
 
     Args:
@@ -63,7 +64,19 @@ def email_message(recipients, subject, message):
     else:
         extra_recipients = [settings.email_always_copy]
 
-    msg = MIMEText(message)
+    part1 = MIMEText(message, 'plain')
+    if html_message:
+        part2 = MIMEText(html_message, 'html')
+    else:
+        part2 = None
+
+    if part1 and part2:
+        msg = MIMEMultipart('alternative')
+        msg.attach(part1)
+        msg.attach(part2)
+    else:
+        msg = part1
+
     msg["Subject"] = subject
     msg["From"] = settings.email_sender_address
     msg["To"] = ", ".join(recipients)
