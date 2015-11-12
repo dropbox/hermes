@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    function LaborStatusCtrl(hermesService, $q, $routeParams, $location) {
+    function LaborStatusCtrl(hermesService, $q, $routeParams, $location, $cookies) {
         var vm = this;
 
         vm.errorMessage = null;
@@ -22,7 +22,7 @@
         vm.createInProgress = false;
         vm.limit = 10;
         vm.offset = 0;
-        vm.totalQuests = 10;
+        vm.totalLabors = 10;
         vm.createErrorMessage = null;
         vm.createSuccessMessage = null;
         vm.createEventsModal = false;
@@ -46,6 +46,8 @@
             allowInvalid: true
         };
 
+        // we track the "items per page" limit with cookies so grab any value we might have for this
+        vm.limit = $cookies.get("pageLimit") ? $cookies.get("pageLimit") : 50;
 
         hermesService.getCurrentUser().then(function (user) {
             if (user) {
@@ -102,6 +104,7 @@
             if (angular.isDefined(limit)) {
                 vm.limit = limit;
                 vm.offset = 0;
+                $cookies.put('pageLimit', limit);
             } else {
                 return "" + vm.limit;
             }
@@ -276,7 +279,7 @@
          * Get tags associated with the hosts of the machines in vm.laborData
          */
         function getHostTags() {
-            var hostnames = []
+            var hostnames = [];
             for (var idx in vm.laborData) {
                 var labor = vm.laborData[idx];
                 hostnames.push(labor['host']['hostname'])
@@ -392,5 +395,11 @@
     }
 
     angular.module('hermesApp').controller('LaborStatusCtrl', LaborStatusCtrl);
-    LaborStatusCtrl.$inject = ['HermesService', '$q', '$routeParams', '$location'];
+    LaborStatusCtrl.$inject = [
+        'HermesService',
+        '$q',
+        '$routeParams',
+        '$location',
+        '$cookies'
+    ];
 })();

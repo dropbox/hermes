@@ -115,48 +115,8 @@ def main():
 
     # generate and send emails
     for owner in info:
-        msg = (
-            "Hello {}:\n\nYou have open Hermes labors.  Due dates, if any, "
-            "are noted with each quest.".format(owner)
-        )
-
-        msg += (
-            "\nTo throw an event manually, you can run the following command "
-            "on a shell server:"
-            "\n\n"
-            "$ hermes event create [event] --host [hostname].\n\n"
-            "Or you can visit the quests linked below.\n\n".format(settings.frontend)
-        )
-
-        for quest_id in info[owner]:
-            quest = find_quest(open_quests, quest_id)
-            if quest:
-                msg += (
-                    "==[ QUEST {} ]================================\n"
-                    "Created by {}:\n"
-                ).format(
-                    quest_id, quest.creator
-                )
-                if quest.target_time:
-                    msg += "Due: {}\n".format(quest.target_time)
-                msg += "Description: \"{}\"\n".format(textwrap.fill(
-                    quest.description,
-                    width=60, subsequent_indent=""
-                ))
-                msg += "Details: {}/v1/quests/{}\n\n".format(
-                    settings.frontend, quest_id
-                )
-            else:
-                msg += "  Labors not associated with a quest:\n\n"
-
-            msg += "Machines with labors:\n"
-
-            for hostname in sorted(info[owner][quest_id]):
-                msg += "    {} ({})\n".format(
-                    hostname, (", ".join(tags[hostname]))
-                )
-
-            msg += "\n\n"
+        plain_msg = generate_plain_mesg(info, open_quests, owner, tags)
+        html_msg = generate_html_mesg(info, open_quests, owner, tags)
 
         recipient = args.send_to if args.send_to else "{}@{}".format(
             owner, settings.domain
@@ -164,8 +124,142 @@ def main():
 
         email_message(
             recipient,
-            "Open Hermes labors need your attention", msg
+            "Open Hermes labors need your attention", plain_msg,
+            html_message=html_msg
         )
+
+
+def generate_plain_mesg(info, open_quests, owner, tags):
+    """Generate the plain text version of the 'open labors' email
+
+    Args:
+        info: the gathered and sorted open labor information
+        open_quests: the information on open quests
+        owner: the owner we care about emailing
+        tags: the host tags information
+
+    Returns:
+        a plain text message to be sent to the owner specified
+    """
+
+    msg = (
+        "This email is being sent to {} because that is the owner listed\n"
+        "for the systems with open Hermes labors listed below.\n\n"
+        "Due dates, if any, are noted with each quest.\n".format(owner)
+    )
+    msg += (
+        "\nTo throw an event manually, you can run the following command "
+        "on a shell server:"
+        "\n\n"
+        "$ hermes event create [event] --host [hostname].\n\n"
+        "Or you can visit the quests linked below.\n\n".format(
+            settings.frontend)
+    )
+    for quest_id in info[owner]:
+        quest = find_quest(open_quests, quest_id)
+        if quest:
+            msg += (
+                "==[ QUEST {} ]================================\n"
+                "CREATOR: {}\n"
+            ).format(
+                quest_id, quest.creator
+            )
+            if quest.target_time:
+                msg += "DUE: {}\n".format(quest.target_time)
+            msg += "DESC: \"{}\"\n".format(textwrap.fill(
+                quest.description,
+                width=60, subsequent_indent=""
+            ))
+            msg += "LINK: {}/v1/quests/{}\n\n".format(
+                settings.frontend, quest_id
+            )
+        else:
+            msg += "  Labors not associated with a quest:\n\n"
+
+        msg += "Machines with labors:\n"
+
+        for hostname in sorted(info[owner][quest_id]):
+            msg += "    {} ({})\n".format(
+                hostname, (", ".join(tags[hostname]))
+            )
+
+        msg += "\n\n"
+
+    return msg
+
+
+def generate_html_mesg(info, open_quests, owner, tags):
+    """Generate the HTML version of the 'open labors' email
+
+    Args:
+        info: the gathered and sorted open labor information
+        open_quests: the information on open quests
+        owner: the owner we care about emailing
+        tags: the host tags information
+
+    Returns:
+        an HTML doc of the message to be sent to the owner specified
+    """
+
+    msg = '<html>' \
+          '<body style="font-family: Verdana; font-size: 1em; color: #000">'
+    msg += (
+        "<div style='padding: 10px; border-radius: 5px; background: #232f3e; "
+        "color: #fff; font-weight: bold; font-size: 1.25em;'>"
+        "Hermes Notifications"
+        "</div>"
+        "<div style='padding: 10px;'><p>This email is being sent to {} because that is the owner listed\n"
+        "for the systems with open Hermes labors listed below.</p>"
+        "<p>Due dates, if any, are noted with each quest.</p>"
+        "".format(owner)
+    )
+    msg += (
+        "<p>To throw an event manually, you can run the following command "
+        "on a shell server:</p>"
+        "<pre style='font-size: 1.2em'>$ hermes event create [event] --host "
+        "[hostname]</pre>"
+        "<p>Or you can visit the quests linked below.</p></div>".format(
+            settings.frontend)
+    )
+    for quest_id in info[owner]:
+        quest = find_quest(open_quests, quest_id)
+        if quest:
+            msg += (
+                "<div style='border-radius: 5px; background: #dce1e6; "
+                "padding: 10px; margin-bottom: 10px;'>"
+                "<span style='font-size: 1.1em; font-weight: bold'>QUEST {}</span><br/>"
+                "<strong>CREATOR:</strong> {}<br />"
+            ).format(
+                quest_id, quest.creator
+            )
+            if quest.target_time:
+                msg += "<strong>DUE:</strong> {}<br/>".format(quest.target_time)
+            msg += "<strong>DESC:</strong><p> \"{}\"</p>".format(quest.description)
+            msg += "<strong>LINK:</strong> <code>{}/v1/quests/{}</code><br/>".format(
+                settings.frontend, quest_id
+            )
+        else:
+            msg += (
+                "<div style='border-radius: 5px; background: #dce1e6; "
+                "padding: 10px; margin-bottom: 10px;'>"
+                "<span style='font-size: 1.1em; font-weight: bold'>Labors not "
+                "associated with a quest:</span><br />"
+            )
+
+        msg += "<p>Machines with labors:</p>"
+
+        msg += "<pre style='margin-left: 10px; font-size: 1.2em'>"
+        for hostname in sorted(info[owner][quest_id]):
+            msg += "{} ({})\n".format(
+                hostname, (", ".join(tags[hostname]))
+            )
+
+        msg += "</pre></div>"
+
+    msg += "</body>"
+
+    return msg
+
 
 if __name__ == "__main__":
     main()
