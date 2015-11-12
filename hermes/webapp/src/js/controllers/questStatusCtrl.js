@@ -277,6 +277,7 @@
         }
 
         function newQuestSelection(quest) {
+            vm.errorMessage = null;
             var detailsDiv = document.getElementById('quest-details');
             smoothScroll(detailsDiv, {duration: 700, easing: 'easeInOutQuad', offset: 100});
             vm.selectedQuest = quest;
