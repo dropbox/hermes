@@ -9,6 +9,7 @@
         vm.filterOwn = false;
         vm.fates = false;
         vm.queryInput = null;
+        vm.hostnameInput = null;
         vm.filterFate = null;
         vm.selectedEventType = null;
 
@@ -61,14 +62,17 @@
 
                 // if the user went straight to this page without any params, lets
                 // modify the search to only show their labors
-                if ($location.path() == "/v1/labors/" && Object.keys($routeParams).length == 0) {
+                if (
+                    $location.path() == "/v1/labors/"
+                    && Object.keys($routeParams).length == 0
+                ) {
                     vm.hostOwnerInput = vm.user;
                     vm.filterOwn = true;
                 }
 
                 getOpenLabors();
             } else {
-                vm.errorMessages.push("Cannot create a new quest if not authenticated.");
+                vm.errorMessages = "Cannot create a new quest if not authenticated.";
             }
         });
 
@@ -76,8 +80,12 @@
             vm.queryInput = $routeParams.byQuery;
         }
 
+        if ($routeParams.host) {
+            vm.hostnameInput = $routeParams.host;
+        }
+
         hermesService.getFates().then(function(fates) {
-            vm.allFates = [null];
+            vm.allFates = [""];
             for (var idx in fates) {
                 if (fates[idx].precedesIds.length != 0) {
                     vm.allFates.push(fates[idx]);
@@ -177,7 +185,7 @@
                     vm.hostOwnerInput = vm.user;
                 } else {
                     vm.filterOwn = false;
-                    vm.errorMessages.push("Your username is unknown.");
+                    vm.errorMessages = "Your username is unknown.";
                 }
             }
         }
@@ -244,6 +252,11 @@
             if (vm.filterFate) {
                 options['filterByCategory'] = vm.filterFate.creationEventType.category;
                 options['filterByState'] = vm.filterFate.creationEventType.state;
+            }
+
+            if (vm.hostnameInput) {
+                options['filterByHostname'] = vm.hostnameInput;
+                $location.search('host', vm.hostnameInput, false);
             }
 
             hermesService.getOpenLabors(options).then(function (data) {
@@ -379,7 +392,10 @@
                 }
             }
 
-            vm.result = hermesService.createEvents(vm.user, hostnames, vm.selectedEventType, "Created via Web UI.")
+            vm.result = hermesService.createEvents(
+                vm.user, hostnames,
+                vm.selectedEventType, "Created via Web UI."
+            )
                 .then(function(response) {
                     vm.createInProgress = false;
                     vm.selected = [];
