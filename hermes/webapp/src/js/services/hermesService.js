@@ -3,11 +3,12 @@
     'use strict';
 
     function HermesService($http, $q) {
-        var fates;
+        var fates = null;
+        var fatesGraph = null;
         var serverConfig = null;
         var service = {
             getFates: getFates,
-            getFatesSigma: getFatesSigma,
+            getFatesGraph: getFatesGraph,
             getOpenLabors: getOpenLabors,
             getOpenQuests: getOpenQuests,
             getQuestDetails: getQuestDetails,
@@ -268,9 +269,14 @@
         }
 
         /**
-         * Get the fates but return them as a JSON that's consumable by SigmaJS
+         * Get the fates and return them in a graph format
          */
-        function getFatesSigma() {
+        function getFatesGraph() {
+            if (fatesGraph) {
+                var promise = $q.defer();
+                promise.resolve(fatesGraph);
+                return promise.promise;
+            }
             var graphData = {
                     nodes: [],
                     edges: []
@@ -291,9 +297,8 @@
                         baseY += YINC;
                     }
                 }
-
-            })
-                .then(function() {
+            }).then(function() {
+                fatesGraph = graphData;
                 return graphData;
             });
 

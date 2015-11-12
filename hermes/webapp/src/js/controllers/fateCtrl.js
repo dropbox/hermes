@@ -24,7 +24,7 @@
         }
 
         function getGraphingData() {
-            hermesService.getFatesSigma().then(function (data) {
+            hermesService.getFatesGraph().then(function (data) {
                 vm.graphData = data;
                 return data;
             }).then(function(graphData){
