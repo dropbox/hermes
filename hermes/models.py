@@ -757,9 +757,12 @@ class Fate(Model):
                     if new_labor_dict not in all_new_labors:
                         all_new_labors.append(new_labor_dict)
 
-            # Now we can look at the open labors and see if the fate that
-            # created it has a child fate.  If so, we will create the next
-            # labor.  If not, we will close this labor.
+            # Now let's see if we should be closing any labors.
+            # We will see what fate created a labor, then examine all the fates
+            # that come after it.  If the fates that come after have a creation
+            # event type that matches this events type, we know we should be
+            # transitioning on and should therefore close this labor (and
+            # possible create a new one).
             if host.id in labors_by_hostid:
                 for labor in labors_by_hostid[host.id]:
                     creating_fate = all_fates[labor.fate_id]
@@ -770,7 +773,8 @@ class Fate(Model):
                         ):
                             all_achieved_labors.append({
                                 "labor": labor,
-                                "event": event
+                                "event": event,
+                                "fate": fate,
                             })
 
                             # Since this Fate closes this Labor, let's see
@@ -1415,6 +1419,7 @@ class Labor(Model):
         id: the unique database id
         starting_labor_id: the database id of the labor that started chain of intermediate labors
         fate_id: the fate that lead to the creation of this labor
+        closing_fate_id: the fate that lead to the closing of this labor
         quest: the Quest to this this Labor belongs
         host: the Host to which this Labor pertains
         for_creator: if true, the labor will be designated for the quest creator
@@ -1440,7 +1445,16 @@ class Labor(Model):
     fate_id = Column(
         Integer, ForeignKey("fates.id"), nullable=False, index=True
     )
-    fate = relationship(Fate, lazy="joined")
+    fate = relationship(
+        Fate, lazy="joined", foreign_keys=[fate_id]
+    )
+
+    closing_fate_id = Column(
+        Integer, ForeignKey("fates.id"), nullable=True, index=True
+    )
+    closing_fate = relationship(
+        Fate, lazy="joined", foreign_keys=[closing_fate_id]
+    )
 
     quest_id = Column(
         Integer, ForeignKey("quests.id"), nullable=True, index=True
@@ -1535,8 +1549,10 @@ class Labor(Model):
         for labor_dict in labor_dicts:
             labor = labor_dict["labor"]
             event = labor_dict["event"]
+            fate = labor_dict["fate"]
             labor.update(
                 completion_event=event, completion_time=datetime.utcnow(),
+                closing_fate_id=fate['id'],
                 flush=False, commit=False
             )
 
@@ -1653,6 +1669,7 @@ class Labor(Model):
             "questId": self.quest_id,
             "hostId": self.host_id,
             "fateId": self.fate_id,
+            "closingFateId": self.closing_fate_id,
             "forCreator": self.for_creator,
             "forOwner": self.for_owner,
             "creationTime": str(self.creation_time),
@@ -1671,6 +1688,12 @@ class Labor(Model):
 
         if "fates" in expand:
             out['fate'] = self.fate.to_dict(base_uri=base_uri, expand=set(expand))
+            if self.closing_fate:
+                out['closingFate'] = self.closing_fate.to_dict(
+                    base_uri=base_uri, expand=set(expand)
+                )
+            else:
+                out['closingFate'] = None
 
         if "quests" in expand:
             if self.quest:

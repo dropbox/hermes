@@ -2,7 +2,7 @@
  * directive for building quest progress bars with Raphael
  */
 (function() {
-    function questProgressChart ($timeout, $window) {
+    function questProgressChart (hermesService, $timeout, $window) {
         return {
             restrict: 'A',
             scope: {
@@ -189,5 +189,5 @@
     }
 
     angular.module('hermesApp').directive('questProgressChart', questProgressChart);
-    questProgressChart.$inject = ['$timeout', '$window'];
+    questProgressChart.$inject = ['HermesService', '$timeout', '$window'];
 })();
