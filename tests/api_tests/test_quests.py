@@ -204,6 +204,7 @@ def test_update(sample_data1_server):
         strip=["embarkTime", "labors"]
     )
 
+
 def test_quest_lifecycle(sample_data1_server):
     client = sample_data1_server
 
@@ -280,6 +281,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "targetTime": str(target_time),
                         "hostId": 1,
                         "fateId": 3,
+                        "closingFateId": None,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 1,
@@ -292,6 +294,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "targetTime": str(target_time),
                         "hostId": 2,
                         "fateId": 3,
+                        "closingFateId": None,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 2,
@@ -304,6 +307,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "targetTime": str(target_time),
                         "hostId": 3,
                         "fateId": 3,
+                        "closingFateId": None,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 3,
@@ -365,6 +369,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "targetTime": str(target_time),
                         "hostId": 1,
                         "fateId": 3,
+                        "closingFateId": 4,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 1,
@@ -377,6 +382,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "targetTime": str(target_time),
                         "hostId": 2,
                         "fateId": 3,
+                        "closingFateId": 4,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 2,
@@ -389,6 +395,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "targetTime": str(target_time),
                         "hostId": 3,
                         "fateId": 3,
+                        "closingFateId": 4,
                         "forOwner": True,
                         "forCreator": False,
                         "id": 3,
@@ -401,6 +408,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "targetTime": str(target_time),
                         "hostId": 1,
                         "fateId": 4,
+                        "closingFateId": None,
                         "id": 4,
                         "forOwner": False,
                         "forCreator": True,
@@ -413,6 +421,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "targetTime": str(target_time),
                         "hostId": 2,
                         "fateId": 4,
+                        "closingFateId": None,
                         "forOwner": False,
                         "forCreator": True,
                         "id": 5,
@@ -427,6 +436,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forOwner": False,
                         "forCreator": True,
                         "fateId": 4,
+                        "closingFateId": None,
                         "id": 6,
                         "startingLaborId": 3,
                         "questId": 1}]
@@ -458,6 +468,7 @@ def test_quest_lifecycle(sample_data1_server):
                     "forCreator": True,
                     "id": 4,
                     "fateId": 4,
+                    "closingFateId": None,
                     "fate": {
                         "creationEventType": {
                             "category": "system-maintenance",
@@ -473,6 +484,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "id": 4,
                         "precedesIds": [5],
                     },
+                    "closingFate": None,
                     "startingLaborId": 1,
                     "questId": 1
                 },
@@ -486,6 +498,7 @@ def test_quest_lifecycle(sample_data1_server):
                     "forCreator": True,
                     "id": 5,
                     "fateId": 4,
+                    "closingFateId": None,
                     "fate": {
                         "creationEventType": {
                             "category": "system-maintenance",
@@ -501,6 +514,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "id": 4,
                         "precedesIds": [5],
                     },
+                    "closingFate": None,
                     "startingLaborId": 2,
                     "questId": 1
                 },
@@ -514,6 +528,7 @@ def test_quest_lifecycle(sample_data1_server):
                     "forCreator": True,
                     "id": 6,
                     "fateId": 4,
+                    "closingFateId": None,
                     "fate": {
                         "creationEventType": {
                             "category": "system-maintenance",
@@ -529,6 +544,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "id": 4,
                         "precedesIds": [5],
                     },
+                    "closingFate": None,
                     "startingLaborId": 3,
                     "questId": 1
                 }
@@ -574,6 +590,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forCreator": False,
                         "id": 1,
                         "fateId": 3,
+                        "closingFateId": 4,
                         "startingLaborId": None,
                         "questId": 1},
                        {"ackTime": None,
@@ -586,6 +603,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forCreator": False,
                         "id": 2,
                         "fateId": 3,
+                        "closingFateId": 4,
                         "startingLaborId": None,
                         "questId": 1},
                        {"ackTime": None,
@@ -598,6 +616,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forCreator": False,
                         "id": 3,
                         "fateId": 3,
+                        "closingFateId": 4,
                         "startingLaborId": None,
                         "questId": 1},
                        {"ackTime": None,
@@ -610,6 +629,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forCreator": True,
                         "id": 4,
                         "fateId": 4,
+                        "closingFateId": 5,
                         "startingLaborId": 1,
                         "questId": 1},
                        {"ackTime": None,
@@ -621,6 +641,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forOwner": False,
                         "forCreator": True,
                         "fateId": 4,
+                        "closingFateId": 5,
                         "id": 5,
                         "startingLaborId": 2,
                         "questId": 1},
@@ -633,6 +654,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forOwner": False,
                         "forCreator": True,
                         "fateId": 4,
+                        "closingFateId": 5,
                         "id": 6,
                         "startingLaborId": 3,
                         "questId": 1}]
@@ -661,6 +683,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forCreator": False,
                         "id": 3,
                         "fateId": 3,
+                        "closingFateId": 4,
                         "startingLaborId": None,
                         "questId": 1},
                        {"ackTime": None,
@@ -673,6 +696,7 @@ def test_quest_lifecycle(sample_data1_server):
                         "forCreator": True,
                         "id": 6,
                         "fateId": 4,
+                        "closingFateId": 5,
                         "startingLaborId": 3,
                         "questId": 1}]
         },

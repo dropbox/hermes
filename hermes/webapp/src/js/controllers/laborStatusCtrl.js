@@ -124,9 +124,17 @@
 
         function pageSetting(page) {
             if (angular.isDefined(page)) {
-                vm.offset = (page - 1) * vm.limit;
+                if (!isNaN(vm.limit)) {
+                    vm.offset = (page - 1) * vm.limit;
+                } else {
+                    vm.offset = 0;
+                }
             } else {
-                return "" + (vm.offset / vm.limit + 1);
+                if (!isNaN(vm.limit)) {
+                    return "" + (vm.offset / vm.limit + 1);
+                } else {
+                    return 1;
+                }
             }
         }
 
@@ -280,7 +288,11 @@
                     }
                 }
 
-                vm.offset = index - (index % vm.limit);
+                if (!isNaN(vm.limit)) {
+                    vm.offset = index - (index % vm.limit);
+                } else {
+                    vm.offset = 0;
+                }
 
                 getHostTags();
             }).catch(function(error) {

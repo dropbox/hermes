@@ -179,9 +179,11 @@ def generate_plain_mesg(info, open_quests, owner, tags):
         msg += "Machines with labors:\n"
 
         for hostname in sorted(info[owner][quest_id]):
-            msg += "    {} ({})\n".format(
-                hostname, (", ".join(tags[hostname]))
-            )
+            if tags[hostname]:
+                tags_str = "{}".format((", ".join(tags[hostname])))
+            else:
+                tags_str = "no services"
+            msg += "    {} ({})\n".format(hostname, tags_str)
 
         msg += "\n\n"
 
@@ -250,9 +252,11 @@ def generate_html_mesg(info, open_quests, owner, tags):
 
         msg += "<pre style='margin-left: 10px; font-size: 1.2em'>"
         for hostname in sorted(info[owner][quest_id]):
-            msg += "{} ({})\n".format(
-                hostname, (", ".join(tags[hostname]))
-            )
+            if tags[hostname]:
+                tags_str = "{}".format((", ".join(tags[hostname])))
+            else:
+                tags_str = "no services"
+            msg += "{} ({})\n".format(hostname, tags_str)
 
         msg += "</pre></div>"
 
