@@ -281,17 +281,25 @@
                 vm.totalLabors = data['totalLabors'] || vm.totalLabors;
 
                 // find the labor requested and make that the selection
-                var index = 0;
+                var index = -1;
                 for (var idx in vm.laborData) {
                     if (vm.laborData[idx]['id'] == $routeParams.laborId) {
                         index = idx;
                     }
                 }
 
-                if (!isNaN(vm.limit)) {
-                    vm.offset = index - (index % vm.limit);
+                if ($routeParams.laborId && index == -1) {
+                    vm.errorMessage = "Labor " + $routeParams.laborId +
+                            " not found.  Perhaps the labor is completed," +
+                            " invalid, or has been filtered out."
                 } else {
-                    vm.offset = 0;
+                    // if index is -1, then they likely didn't specify an id
+                    if (index == -1) index = 0;
+                    if (!isNaN(vm.limit)) {
+                        vm.offset = index - (index % vm.limit);
+                    } else {
+                        vm.offset = 0;
+                    }
                 }
 
                 getHostTags();

@@ -212,7 +212,6 @@
             function drawEdge(paper, settings, edge, graphSet) {
                 var node1 = getNodeById(edge['source']);
                 var node2 = getNodeById(edge['target']);
-                console.log(node2);
                 if (!node1 || !node2) {
                     return;
                 }

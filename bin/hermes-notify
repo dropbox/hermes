@@ -124,8 +124,8 @@ def main():
 
         email_message(
             recipient,
-            "Open Hermes labors need your attention", plain_msg,
-            html_message=html_msg
+            "{}: Open Hermes labors need your attention".format(owner),
+            plain_msg, html_message=html_msg
         )
 
 
