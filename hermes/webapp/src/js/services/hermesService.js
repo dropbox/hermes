@@ -292,11 +292,12 @@
                 // Go back through the nodes and assign them coordinates for
                 // display
                 for (var idx in graphData.nodes) {
-                    if (graphData.nodes[idx]["id"][0] == "r") {
+                    if (graphData.nodes[idx]["type"] == "rootNode") {
                         baseY = layoutGraph(baseX, baseY, graphData.nodes[idx]);
                         baseY += YINC;
                     }
                 }
+                console.log(graphData);
             }).then(function() {
                 fatesGraph = graphData;
                 return graphData;
@@ -318,9 +319,9 @@
                 function parseFate(fates, fate) {
                     var rootId;
                     if (!fate["followsId"]) {
-                        rootId = createRootNode(fate["creationEventType"], fate['description']);
+                        rootId = createNode(fate['id'], 'rootNode', fate['description']);
                     } else {
-                        rootId = createChildNode(fate["creationEventType"], fate["id"], fate['description'])
+                        rootId = createNode(fate['id'], 'childNode', fate['description']);
                     }
 
                     var children = [];
@@ -328,24 +329,19 @@
                         if (fate['precedesIds'].indexOf(fates[x]['id']) != -1) {
                             var childId = parseFate(fates, fates[x]);
                             children.push(childId);
-                            createEdge(fate['id'], rootId, childId, fates[x]['creationEventType']);
+                            createEdge(rootId, childId, fates[x]['creationEventType']);
                         }
                     }
-                    //
-                    //for (var y in children) {
-                    //    createEdge(fate['id'], rootId, children[y], fate['completionEventType']);
-                    //}
 
                     return rootId;
                 }
             }
 
-
             /**
-             * Create a node that will be the start of a chain
+             * Create a node for the node-edge fates graph
              */
-            function createRootNode(creationEventType, fateDesc) {
-                var id = 'r' + creationEventType["id"];
+            function createNode(fateId, nodeType, fateDesc) {
+                var id = 'f' + fateId;
 
                 for (var node_id in graphData.nodes) {
                     if (graphData.nodes[node_id]["id"] == id) {
@@ -359,28 +355,8 @@
                 var node = {
                     id: id,
                     size: 1,
-                    type: 'rootNode',
-                    //label: creationEventType["category"] + ' ' + creationEventType["state"]
+                    type: nodeType,
                     label: fateDesc,
-                };
-
-                graphData.nodes.push(node);
-
-                return id;
-            }
-
-            /**
-             * Create a node that will be a child of the fate identified
-             */
-            function createChildNode(completionEventType, fateId, fateDesc) {
-                var id = "f" + fateId + "c";
-
-                var node = {
-                    id: id,
-                    size: 1,
-                    type: 'childNode',
-                    //label: completionEventType["category"] + ' ' + completionEventType["state"]
-                    label: fateDesc
                 };
 
                 graphData.nodes.push(node);
@@ -391,9 +367,9 @@
             /**
              * Create an edge between two nodes
              */
-            function createEdge(fateId, nodeId1, nodeId2, completionEventType) {
+            function createEdge(nodeId1, nodeId2, completionEventType) {
                 var edge = {
-                    id: "fe" + fateId,
+                    id: "edge" + nodeId1 + nodeId2,
                     source: nodeId1,
                     target: nodeId2,
                     type: 'fateFlow',
