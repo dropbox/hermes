@@ -98,7 +98,7 @@
             }
 
             vm.result = hermesService.createQuest(vm.user, vm.hostList,
-                vm.selectedFate.creationEventType, vm.targetDate, vm.description)
+                vm.selectedFate.id, vm.targetDate, vm.description)
                 .then(function(response) {
                     vm.createInProgress = false;
                     vm.hostList = [];

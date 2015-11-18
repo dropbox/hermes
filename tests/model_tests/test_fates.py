@@ -26,7 +26,7 @@ def test_creation(sample_data1):
 
     fates = sample_data1.query(Fate).all()
 
-    # the total number of fates should be 5 now.  We care about the new one
+    # the total number of fates should be 8 now.  We care about the new one
     assert len(fates) == 8
     fate = fates[6]
     assert fate.id == 7
@@ -62,7 +62,7 @@ def test_creation2(sample_data1):
 
     fates = sample_data1.query(Fate).all()
 
-    # the total number of fates should be 5 now.  We care about the new one
+    # the total number of fates should be 8 now.  We care about the new one
     assert len(fates) == 8
     fate = fates[6]
     assert fate.id == 7
@@ -78,16 +78,6 @@ def test_creation2(sample_data1):
     assert event_type7.auto_creates[0] == fates[7]
 
 
-def test_duplicate(sample_data1):
-    event_type4 = sample_data1.query(EventType).get(4)
-
-    with pytest.raises(IntegrityError):
-        Fate.create(
-            sample_data1, event_type4, description="Dup fate",
-            follows_id=1
-        )
-
-
 def test_designation_constraint(sample_data1):
     """Fates must be set to for_owner or for_creator or both"""
 
@@ -98,18 +88,6 @@ def test_designation_constraint(sample_data1):
             sample_data1, event_type1, description="Wrong fate",
             for_creator=False, for_owner=False, follows_id=2
         )
-
-
-def test_uniqueness_by_follows_id(sample_data1):
-    """We should be able to create a fate with the same event_types if the
-    followsId is unique"""
-
-    event_type5 = sample_data1.query(EventType).get(5)
-
-    fate = Fate.create(
-        sample_data1,  event_type5, description="Unique fate",
-        follows_id=None
-    )
 
 
 def test_follows_id_valid(sample_data1):

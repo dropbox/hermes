@@ -1879,7 +1879,7 @@ class QuestsHandler(ApiHandler):
             Host: localhost
             Content-Type: application/json
             {
-                "eventTypeId": 1,
+                "fateId": 1,
                 "creator": "johnny",
                 "targetTime": timestamp,
                 "description": "This is a quest almighty",
@@ -1927,7 +1927,7 @@ class QuestsHandler(ApiHandler):
         log.info("Creating a new quest")
 
         try:
-            event_type_id = self.jbody["eventTypeId"]
+            fate_id = self.jbody["fateId"]
             creator = self.jbody["creator"]
             if not EMAIL_REGEX.match(creator):
                 creator += "@" + self.domain
@@ -1952,12 +1952,12 @@ class QuestsHandler(ApiHandler):
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
-        event_type = (
-            self.session.query(EventType).get(event_type_id)
+        fate = (
+            self.session.query(Fate).get(fate_id)
         )
 
-        if event_type is None:
-            self.write_error(400, message="Bad creation event type")
+        if fate is None:
+            self.write_error(400, message="Bad fate id {}".format(fate_id))
             return
 
         # If a host query was specified, we need to talk to the external
@@ -1992,7 +1992,7 @@ class QuestsHandler(ApiHandler):
 
         try:
             quest = Quest.create(
-                self.session, creator, hosts, event_type, target_time,
+                self.session, creator, hosts, target_time, fate_id=fate_id,
                 description=description
             )
         except IntegrityError as err:

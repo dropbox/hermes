@@ -57,7 +57,7 @@ def test_creation(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny@example.com",
-            eventTypeId=1,
+            fateId=1,
             targetTime=str(target_time),
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
@@ -108,7 +108,7 @@ def test_update(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny@example.com",
-            eventTypeId=1,
+            fateId=1,
             targetTime=str(target_time),
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
@@ -247,7 +247,7 @@ def test_quest_lifecycle(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny",
-            eventTypeId=3,
+            fateId=3,
             targetTime=str(target_time),
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
@@ -742,7 +742,7 @@ def test_filter_by_creator(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny@example.com",
-            eventTypeId=1,
+            fateId=1,
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
         ),
@@ -754,7 +754,7 @@ def test_filter_by_creator(sample_data1_server):
         client.create(
             "/quests",
             creator="bonny@example.com",
-            eventTypeId=1,
+            fateId=1,
             description="This is a quest not so almighty",
             hostnames=["example", "sample", "test"]
         ),
@@ -808,7 +808,7 @@ def test_filter_by_hostnames(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny@example.com",
-            eventTypeId=1,
+            fateId=1,
             description="This is a quest almighty",
             hostnames=["sample"]
         ),
@@ -820,7 +820,7 @@ def test_filter_by_hostnames(sample_data1_server):
         client.create(
             "/quests",
             creator="bonny@example.com",
-            eventTypeId=1,
+            fateId=1,
             description="This is a quest not so almighty",
             hostnames=["example", "sample", "test"]
         ),
