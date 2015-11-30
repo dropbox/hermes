@@ -27,7 +27,7 @@ def test_creation(tornado_server):
             "/eventtypes",
             category="foo",
             state="bar",
-            description="This is a test"
+            description="This is a test",
         ), "/api/v1/eventtypes/1"
     )
     assert_error(
@@ -47,6 +47,7 @@ def test_creation(tornado_server):
                 "category": "foo",
                 "state": "bar",
                 "description": "This is a test",
+                "restricted": False,
             }],
             "limit": 10,
             "offset": 0,
@@ -61,6 +62,7 @@ def test_creation(tornado_server):
             "category": "foo",
             "state": "bar",
             "description": "This is a test",
+            "restricted": False,
             "events": [],
             "limit": 10,
             "offset": 0,
@@ -84,6 +86,7 @@ def test_creation(tornado_server):
                 "category": "foo",
                 "state": "baz",
                 "description": "This is a second test",
+                "restricted": False,
                 "autoCreates": []
             }],
             "limit": 10,
@@ -108,12 +111,14 @@ def test_create_multiple(tornado_server):
             {
                 "category": "foo",
                 "state": "bar",
-                "description": "This is a test"
+                "description": "This is a test",
+                "restricted": False,
             },
             {
                 "category": "foo",
                 "state": "baz",
-                "description": "This is a 2nd test"
+                "description": "This is a 2nd test",
+                "restricted": False,
             }
         ]
     )
@@ -150,6 +155,7 @@ def test_update(tornado_server):
             "category": "foo",
             "state": "bar",
             "description": "new",
+            "restricted": False,
         }
     )
 

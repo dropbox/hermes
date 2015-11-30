@@ -214,15 +214,21 @@ def list_event_types(args):
             max_length = len(str(event_type["id"]))
 
     print"{}{}{}".format(
-        str.ljust("ID", max_length + 3),
+        str.ljust("ID", max_length + 4),
         str.ljust("CATEGORY", 20), str.ljust("STATE", 20)
     )
     for event_type in event_types["eventTypes"]:
+        type_id = (
+            str(event_type["id"]) + "*"
+            if event_type["restricted"] else str(event_type["id"])
+        )
         print "{}{}{}".format(
-            str.ljust("(" + str(event_type["id"]) + ")", max_length + 3),
+            str.ljust("(" + type_id + ")", max_length + 4),
             str.ljust(str(event_type["category"]), 20),
             str.ljust(str(event_type["state"]), 20)
         )
+
+    print "\n* = restricted; cannot be thrown by hand."
 
 
 def create_event_type(args):
@@ -569,8 +575,20 @@ def create_event(args):
         if (
             event_type["category"] == args.category
                 and event_type["state"] == args.state
+                and event_type["restricted"] is False
         ):
             found_event_type = event_type
+        if (
+            event_type["category"] == args.category
+                and event_type["state"] == args.state
+                and event_type["restricted"] is True
+        ):
+            sys.exit(
+                "{} {} is a restricted event type "
+                "and cannot be thrown manually.".format(
+                    args.category, args.state
+                )
+            )
 
     if found_event_type is None:
         sys.exit(

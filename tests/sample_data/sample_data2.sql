@@ -1,30 +1,30 @@
 INSERT INTO event_types
 VALUES
-	(1,'system-maintenance','audit','Audit required');
+	(1,'system-maintenance','audit','Audit required', 0);
 
 INSERT INTO event_types
 VALUES
-	(2,'system-maintenance','needed','This system needs maintenance.');
+	(2,'system-maintenance','needed','This system needs maintenance.', 0);
 
 INSERT INTO event_types
 VALUES
-	(3,'system-maintenance','ready','This is ready for maintenance.');
+	(3,'system-maintenance','ready','This is ready for maintenance.', 0);
 
 INSERT INTO event_types
 VALUES
-	(4,'system-maintenance','completed','System maintenance completed.');
+	(4,'system-maintenance','completed','System maintenance completed.', 0);
 
 INSERT INTO event_types
 VALUES
-	(5,'system-reboot','needed','System reboot required.');
+	(5,'system-reboot','needed','System reboot required.', 0);
 
 INSERT INTO event_types
 VALUES
-	(6,'system-reboot','completed','System has rebooted.');
+	(6,'system-reboot','completed','System has rebooted.', 0);
 
 INSERT INTO event_types
 VALUES
-	(7,'puppet','restart','Puppet has restarted.');
+	(7,'puppet','restart','Puppet has restarted.', 0);
 
 INSERT INTO fates
 VALUES
