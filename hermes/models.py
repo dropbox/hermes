@@ -209,6 +209,7 @@ class EventType(Model):
         category: an arbitrary name to define the event type (ex: "system-needsreboot")
         state: a unique state that the above category can be in (ex: "complete")
         description: the optional human readable description of this EventType
+        restricted: a temporary way to indicate which event-types are forbidden by the CLI/GUI
 
     Notes:
         the combination of category and state form a uniqueness constraint
@@ -220,13 +221,16 @@ class EventType(Model):
     category = Column(String(length=64), nullable=False)
     state = Column(String(length=32), nullable=False)
     description = Column(String(length=1024))
+    restricted = Column(Boolean, nullable=False, default=False)
     __table_args__ = (
         UniqueConstraint(category, state, name='_category_state_uc'),
         Index("event_type_idx", id, category, state)
     )
 
     @classmethod
-    def create(cls, session, category, state, description=None):
+    def create(
+            cls, session, category, state, description=None, restricted=False
+    ):
         """Create an EventType
 
         Args:
@@ -234,6 +238,7 @@ class EventType(Model):
             category: the category name
             state: the state name
             desc: the optional description
+            restricted: optionally indicate if restricted
 
         Returns:
             the newly created EventType
@@ -243,7 +248,12 @@ class EventType(Model):
             raise exc.ValidationError("Category and State are required")
 
         try:
-            obj = cls(category=category, state=state, description=description)
+            obj = cls(
+                category=category,
+                state=state,
+                description=description,
+                restricted=restricted
+            )
             obj.add(session)
             session.flush()
 
@@ -317,6 +327,7 @@ class EventType(Model):
             "category": self.category,
             "state": self.state,
             "description": self.description,
+            "restricted": self.restricted,
         }
 
         if "fates" in expand:

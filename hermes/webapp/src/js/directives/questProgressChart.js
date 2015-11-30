@@ -30,6 +30,11 @@
                 var colors;
                 var raphael = new Raphael($ele[0], "100%", graphHeight);
 
+                var graphData = null;
+                hermesService.getFatesGraph().then(function(data) {
+                    graphData = data;
+                });
+
                 $scope.$watch('data', function (newData) {
                     $scope.render([newData]);
                 }, true);

@@ -1,30 +1,30 @@
 INSERT INTO event_types
 VALUES
-	(1,'system-reboot','required','This system requires a reboot.');
+	(1,'system-reboot','required','This system requires a reboot.', 0);
 
 INSERT INTO event_types
 VALUES
-	(2,'system-reboot','completed','This system rebooted.');
+	(2,'system-reboot','completed','This system rebooted.', 0);
 
 INSERT INTO event_types
 VALUES
-	(3,'system-maintenance','required','This system requires maintenance.');
+	(3,'system-maintenance','required','This system requires maintenance.', 0);
 
 INSERT INTO event_types
 VALUES
-	(4,'system-maintenance','ready','This system is ready for maintenance.');
+	(4,'system-maintenance','ready','This system is ready for maintenance.', 0);
 
 INSERT INTO event_types
 VALUES
-	(5,'system-maintenance','completed','System maintenance completed.');
+	(5,'system-maintenance','completed','System maintenance completed.', 0);
 
 INSERT INTO event_types
 VALUES
-	(6,'system-shutdown','required','System shutdown required.');
+	(6,'system-shutdown','required','System shutdown required.', 0);
 
 INSERT INTO event_types
 VALUES
-	(7,'system-shutdown','completed','System shutdown completed.');
+	(7,'system-shutdown','completed','System shutdown completed.', 0);
 
 INSERT INTO fates
 VALUES

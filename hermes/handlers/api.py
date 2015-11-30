@@ -436,7 +436,8 @@ class EventTypesHandler(ApiHandler):
                     {
                         "category": "foo",
                         "state": "baz",
-                        "description": "Some description"
+                        "description": "Some description",
+                         "restricted": true,
                     },
                     {
                         "category": "tango",
@@ -459,6 +460,7 @@ class EventTypesHandler(ApiHandler):
                 "category": "system-reboot",
                 "state": "required",
                 "description": "System requires a reboot.",
+                "restricted": false,
             }
 
         or:
@@ -474,21 +476,24 @@ class EventTypesHandler(ApiHandler):
                         "state": "bar",
                         "href": "/api/v1/eventtypes/7",
                         "id": 7,
-                        "description": "Some description"
+                        "description": "Some description",
+                        "restricted": false,
                     },
                     {
                         "category": "foo",
                         "state": "baz",
                         "href": "/api/v1/eventtypes/8",
                         "id": 8,
-                        "description": "Some description"
+                        "description": "Some description",
+                        "restricted": true,
                     },
                     {
                         "category": "tango",
                         "state": "foxtrot",
                         "href": "/api/v1/eventtypes/9",
                         "id": 9,
-                        "description": "Some description"
+                        "description": "Some description",
+                        "restricted": false,
                     }
                 ],
                 "totalEventTypes": 3
@@ -517,7 +522,8 @@ class EventTypesHandler(ApiHandler):
                     {
                         "category": self.jbody["category"],
                         "state": self.jbody["state"],
-                        "description": self.jbody["description"]
+                        "description": self.jbody["description"],
+                        "restricted": self.jbody.get("restricted", False)
                     }
                 ]
 
@@ -534,7 +540,8 @@ class EventTypesHandler(ApiHandler):
                 created_type = EventType.create(
                     self.session, event_types[x]["category"],
                     event_types[x]["state"],
-                    description=event_types[x]["description"]
+                    description=event_types[x]["description"],
+                    restricted=event_types[x].get("restricted", False)
                 )
                 created_types.append(created_type.to_dict(self.href_prefix))
         except IntegrityError as err:
