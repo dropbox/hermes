@@ -6,6 +6,7 @@ from __future__ import division
 
 import argparse
 from dateutil import parser, tz
+from datetime import datetime
 import getpass
 import logging
 import requests
@@ -483,6 +484,8 @@ def list_host_labors_monitoring(args):
     logging.debug("list_host_labors_monitoring(%s)", args.hostname)
 
     alert = False
+    critical = False
+
     try:
         response = request_get(
             "/api/v1/labors/"
@@ -498,6 +501,15 @@ def list_host_labors_monitoring(args):
         for labor in labors:
             if labor['creationEvent']['eventType']['state'] == "required":
                 alert = True
+            # determin if critical
+            if labor['quest']['targetTime']:
+                target_time = parser.parse(labor['quest']['targetTime'], yearfirst=True)
+                target_time = target_time.replace(tzinfo=tz.tzlocal())
+                target_time = target_time.astimezone(tz.tzutc())
+                target_time = target_time.replace(tzinfo=None)
+                time_left = target_time - datetime.now()
+                if time_left.days <= 5:
+                    critical = True
 
     except HermesException as exc:
         # FIXME -- add error codes to Hermes API and test for that
@@ -521,7 +533,8 @@ def list_host_labors_monitoring(args):
     fates = response.json()["fates"]
 
     if alert:
-        print "WARNING: {} open labor{} for this host".format(
+        print "{}: {} open labor{} for this host".format(
+            "CRIT" if critical else "WARNING",
             len(labors),
             "s" if len(labors) > 1 else ""
         )
@@ -531,7 +544,10 @@ def list_host_labors_monitoring(args):
         print ""
         print "For more details, login to shelby and run:"
         print "hermes host labors {}".format(args.hostname)
-        sys.exit(1)
+        if critical:
+            sys.exit(2)
+        else:
+            sys.exit(1)
     else:
         print "OK: No open labors for this host"
         sys.exit(0)
