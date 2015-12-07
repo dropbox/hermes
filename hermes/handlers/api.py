@@ -831,6 +831,21 @@ class EventsHandler(ApiHandler):
             Host: localhost
             Content-Type: application/json
             {
+                "hostname": "example",
+                "user": "johnny",
+                "category": "system-reboot",
+                "event": "completed",
+                "note": "Sample description"
+            }
+
+        or
+
+        .. sourcecode:: http
+
+            POST /api/v1/events HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            {
                 "hostQuery": "tag=value",
                 "user": "johnny",
                 "eventTypeId": 3,
@@ -895,6 +910,8 @@ class EventsHandler(ApiHandler):
         :regjson int queryId: (*optional*) The Quest ID which has hosts for which we want to create Events
         :regjson string user: The user responsible for throwing this Event
         :regjson int eventTypeId: The id of the EventType
+        :regjson string category: the category to use for the event
+        :regjson string state: the state to use for the event
         :regjson string note: (*optional*) The human readable note describing this Event
 
         :reqheader Content-Type: The server expects a json body specified with
@@ -912,7 +929,9 @@ class EventsHandler(ApiHandler):
             user = self.jbody["user"]
             if not EMAIL_REGEX.match(user):
                 user += "@" + self.domain
-            event_type_id = self.jbody["eventTypeId"]
+            event_type_id = self.jbody.get("eventTypeId", None)
+            category = self.jbody.get("category", None)
+            state = self.jbody.get("state", None)
             note = self.jbody.get("note", None)
         except KeyError as err:
             raise exc.BadRequest(
@@ -921,7 +940,20 @@ class EventsHandler(ApiHandler):
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
-        event_type = self.session.query(EventType).get(event_type_id)
+        if not event_type_id and (not category and not state):
+            raise exc.BadRequest(
+                "Must specify an event type id or both category and state"
+            )
+
+        if event_type_id:
+            event_type = self.session.query(EventType).get(event_type_id)
+        else:
+            event_type = self.session.query(EventType).filter(
+                and_(
+                    EventType.category == category,
+                    EventType.state == state
+                )
+            ).one()
 
         if event_type is None:
             self.write_error(400, message="Bad event type")
