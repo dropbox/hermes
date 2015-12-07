@@ -15,6 +15,7 @@ import sys
 import textwrap
 from time import sleep
 import traceback
+import urllib
 
 
 import hermes
@@ -559,9 +560,9 @@ def list_labors(args):
     url = "/api/v1/labors/?limit={}&open=true&expand=events&expand=hosts&expand=eventtypes&expand=quests".format(args.limit)
 
     if args.query:
-        url += "&hostQuery={}".format(args.query)
+        url += "&hostQuery={}".format(urllib.quote_plus(args.query))
     if args.user:
-        url += "&userQuery={}".format(args.user)
+        url += "&userQuery={}".format(urllib.quote_plus(args.user))
 
     response = request_get(url)
     labors = response.json()["labors"]

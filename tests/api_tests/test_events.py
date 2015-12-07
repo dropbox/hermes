@@ -12,6 +12,38 @@ def test_malformed(sample_data1_server):
     client = sample_data1_server
     assert_error(client.post("/events", data="Non-JSON"), 400)
 
+    assert_error(
+        client.create(
+            "/events",
+            hostname="example",
+            user="testman@example.com",
+            note="This is a test event"
+        ),
+        400
+    )
+
+    assert_error(
+        client.create(
+            "/events",
+            hostname="example",
+            category="blah",
+            user="testman@example.com",
+            note="This is a test event"
+        ),
+        500
+    )
+
+    assert_error(
+        client.create(
+            "/events",
+            hostname="example",
+            state="blah",
+            user="testman@example.com",
+            note="This is a test event"
+        ),
+        500
+    )
+
 
 def test_creation(sample_data1_server):
     client = sample_data1_server
@@ -97,6 +129,30 @@ def test_creation(sample_data1_server):
             "hostId": 1,
             "note": "This is a test event",
             "eventTypeId": 1,
+            "user": "testman@example.com"
+        },
+        strip=["timestamp"]
+    )
+
+    assert_created(
+        client.create(
+            "/events",
+            hostname="example",
+            user="testman@example.com",
+            category="system-reboot",
+            state="completed",
+            note="This is another test event"
+        ),
+        "/api/v1/events/4"
+    )
+
+    assert_success(
+        client.get("/events/4"),
+        {
+            "id": 4,
+            "hostId": 1,
+            "note": "This is another test event",
+            "eventTypeId": 2,
             "user": "testman@example.com"
         },
         strip=["timestamp"]
