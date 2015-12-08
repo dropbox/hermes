@@ -58,6 +58,14 @@ INSERT INTO fates
 VALUES
 	(8,7,7, 1, 0, 'Puppet restarted');
 
+INSERT INTO fates
+VALUES
+	(9,1,null, 0, 1, 'Release or restart puppet');
+
+INSERT INTO fates
+VALUES
+	(10,7,9, 0, 1, 'System is fine.  Puppet restarted.');
+
 INSERT INTO hosts
     VALUES (1, 'example.dropbox.com');
 

@@ -23,5 +23,15 @@
     "creationEventTypeId": 5,
     "followsId": 4,
     "description": "Maintenance must be performed on a system that is prepped."
+  },
+  "fate6": {
+    "creationEventTypeId": 3,
+    "description": "Maintenance must be performed on a new system."
+  },
+  "fate7": {
+    "creationEventTypeId": 5,
+    "followsId": 6,
+    "description": "Maintenance must be performed on a new system that is prepped."
   }
+
 }

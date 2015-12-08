@@ -53,7 +53,7 @@ def test_creation(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny",
-            eventTypeId=1,
+            fateId=1,
             targetTime=str(target_time),
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
@@ -119,7 +119,7 @@ def test_update(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny",
-            eventTypeId=1,
+            fateId=1,
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
         ),
@@ -219,7 +219,7 @@ def test_labor_filter_by_eventttype(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny",
-            eventTypeId=1,
+            fateId=1,
             description="This is a quest almighty",
             hostnames=["example", "sample", "test"]
         ),
@@ -231,7 +231,7 @@ def test_labor_filter_by_eventttype(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny",
-            eventTypeId=3,
+            fateId=3,
             description="This is a 2nd quest almighty",
             hostnames=["example", "sample", "test"]
         ),
@@ -287,7 +287,7 @@ def test_quest_expansion(sample_data1_server):
         client.create(
             "/quests",
             creator="johnny",
-            eventTypeId=1,
+            fateId=1,
             description="This is a quest almighty",
             hostnames=["example"]
         ),

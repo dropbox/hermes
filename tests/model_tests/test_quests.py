@@ -22,16 +22,11 @@ def test_date_constraint(sample_data1):
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
 
-    creation_event_type = (
-        sample_data1.query(EventType)
-        .filter(EventType.id == 1).first()
-    )
-
     target_time = datetime.now() - timedelta(days=2)
 
     with pytest.raises(exc.ValidationError):
         Quest.create(
-            sample_data1, "testman", hosts, creation_event_type, target_time,
+            sample_data1, "testman", hosts, target_time, fate_id=1,
             description="Embark on the long road of maintenance"
         )
 
@@ -49,15 +44,14 @@ def test_creation(sample_data1):
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
 
-    creation_event_type = (
-        sample_data1.query(EventType)
-        .filter(EventType.id == 1).first()
+    fate = (
+        sample_data1.query(Fate).get(1)
     )
 
     target_time = datetime.now() + timedelta(days=2)
 
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type, target_time,
+        sample_data1, "testman", hosts, target_time, fate_id=fate.id,
         description="Embark on the long road of maintenance"
     )
 
@@ -121,13 +115,12 @@ def test_creation_without_target(sample_data1):
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
 
-    creation_event_type = (
-        sample_data1.query(EventType)
-        .filter(EventType.id == 1).first()
+    fate = (
+        sample_data1.query(Fate).get(1)
     )
 
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type,
+        sample_data1, "testman", hosts, fate_id=fate.id,
         description="Embark on the long road of maintenance"
     )
 
@@ -158,25 +151,27 @@ def test_mass_creation(sample_data1):
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
 
-    creation_event_type1 = (
-        sample_data1.query(EventType)
-        .filter(EventType.id == 1).first()
+    fate = (
+        sample_data1.query(Fate).get(1)
     )
+
+    creation_event_type1 = fate.creation_event_type
+
 
     target_time1 = datetime.now() + timedelta(days=7)
     target_time2 = datetime.now() + timedelta(days=10)
     target_time3 = datetime.now() + timedelta(days=14)
 
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type1, target_time1,
+        sample_data1, "testman", hosts, target_time1, fate_id=fate.id,
         description="Embark on the long road of maintenance"
     )
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type1, target_time2,
+        sample_data1, "testman", hosts, target_time2, fate_id=fate.id,
         description="Embark on the longer road of maintenance"
     )
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type1, target_time3,
+        sample_data1, "testman", hosts, target_time3, fate_id=fate.id,
         description="WHEN WILL IT END!!"
     )
 
@@ -252,15 +247,14 @@ def test_quest_preservation(sample_data1):
     labors = sample_data1.query(Labor).all()
     assert len(labors) == 0
 
-    creation_event_type = (
-        sample_data1.query(EventType)
-        .filter(EventType.id == 3).first()
-    )
-
     target_time = datetime.now() + timedelta(days=2)
 
+    fate = (
+        sample_data1.query(Fate).get(4)
+    )
+
     Quest.create(
-        sample_data1, "testman", hosts, creation_event_type, target_time,
+        sample_data1, "testman", hosts, target_time, fate_id=fate.id,
         description="Embark on the long road of maintenance"
     )
 
@@ -315,7 +309,7 @@ def test_complex_chaining1(sample_data2):
     assert len(event_types) == 7
 
     fates = sample_data2.query(Fate).all()
-    assert len(fates) == 8
+    assert len(fates) == 10
 
     hosts = [
         sample_data2.query(Host).filter(
@@ -330,8 +324,7 @@ def test_complex_chaining1(sample_data2):
 
     quest = Quest.create(
         sample_data2, "testman", hosts,
-        EventType.get_event_type(sample_data2, "system-maintenance", "audit"),
-        target_time,
+        target_time, fate_id=1,
         description="Servers need audit"
     )
 
@@ -394,7 +387,7 @@ def test_complex_chaining2(sample_data2):
     assert len(event_types) == 7
 
     fates = sample_data2.query(Fate).all()
-    assert len(fates) == 8
+    assert len(fates) == 10
 
     hosts = [sample_data2.query(Host).get(1)]
 
@@ -404,16 +397,16 @@ def test_complex_chaining2(sample_data2):
     print "\nbravo quest"
     bravo_quest = Quest.create(
         sample_data2, "testman", hosts,
-        EventType.get_event_type(sample_data2, "system-maintenance", "audit"),
         target_time1,
+        fate_id=1,
         description="System maintenance is needed"
     )
 
     print "\ncharlie quest"
     charlie_quest = Quest.create(
         sample_data2, "testman", hosts,
-        EventType.get_event_type(sample_data2, "system-reboot", "needed"),
         target_time2,
+        fate_id=6,
         description="Systems need a reboot"
     )
     assert bravo_quest
@@ -494,7 +487,7 @@ def test_complex_chaining3(sample_data2):
     assert len(event_types) == 7
 
     fates = sample_data2.query(Fate).all()
-    assert len(fates) == 8
+    assert len(fates) == 10
 
     hosts = [sample_data2.query(Host).get(1)]
 
@@ -504,16 +497,16 @@ def test_complex_chaining3(sample_data2):
     print "\nbravo quest"
     bravo_quest = Quest.create(
         sample_data2, "testman", hosts,
-        EventType.get_event_type(sample_data2, "system-maintenance", "audit"),
         target_time1,
+        fate_id=1,
         description="System maintenance is needed"
     )
 
     print "\ncharlie quest"
     charlie_quest = Quest.create(
         sample_data2, "testman", hosts,
-        EventType.get_event_type(sample_data2, "system-reboot", "needed"),
         target_time2,
+        fate_id=6,
         description="Systems need a reboot"
     )
     assert bravo_quest
@@ -584,6 +577,106 @@ def test_complex_chaining3(sample_data2):
     assert charlie_quest.get_open_labors().all()[0].quest == charlie_quest
 
     assert len(sample_data2.query(Labor).all()) == 5
+
+
+def test_explicit_chain(sample_data2):
+    """This test works on testing some complex chaining of fates:
+
+    ET: sys-audit, sys-needed, sys-ready, sys-complete, reboot-needed,
+        reboot-complete, puppet-restart
+
+    Fates:
+    1: system-maintenance-audit => system-maintenance-needed
+        => system-maintenance-ready => system-maintenance-completed
+
+    9: system-maintenance-audit => system-reboot-completed
+
+    Quests:
+    Bravo: fate chain 1
+    Charlie: fate chain 9
+    """
+    event_types = sample_data2.query(EventType).all()
+    assert len(event_types) == 7
+
+    fates = sample_data2.query(Fate).all()
+    assert len(fates) == 10
+
+    hosts = [sample_data2.query(Host).get(1), sample_data2.query(Host).get(2)]
+
+    target_time1 = datetime.now() + timedelta(days=2)
+    target_time2 = datetime.now() + timedelta(days=7)
+
+    print "\nbravo quest"
+    bravo_quest = Quest.create(
+        sample_data2, "testman", [hosts[0]],
+        target_time1,
+        fate_id=1,
+        description="System maintenance is needed"
+    )
+
+    print "\ncharlie quest"
+    charlie_quest = Quest.create(
+        sample_data2, "testman", [hosts[1]],
+        target_time2,
+        fate_id=9,
+        description="Systems maintenance is needed"
+    )
+    assert bravo_quest
+    assert charlie_quest
+    assert len(bravo_quest.labors) == 1
+    assert bravo_quest.get_open_labors().all()[0].for_owner is True
+    assert bravo_quest.get_open_labors().all()[0].for_creator is False
+    assert len(charlie_quest.labors) == 1
+    assert bravo_quest.completion_time is None
+    assert charlie_quest.completion_time is None
+
+    assert len(hosts[0].events) == 1
+    assert len(hosts[1].events) == 1
+
+    # Now let's look at the fate ID of the labors and make sure they are correct
+    assert bravo_quest.get_open_labors().all()[0].fate_id == 1
+    assert charlie_quest.get_open_labors().all()[0].fate_id == 9
+
+    # Now progress the bravo quest by throwing the sys-maint needed event
+    # and ensure charlie quest didn't move
+    print "\nevent 1"
+    event1a = Event.create(
+        sample_data2, hosts[0], "system",
+        EventType.get_event_type(sample_data2, "system-maintenance", "needed")
+    )
+    event1b = Event.create(
+        sample_data2, hosts[1], "system",
+        EventType.get_event_type(sample_data2, "system-maintenance", "needed")
+    )
+    assert bravo_quest.get_open_labors().all()[0].creation_event == event1a
+    assert bravo_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[0].id
+    assert bravo_quest.get_open_labors().all()[0].for_owner is True
+    assert bravo_quest.get_open_labors().all()[0].for_creator is False
+    assert bravo_quest.completion_time is None
+    assert len(bravo_quest.labors) == 2
+    assert charlie_quest.completion_time is None
+    assert len(charlie_quest.labors) == 1
+
+    # Throw system-reboot completed event for both hosts and ensure it closes
+    # charlie quest but does nothing to bravo quest
+    print "\nevent 1"
+    event2a = Event.create(
+        sample_data2, hosts[0], "system",
+        EventType.get_event_type(sample_data2, "puppet", "restart")
+    )
+    event2b = Event.create(
+        sample_data2, hosts[1], "system",
+        EventType.get_event_type(sample_data2, "puppet", "restart")
+    )
+    assert bravo_quest.get_open_labors().all()[0].creation_event == event1a
+    assert bravo_quest.get_open_labors().all()[0].starting_labor_id == hosts[0].events[0].id
+    assert bravo_quest.get_open_labors().all()[0].for_owner is True
+    assert bravo_quest.get_open_labors().all()[0].for_creator is False
+    assert bravo_quest.completion_time is None
+    assert len(bravo_quest.labors) == 2
+
+    assert charlie_quest.completion_time is not None
+    assert len(charlie_quest.labors) == 1
 
 
 

@@ -1,0 +1,1 @@
+drop index _creation_completion_uc on fates;

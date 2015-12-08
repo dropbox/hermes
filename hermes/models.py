@@ -527,7 +527,11 @@ class Fate(Model):
         _starting_fates = cached list of all non-intermediate Fates
 
     Notes:
-        A Fate can create a Labor can be designated for both the server owner and the quest owner
+        A Fate can create a Labor can be designated for both the server owner and the quest owner.
+        Because we can have similar but differing chains, we can have duplicate Fates
+        because they might be used to tie together different flows.  For instance,
+        we may want an ability to force an A -> B -> D chain instead of an A -> B -> C -> D
+        chain, in which case, there would be two As, Bs, and Ds.
     """
 
     __tablename__ = "fates"
@@ -556,10 +560,6 @@ class Fate(Model):
 
     description = Column(String(2048), nullable=True)
     __table_args__ = (
-        UniqueConstraint(
-            creation_type_id, follows_id,
-            name='_creation_completion_uc'
-        ),
         Index(
             "fate_idx", id, creation_type_id, follows_id
         ),
@@ -728,7 +728,9 @@ class Fate(Model):
         # Get all the fates, in various categories, for easy reference
         all_fates = Fate.get_all_fates(session)
         if not starting_fates:
-            starting_fates = Fate.get_starting_fates(session)
+            starting_fates = session.query(Fate).filter(
+                Fate.follows_id == None
+            )
 
         # Query the database for open labors for hosts of which we have an event
         open_labors = (
@@ -756,17 +758,19 @@ class Fate(Model):
             # First, lets see if this Event is supposed to create any
             # non-intermediate Labors and add them to the batch
             for fate in starting_fates:
-                if fate["creation_type_id"] == event_type.id:
+                if fate.creation_type_id == event_type.id:
                     new_labor_dict = {
                         "host_id": host.id,
                         "creation_event_id": event.id,
-                        "fate_id": fate["id"],
+                        "fate_id": fate.id,
                         "quest_id": quest.id if quest else None,
-                        "for_creator": fate["for_creator"],
-                        "for_owner": fate["for_owner"]
+                        "for_creator": fate.for_creator,
+                        "for_owner": fate.for_owner
                     }
                     if new_labor_dict not in all_new_labors:
                         all_new_labors.append(new_labor_dict)
+                    # we only want to match up to the first fate found
+                    break
 
             # Now let's see if we should be closing any labors.
             # We will see what fate created a labor, then examine all the fates
@@ -1062,8 +1066,8 @@ class Quest(Model):
 
     @classmethod
     def create(
-            cls, session, creator, hosts, creation_event_type,
-            target_time=None, create=True, description=None, fate_id=None
+            cls, session, creator, hosts, target_time=None, create=True,
+            description=None, fate_id=None
     ):
         """Create a new Quest.
 
@@ -1081,7 +1085,7 @@ class Quest(Model):
             session: an active database session
             creator: the person or system creating the Quest
             hosts: a list of Hosts for which to create Events (and Labors)
-            creation_event_type: the EventType of which to create Events
+            fate_id: the explicit Fate for which to create events and labors
             target_time: the optional targeted date and time of Quest completion
             create: if True, Events will be created; if False, reclaim existing Labors
             description: a required human readable text to describe this Quest
@@ -1092,11 +1096,12 @@ class Quest(Model):
             raise exc.ValidationError("Quest target date must be in future")
         if hosts is None:
             raise exc.ValidationError("Quest must have a list of hosts")
-        if creation_event_type is None:
-            raise exc.ValidationError("Quest must have an EventType")
+        if fate_id is None:
+            raise exc.ValidationError("Quest must have a Fate")
 
         if fate_id:
-            fate = session.query(Fate).id(fate_id)
+            fate = session.query(Fate).get(fate_id)
+            creation_event_type = fate.creation_event_type
         else:
             fate = None
 

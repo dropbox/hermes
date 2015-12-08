@@ -24,9 +24,16 @@ from hermes.settings_client import settings
 logging.getLogger("requests").setLevel(logging.WARNING)
 urllib3.disable_warnings()
 
+
 class HermesException(Exception):
     """Generic exception used to indicate a problem with a Hermes operation"""
     pass
+
+
+class HermesNotFound(Exception):
+    """Thrown when something is not found"""
+    pass
+
 
 def retry(num_attempts, min_sleep=.1, max_sleep=5):
     for num in range(1, num_attempts+1):
@@ -44,6 +51,7 @@ def retry(num_attempts, min_sleep=.1, max_sleep=5):
 
         sleep(sleep_time)
 
+
 def request_get(path):
     """Make an HTTP GET request for the given path
 
@@ -56,6 +64,11 @@ def request_get(path):
         response = requests.get(settings.hermes_server + path)
         if response.status_code < 500:
             break
+
+    if response.status_code == requests.codes.not_found:
+        raise HermesNotFound("{} returned 404".format(
+            settings.hermes_server + path)
+        )
 
     if response.status_code != requests.codes.ok or not response.content:
         try:
@@ -85,6 +98,11 @@ def request_post(path, json):
         response = requests.post(settings.hermes_server + path, json=json)
         if response.status_code < 500:
             break
+
+    if response.status_code == requests.codes.not_found:
+        raise HermesNotFound("{} returned 404".format(
+            settings.hermes_server + path)
+        )
 
     if (
             response.status_code != requests.codes.created
@@ -116,6 +134,11 @@ def request_put(path, json):
         response = requests.put(settings.hermes_server + path, json=json)
         if response.status_code < 500:
             break
+
+    if response.status_code == requests.codes.not_found:
+        raise HermesNotFound("{} returned 404".format(
+            settings.hermes_server + path)
+        )
 
     if (
             response.status_code != requests.codes.ok
@@ -261,13 +284,14 @@ def list_fates(args):
     print "FATES:  \n(id) created by => completed by\n"
     for fate in fates:
         if not fate.get("precedesIds"):
-            print "({}) {}".format(
+            print "  ({}) {}".format(
                 fate["id"],
                 fate["creationEventType"]["category"] + " "
                 + fate["creationEventType"]["state"]
             )
         else:
-            print "({}) {} => {}".format(
+            print "{} ({}) {} => {}".format(
+                "*" if not fate["followsId"] else " ",
                 fate["id"],
                 fate["creationEventType"]["category"] + " "
                 + fate["creationEventType"]["state"],
@@ -279,6 +303,26 @@ def list_fates(args):
             initial_indent="\t", subsequent_indent="\t"
         )
         print ""
+
+    print "FATES that can start labors/quests:"
+    for fate in fates:
+        if not fate["followsId"]:
+            print "* ({}) {} => {}".format(
+                fate["id"],
+                fate["creationEventType"]["category"] + " "
+                + fate["creationEventType"]["state"],
+                fate["precedesIds"]
+            )
+
+            print textwrap.fill(
+                fate["description"], width=60,
+                initial_indent="\t", subsequent_indent="\t"
+            )
+
+            print ""
+
+    print "For a graphical view, visit:"
+    print "\t{}/v1/fates".format(settings.hermes_server)
 
 
 def create_fate(args):
@@ -502,7 +546,7 @@ def list_host_labors_monitoring(args):
         for labor in labors:
             if labor['creationEvent']['eventType']['state'] == "required":
                 alert = True
-            # determin if critical
+            # determine if critical
             if labor['quest']['targetTime']:
                 target_time = parser.parse(labor['quest']['targetTime'], yearfirst=True)
                 target_time = target_time.replace(tzinfo=tz.tzlocal())
@@ -512,7 +556,7 @@ def list_host_labors_monitoring(args):
                 if time_left.days <= 5:
                     critical = True
 
-    except HermesException as exc:
+    except HermesNotFound as exc:
         # FIXME -- add error codes to Hermes API and test for that
         if exc.message.startswith("Error: No host"):
             # if the error was that the hostname wasn't found, just return
@@ -520,15 +564,10 @@ def list_host_labors_monitoring(args):
             # so we can assume it has no open labors
             labors = []
         else:
-            print "UNKNOWN: Querying Hermes returned an exception"
+            print "UNKNOWN: 404 querying Hermes returned an exception"
             print ""
             traceback.print_exc(file=sys.stdout)
             sys.exit(3)
-    except Exception as exc:
-        print "UNKNOWN: Querying Hermes returned an exception"
-        print ""
-        traceback.print_exc(file=sys.stdout)
-        sys.exit(3)
 
     response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
     fates = response.json()["fates"]
@@ -794,8 +833,8 @@ def show_quest(args):
 def create_quest(args):
     logging.debug("create_quest()")
     logging.debug(
-        "category: %s    state: %s    note: %s",
-        args.category, args.state, args.description
+        "fate: %s    note: %s",
+        args.fate_id, args.description
     )
 
     print "Creating quest... (could take some time)"
@@ -817,28 +856,26 @@ def create_quest(args):
         logging.error("No hosts specified")
         return
 
-    response = request_get("/api/v1/eventtypes?limit=all")
-    event_types = response.json()["eventTypes"]
+    try:
+        response = request_get("/api/v1/fates/{}".format(args.fate_id))
+        fate_json = response.json()
 
-    found_event_type = None
-    for event_type in event_types:
-        if (
-            event_type["category"] == args.category
-                and event_type["state"] == args.state
-        ):
-            found_event_type = event_type
-
-    if found_event_type is None:
+    except HermesNotFound:
         sys.exit(
-            "No matching event type found for {} {}".format(
-                args.category, args.state
+            "ERROR: No matching fate found for id {}".format(
+                args.fate_id
             )
+        )
+
+    if fate_json["followsId"] is not None:
+        sys.exit(
+            "ERROR: Fate {} is not a valid starting fate".format(args.fate_id)
         )
 
     user = getpass.getuser()
 
     json = {
-        "eventTypeId": found_event_type["id"],
+        "fateId": args.fate_id,
         "creator": user,
         "description": args.description
     }
@@ -1108,25 +1145,19 @@ def parse_cli_args():
         "create",
         description="To create a Hermes Quest, one should first decide two "
                     "things: (1) what hosts will be part of this Quest, "
-                    "and (2) what the Event Type will be for the Events "
-                    "that start the Quest.\n"
+                    "and (2) what Fate will start the Labors for the hosts"
+                    "in the the Quest.\n"
                     "\n"
                     "Hosts can be specified by a query string sent to an "
                     "external source of record.  Check with your Hermes "
                     "administrator for more information.\n"
                     "\n"
-                    "To pick the proper Event Type, use `hermes fate list` "
-                    "and pick from the \"created by\" column."
+                    "To pick the proper Fate ID, use `hermes fate list` "
+                    "and pick an ID designated with a *."
     )
     quest_create_parser.add_argument(
-        "category",
-        help="The Event category for the Event "
-             "that will be created for each Host."
-    )
-    quest_create_parser.add_argument(
-        "state",
-        help="The Event state for the Event "
-             "that will be created for each Host."
+        "--fate-id", type=int, dest="fate_id",
+        help="The ID of the Fate that will create the starting Labors"
     )
     quest_create_parser.add_argument(
         "--due", type=str, metavar='YYYY-MM-DD HH:MM',
