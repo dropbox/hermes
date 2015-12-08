@@ -647,16 +647,21 @@ def create_event(args):
 def list_quests(args):
     logging.debug("list_quests()")
 
-    response = request_get(
-        "/api/v1/quests?filterClosed=true&limit=all&progressInfo=true"
-    )
+    url = "/api/v1/quests?filterClosed=true&limit=all&progressInfo=true"
+
+    if args.user:
+        url += "&byCreator={}".format(args.user)
+    if args.hosts:
+        url += "&hostnames={}".format(urllib.quote_plus(args.hosts))
+    if args.query:
+        url += "&hostQuery={}".format(urllib.quote_plus(args.query))
+
+    response = request_get(url)
     quests = response.json()["quests"]
 
     print "OPEN QUESTS:"
     print "\t* Labors: unstarted/in-progress/completed/total\n\n"
     for quest in quests:
-        if args.user and quest["creator"] != args.user:
-            continue
         embark_time = parser.parse(quest["embarkTime"])
         embark_time = embark_time.replace(tzinfo=tz.tzutc())
         embark_time = embark_time.astimezone(tz.tzlocal())
@@ -1069,6 +1074,14 @@ def parse_cli_args():
     quest_list_parser.add_argument(
         "--user",
         help="Filter the list of Quests to those created by the given user"
+    )
+    quest_list_parser.add_argument(
+        "--hosts", type=str,
+        help="Filter Quests to those relating to Hosts, separated by comma"
+    )
+    quest_list_parser.add_argument(
+        "--query", type=str,
+        help="Filter Quests to those relating to Hosts return by query"
     )
     quest_list_parser.set_defaults(func=list_quests)
 
