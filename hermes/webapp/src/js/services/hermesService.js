@@ -297,7 +297,6 @@
                         baseY += YINC;
                     }
                 }
-                console.log(graphData);
             }).then(function() {
                 fatesGraph = graphData;
                 return graphData;

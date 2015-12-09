@@ -133,6 +133,7 @@
                 <!--LABOR ENTRY REPEATER-->
                 <div class="labor-list-row" ng-if="lsc.laborData  && !lsc.errorMessage"
                      ng-repeat="labor in (pageData = (lsc.laborData | limitTo:lsc.limit:lsc.offset)) track by labor.id">
+                    <!-- QUEST HEADER -->
                     <div class="quest-info" ng-if="labor.quest && labor.quest.id != pageData[$index-1].quest.id">
                         <div class="title">
                             <a ng-href="/v1/quests/{{labor.quest.id}}">
@@ -150,11 +151,11 @@
                             The following labors were created as a result of events that were not part of a quest creation.
                         </div>
                     </div>
-                    <div class="labor-entry"
+                    <div id="l{{labor.id}}" class="labor-entry"
                          ng-click="lsc.toggleSelect(labor.id)"
                          ng-class="lsc.selected.indexOf(labor.id) != -1 ? 'selected': ''">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="row">
                                     <div class="hostname col-md-12"><strong>{{labor.host.hostname}}:</strong> {{labor.fate.description}}</div>
                                     <div class="info-panel col-md-12">
@@ -172,7 +173,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="info-panel col-md-6">
+                            <div class="info-panel col-md-8">
                                 <div class="label-holder">
                                     <strong>Tags:</strong>
                                 </div>

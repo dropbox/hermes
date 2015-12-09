@@ -186,15 +186,20 @@
                         <!-- LIST OF LABORS IN SELECTED QUEST -->
                         <div class="quest-labors">
                             <div class="header row">
-                                <div class="col-md-4 row">
-                                    <div class="col-md-3"></div>
-                                    <div class="col-md-9">Labor Owner</div>
+                                <div class="col-md-3">
+                                    <div class="row">
+                                        <div class="col-md-3"></div>
+                                        <div class="col-md-9">Labor Owner</div>
+                                    </div>
                                 </div>
-                                <div class="col-md-8 row">
-                                    <div class="col-md-3">Host</div>
-                                    <div class="col-md-4">Host Owner</div>
-                                    <div class="col-md-5">Labor</div>
+                                <div class="col-md-8">
+                                    <div class="row">
+                                        <div class="col-md-3">Host</div>
+                                        <div class="col-md-4">Host Owner</div>
+                                        <div class="col-md-5">Labor</div>
+                                    </div>
                                 </div>
+                                <div class="col-md-1"></div>
                             </div>
                             <!-- grouping of all machines by an owner -->
                             <div class="owner-group"
@@ -205,34 +210,42 @@
                                     <!-- an individual row for the owner-->
                                     <div class="row"
                                          ng-repeat="host in details.hosts track by $index">
-                                        <div class="col-md-4 row">
-                                            <div class="col-md-3">
-                                                <span ng-if="$parent.$first && $first">
-                                                    <a href="mailto:{{owner}}{{owner.indexOf('@') == -1 ? '@' + qc.domain : ''}}"
-                                                       target="_blank">
-                                                        <img src="/img/send_email_15.png"
-                                                             alt="Send email to {{owner}}"/>
-                                                    </a>
-                                                </span>
-                                            </div>
-                                            <div class="col-md-9">
-                                                <span ng-if="$parent.$first && $first">
-                                                    {{owner}}
-                                                </span>
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <span ng-if="$parent.$first && $first">
+                                                        <a href="mailto:{{owner}}{{owner.indexOf('@') == -1 ? '@' + qc.domain : ''}}"
+                                                           target="_blank">
+                                                            <span class="glyphicon glyphicon-envelope btn-glyph"></span>
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                                <div class="col-md-9">
+                                                    <span ng-if="$parent.$first && $first">
+                                                        {{owner}}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-8 labor-entry row"
-                                             ng-class="qc.selectedLabors.indexOf(host) != -1 ? 'selected': ''"
-                                             ng-click="qc.toggleSelect(host)"
+                                        <div class="col-md-8 labor-entry"
+                                             ng-class="qc.selectedLabors.indexOf(host['hostname']) != -1 ? 'selected': ''"
+                                             ng-click="qc.toggleSelect(host['hostname'])"
                                                 >
-                                            <div class="col-md-3">{{host}}
+                                            <div class="row">
+                                                <div class="col-md-3">{{host['hostname']}}
+                                                </div>
+                                                <div class="col-md-4">
+                                                    {{qc.hostOwners[host['hostname']]}}
+                                                </div>
+                                                <div class="col-md-5">
+                                                    {{laborType}}
+                                                </div>
                                             </div>
-                                            <div class="col-md-4">
-                                                {{qc.hostOwners[host]}}
-                                            </div>
-                                            <div class="col-md-5">
-                                                {{laborType}}
-                                            </div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <a ng-href="/v1/labors/{{host['laborId']}}?byQuery=owner={{qc.hostOwners[host['hostname']] | encode}}">
+                                                <span class="glyphicon glyphicon-new-window btn-glyph"></span>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>

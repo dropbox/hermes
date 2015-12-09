@@ -137,14 +137,11 @@
             hermesService.runQuery(vm.queryString).then(function(hosts) {
                 vm.queryInProgress = false;
                 if (hosts && hosts.length != 0) {
-                    console.log(hosts);
                     vm.queriedHosts = hosts;
                 } else {
-                    console.log("EMPTY!");
                     vm.queryErrorMessage = "Query returned no results.";
                 }
             }).catch(function(error) {
-                console.log("ERROR!");
                 vm.queryInProgress = false;
                 vm.queryErrorMessage = "Failed to run query!  " + error.statusText;
             });
