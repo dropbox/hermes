@@ -463,7 +463,7 @@ a {
     -webkit-border-radius: 5px;
     border-radius: 5px;
     cursor: pointer;
-    margin-bottom: 1px;
+    margin-bottom: 4px;
     padding: 2px 15px;
     transition: 0.15s ease-out all;
     -webkit-transition: 0.15s ease-out all;
@@ -476,6 +476,7 @@ a {
     -ms-transform: none;
     -o-transform: none;
     transform: none;
+    background: @unselected-color;
     &:hover {
       -webkit-box-shadow: 1px 1px 3px 0px @shadow-color;
       -moz-box-shadow: 1px 1px 3px 0px @shadow-color;
@@ -486,17 +487,41 @@ a {
       -o-transform: translate(-1px, -1px);
       transform: translate(-1px, -1px);
     }
-  }
-  .labor-entry.selected {
-    -moz-transition: 0.15s ease-in all;
-    -ms-transition: 0.15s ease-in all;
-    -o-transition: 0.15s ease-in all;
-    -webkit-transition: 0.15s ease-in all;
-    background: @selected-color;
-    transition: 0.15s ease-in all;
+    .details {
+      //background: @white;
+      //-moz-border-radius: 5px;
+      //-webkit-border-radius: 5px;
+      //border-radius: 5px;
+      //border: 1px solid @unselected-color;
+      //padding: 5px;
+      opacity: 0.5;
+      margin: 0 0 5px 0;
+      overflow: hidden;
+      ul {
+        -moz-border-radius: 5px;
+        -webkit-border-radius: 5px;
+        border-radius: 5px;
+        display: block;
+        margin: 0px;
+        padding: 0px;
+      }
+      li {
+        display: inline-block;
+        margin-right: 5px;
+        padding: 0;
+      }
+    }
+    &.selected {
+      -moz-transition: 0.15s ease-in all;
+      -ms-transition: 0.15s ease-in all;
+      -o-transition: 0.15s ease-in all;
+      -webkit-transition: 0.15s ease-in all;
+      background: @selected-color;
+      transition: 0.15s ease-in all;
+    }
   }
   .owner-group {
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     .type-group {
       //padding-bottom: 5px;
       //padding-left: 15px;

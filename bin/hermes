@@ -105,13 +105,17 @@ def request_post(path, json):
         )
 
     if (
-            response.status_code != requests.codes.created
+            response.status_code not in (
+                requests.codes.created, requests.codes.ok
+            )
             or not response.content
     ):
         try:
             data = response.json()["error"]["message"]
         except Exception:
-            data = "Received invalid response: {}".format(response.content)
+            data = "Received invalid response: {} {}".format(
+                response.status_code, response.content
+            )
         raise HermesException(
             "Error: {}".format(data)
         )
@@ -173,7 +177,7 @@ def ping_server(args):
     sys.exit(0)
 
 
-def print_labor(labor, fates):
+def print_labor(labor, fates, verbose=False, tags=None):
     """Print the details of a labor to standard out
 
     Args:
@@ -183,24 +187,33 @@ def print_labor(labor, fates):
     creation_time = parser.parse(labor["creationTime"])
     creation_time = creation_time.replace(tzinfo=tz.tzutc())
     creation_time = creation_time.astimezone(tz.tzlocal())
+
+    print "({}) {}:".format(
+        labor["id"],
+        labor["host"]["hostname"]
+    )
+
+    if tags:
+        print "\tTags: {}\n".format(textwrap.fill(
+            ", ".join(tags), width=30, subsequent_indent="\t  "
+        ))
+
+    if verbose:
+        print "\tCreated: {}".format(creation_time)
+
     if labor.get("targetTime", None):
         target_time = parser.parse(labor["targetTime"])
         target_time = target_time.replace(tzinfo=tz.tzutc())
         target_time = target_time.astimezone(tz.tzlocal())
-        target_time_str = "(due by {})".format(target_time)
-    else:
-        target_time_str = ""
+        print "\tDue by {}".format(target_time)
 
-    print "({}) {}: \n\tcreated on {} {} \n\tby event {} {}".format(
-        labor["id"],
-        labor["host"]["hostname"],
-        creation_time,
-        target_time_str,
-        labor["creationEvent"]["eventType"]["category"],
-        labor["creationEvent"]["eventType"]["state"]
-    )
+    if verbose:
+        print "\tCreated by: {} {}".format(
+            labor["creationEvent"]["eventType"]["category"],
+            labor["creationEvent"]["eventType"]["state"]
+        )
 
-    if labor["creationEvent"]["note"]:
+    if labor["creationEvent"]["note"] and verbose:
         print "\tNote: \"{}\"".format(labor["creationEvent"]["note"])
 
     if labor.get("questId", None):
@@ -494,16 +507,18 @@ def list_host_events(args):
 
 
 def list_host_labors(args):
-    logging.debug("list_host_labors(%s)", args.hostname)
+    logging.debug(
+        "list_host_labors(%s, %s, %s)", args.hostname, args.verbose, args.tags
+    )
 
     response = request_get(
-            "/api/v1/labors/"
-            "?open=true&expand=hosts&expand=eventtypes&expand=events"
-            "&expand=quests&limit={}&hostname={}".format(
-                args.limit,
-                args.hostname
-            )
+        "/api/v1/labors/"
+        "?open=true&expand=hosts&expand=eventtypes&expand=events"
+        "&expand=quests&limit={}&hostname={}".format(
+            args.limit,
+            args.hostname
         )
+    )
 
     labors = response.json()["labors"]
     total_labors = response.json()["totalLabors"]
@@ -511,11 +526,20 @@ def list_host_labors(args):
     response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
     fates = response.json()["fates"]
 
+    if args.tags:
+        json = {
+            "hostnames": [args.hostname],
+            "operation": "tags"
+        }
+
+        response = request_post("/api/v1/extquery", json)
+        tags = response.json()["results"][args.hostname]
+
     print "OPEN LABORS FOR {} ({} of {}):".format(
         args.hostname, len(labors), total_labors
     )
     for labor in labors:
-        print_labor(labor, fates)
+        print_labor(labor, fates, args.verbose, tags)
 
 
 def list_host_labors_monitoring(args):
@@ -610,9 +634,25 @@ def list_labors(args):
     response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
     fates = response.json()["fates"]
 
+    tags = None
+    if args.tags:
+        hostnames = []
+        for labor in labors:
+            hostnames.append(labor["host"]["hostname"])
+        json = {
+            "hostnames": hostnames,
+            "operation": "tags"
+        }
+
+        response = request_post("/api/v1/extquery", json)
+        tags = response.json()["results"]
+
     print "OPEN LABORS ({} of {}):".format(len(labors), total_labors)
     for labor in labors:
-        print_labor(labor, fates)
+        print_labor(
+            labor, fates, args.verbose,
+            tags[labor["host"]["hostname"]] if tags else None
+        )
 
 
 def create_event(args):
@@ -922,7 +962,7 @@ def parse_cli_args():
         "-s", "--server", dest="hermes_server"
     )
     parser.add_argument(
-        "-v", "--verbose", action="count", default=0,
+        "--debug", action="count", default=0,
         help="Increase logging verbosity."
     )
     parser.add_argument(
@@ -1038,6 +1078,14 @@ def parse_cli_args():
         "-l", "--limit", default=20, type=int,
         help="Limit the number of labors displayed"
     )
+    host_labors_parser.add_argument(
+        "-v", "--verbose", default=False, action="store_true",
+        help="Display verbose information"
+    )
+    host_labors_parser.add_argument(
+        "--tags", default=False, action="store_true",
+        help="Show host tags"
+    )
     host_labors_parser.set_defaults(func=list_host_labors)
 
     # Host monitoring plugin output
@@ -1063,6 +1111,14 @@ def parse_cli_args():
     labor_list_parser.add_argument(
         "--user", type=str,
         help="Query for hosts by user responsible"
+    )
+    labor_list_parser.add_argument(
+        "-v", "--verbose", default=False, action="store_true",
+        help="Display verbose information"
+    )
+    labor_list_parser.add_argument(
+        "--tags", default=False, action="store_true",
+        help="Show host tags"
     )
     labor_list_parser.set_defaults(func=list_labors)
 
