@@ -3,8 +3,10 @@ Project-wide utilities.
 """
 
 import logging
+import random
 import requests
 import smtplib
+import string
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -13,6 +15,19 @@ from .settings import settings
 
 
 log = logging.getLogger(__name__)
+
+
+def id_generator(size=6, chars=string.ascii_lowercase + string.digits):
+    """Generate a random ID of specified length
+
+    Args:
+        size: the length of the id to generate
+        chars: the characters to use
+
+    Returns:
+        string of random id generated
+    """
+    return ''.join(random.choice(chars) for _ in range(size))
 
 
 def slack_message(message):
