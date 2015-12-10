@@ -13,6 +13,7 @@ import time
 
 
 from .util import ApiHandler, PluginHelper
+from ..util import id_generator
 from .. import exc
 from ..models import Host, EventType, Event, Labor, Fate, Quest
 from ..settings import settings
@@ -124,6 +125,12 @@ class HostsHandler(ApiHandler):
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
+        log.info("HOSTS: Create {}".format(", ".join(
+            [
+                host["hostname"] for host in hostnames
+            ]
+        )))
+
         try:
             hosts = []
             for hostname in hostnames:
@@ -141,6 +148,8 @@ class HostsHandler(ApiHandler):
             self.created("/api/v1/hosts/{}".format(hosts[0]["hostname"]), json)
         else:
             self.created(data={"hosts": hosts, "totalHosts": len(hosts)})
+
+        log.info("HOST: Created {}".format(", ".join(hostnames)))
 
     def get(self):
         """**Get all Hosts**
@@ -378,6 +387,8 @@ class HostHandler(ApiHandler):
         :statuscode 404: The Host at hostname was not found.
         :statuscode 409: There was a conflict with another resource.
         """
+        log.info("HOS: Update {}".format(hostname))
+
         host = self.session.query(Host).filter_by(hostname=hostname).scalar()
         if not host:
             raise exc.NotFound("No such Host {} found".format(hostname))
@@ -394,6 +405,8 @@ class HostHandler(ApiHandler):
         json = host.to_dict(self.href_prefix)
 
         self.success(json)
+
+        log.info("HOST: Renamed {} to {}".format(hostname, new_hostname))
 
     def delete(self, hostname):
         """**Delete a Host**
@@ -534,6 +547,13 @@ class EventTypesHandler(ApiHandler):
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
+        log.info("EVENTTYPE: Creating {}".format(", ".join(
+            [
+                "{} {}".format(event_type['category'], event_type['state'])
+                for event_type in event_types
+            ]
+        )))
+
         try:
             created_types = []
             for x in range(0, len(event_types)):
@@ -566,6 +586,12 @@ class EventTypesHandler(ApiHandler):
                     "totalEventTypes": len(event_types)
                 }
             )
+
+        log.info("EVENTTYPE: Created {}".format(", ".join(
+            [
+                "{} {}".format(event_type['category'], event_type['state']) for event_type in event_types
+            ]
+        )))
 
     def get(self):
         """**Get all EventTypes**
@@ -773,6 +799,9 @@ class EventTypeHandler(ApiHandler):
         :statuscode 404: The EventType was not found.
         :statuscode 409: There was a conflict with another resource.
         """
+
+        log.info("EVENTTYPE: Updating {}".format(id))
+
         event_type = (
             self.session.query(EventType).filter_by(id=id).scalar()
         )
@@ -796,6 +825,8 @@ class EventTypeHandler(ApiHandler):
         json = event_type.to_dict(self.href_prefix)
 
         self.success(json)
+
+        log.info("EVENTTYPE: Updated {} with desc {}".format(id, description))
 
     def delete(self, id):
         """**Delete an EventType**
@@ -925,6 +956,13 @@ class EventsHandler(ApiHandler):
         :statuscode 409: There was a conflict with another resource.
         """
 
+        # we need a unique tx number so we can look these back up again
+        # as well as for logging
+        # FIXME: how can we guarantee uniqueness here?
+        tx = int(time.time() * 100000) + random.randrange(10000, 99999)
+
+        log.info("EVENTS [{}]: Creating events".format(tx))
+
         try:
             user = self.jbody["user"]
             if not EMAIL_REGEX.match(user):
@@ -959,6 +997,9 @@ class EventsHandler(ApiHandler):
             self.write_error(400, message="Bad event type")
             return
 
+        category = event_type.category
+        state = event_type.state
+
         hostnames = (
             [self.jbody.get("hostname", None)]
             if self.jbody.get("hostname", None) else []
@@ -967,17 +1008,38 @@ class EventsHandler(ApiHandler):
         if "hostnames" in self.jbody:
             hostnames.extend(self.jbody.get("hostnames"))
 
+        log.info(
+            "EVENTS [{}]: Will create event {} {}".format(
+                tx, category, state
+            )
+        )
+
+        log.info(
+            "EVENTS [{}]: Hostnames specified: {}".format(
+                tx, ", ".join(hostnames)
+            )
+        )
+
         # If a host query was specified, we need to talk to the external
         # query server to resolve this into a list of hostnames
         if "hostQuery" in self.jbody:
             query = self.jbody["hostQuery"]
+            log.info("EVENTS [{}]: Running query {}".format(tx, query))
             response = PluginHelper.request_get(params={"query": query})
             if response.json()["status"] == "ok":
                 hostnames.extend(response.json()["results"])
+                log.info(
+                    "EVENTS [{}]: Hostnames after query: {}".format(
+                        tx, ", ".join(hostnames)
+                    )
+                )
 
         # If a quest Id was given, look up the labors in that quest and
         # get all the hostnames for those labors.
         if "questId" in self.jbody:
+            log.info("EVENTS [{}]: Looking up quest {}".format(
+                tx, self.jbody["questId"])
+            )
             quest = self.session.query(Quest).filter_by(
                 id=self.jbody["questId"]
             ).scalar()
@@ -985,6 +1047,11 @@ class EventsHandler(ApiHandler):
                 raise exc.NotFound("No such Quest {} found".format(id))
             for labor in quest.labors:
                 hostnames.append(labor.host.hostname)
+                log.info(
+                    "EVENTS [{}]: Hostnames after quest expansion: {}".format(
+                        tx, ", ".join(hostnames)
+                    )
+                )
 
         # We need to create a list of hostnames that don't have a Host record
         new_hosts_needed = set(hostnames)
@@ -997,6 +1064,9 @@ class EventsHandler(ApiHandler):
 
         # if we need to create hosts, do them all at once
         if new_hosts_needed:
+            log.info("EVENTS [{}]: Creating hosts {}".format(
+                tx, ", ".join(new_hosts_needed)
+            ))
             Host.create_many(self.session, new_hosts_needed)
             hosts = (
                 self.session.query(Host).filter(
@@ -1009,11 +1079,10 @@ class EventsHandler(ApiHandler):
 
         try:
             if len(hosts) > 1:
-                # if we are supposed to create many events, we want to do them as a giant batch
+                # if we are supposed to create many events,
+                #  we want to do them as a giant batch
+                log.info("EVENTS [{}]: Creating multiple events".format(tx))
                 events_to_create = []
-                # we need a unique tx number so we can look these back up again
-                # FIXME: how can we guarantee uniqueness here?
-                tx = int(time.time() * 100000) + random.randrange(10000, 99999)
                 for host in hosts:
                     events_to_create.append({
                         "host_id": host.id,
@@ -1025,6 +1094,7 @@ class EventsHandler(ApiHandler):
                 Event.create_many(self.session, events_to_create, tx)
             else:
                 # if we are just creating one event, do it the simple way
+                log.info("EVENTS [{}]: Creating 1 event".format(tx))
                 event = Event.create(
                     self.session, hosts[0], user, event_type, note=note
                 )
@@ -1034,8 +1104,11 @@ class EventsHandler(ApiHandler):
         except exc.ValidationError as err:
             raise exc.BadRequest(err.message)
 
+        log.info("EVENTS [{}]: Flushing and committing".format(tx))
         self.session.flush()
+        log.info("EVENTS [{}]: Flushed".format(tx))
         self.session.commit()
+        log.info("EVENTS [{}]: Committed".format(tx))
 
         if len(hosts) == 1:
             json = event.to_dict(self.href_prefix)
@@ -1055,6 +1128,11 @@ class EventsHandler(ApiHandler):
                     "totalEvents": len(created_events)
                 }
             )
+
+        log.info("EVENTS [{}]: Created event {} {} for {}".format(
+            tx, category, state,
+            ", ".join(hostnames)
+        ))
 
     def get(self):
         """**Get all Events**
@@ -1269,6 +1347,14 @@ class FatesHandler(ApiHandler):
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
+        log.info(
+            "FATE: Create fate (event-type {}, follows {}, for creator {}, "
+            "for owner {}, desc {})".format(
+                creation_event_type_id, follows_id,
+                for_creator, for_owner, description
+            )
+        )
+
         creation_event_type = (
             self.session.query(EventType).get(creation_event_type_id)
         )
@@ -1295,6 +1381,15 @@ class FatesHandler(ApiHandler):
         json["href"] = "/api/v1/fates/{}".format(fate.id)
 
         self.created("/api/v1/fates/{}".format(fate.id), json)
+
+        log.info(
+            "FATE: Created fate {} (event-type {}, follows {}, "
+            "for creator {}, for owner {}, desc {})".format(
+                fate.id,
+                creation_event_type_id, follows_id,
+                for_creator, for_owner, description
+            )
+        )
 
     def get(self):
         """**Get all Fates**
@@ -1459,6 +1554,9 @@ class FateHandler(ApiHandler):
         :statuscode 404: The Fate was not found.
         :statuscode 409: There was a conflict with another resource.
         """
+
+        log.info("FATE: Update {}".format(id))
+
         fate = self.session.query(Fate).filter_by(id=id).scalar()
         if not fate:
             raise exc.NotFound("No such Fate {} found".format(id))
@@ -1825,6 +1923,9 @@ class LaborHandler(ApiHandler):
         :statuscode 404: The Labor was not found.
         :statuscode 409: There was a conflict with another resource.
         """
+
+        log.info("LABOR: Update {}".format(id))
+
         labor = self.session.query(Labor).filter_by(id=id).scalar()
         if not labor:
             raise exc.NotFound("No such Labor {} found".format(id))
@@ -1858,6 +1959,12 @@ class LaborHandler(ApiHandler):
         json = labor.to_dict(self.href_prefix)
 
         self.success(json)
+
+        log.info("LABOR: Updated {}: {} {}".format(
+            id,
+            "quest is now {}".format(quest_id) if quest_id else "",
+            "acked by user {}".format(ack_user) if ack_user else ""
+        ))
 
     def delete(self, id):
         """**Delete a Labor**
@@ -1924,7 +2031,10 @@ class QuestsHandler(ApiHandler):
         :statuscode 409: There was a conflict with another resource.
 
         """
-        log.info("Creating a new quest")
+
+        tx = id_generator()
+
+        log.info("QUEST [{}]: Creating a new quest", tx)
 
         try:
             fate_id = self.jbody["fateId"]
@@ -1952,6 +2062,12 @@ class QuestsHandler(ApiHandler):
         except ValueError as err:
             raise exc.BadRequest(err.message)
 
+        log.info(
+            "QUEST [{}]: {} creating quest with fate {} for hosts {}".format(
+                tx, creator, fate_id, ", ".join(hostnames)
+            )
+        )
+
         fate = (
             self.session.query(Fate).get(fate_id)
         )
@@ -1967,6 +2083,11 @@ class QuestsHandler(ApiHandler):
             response = PluginHelper.request_get(params={"query": query})
             if response.json()["status"] == "ok":
                 hostnames.extend(response.json()["results"])
+                log.info(
+                    "QUEST [{}]: Hostnames after query: {}".format(
+                        tx, ", ".join(hostnames)
+                    )
+                )
 
         # We need to create a list of hostnames that don't have a Host record
         new_hosts_needed = list(hostnames)
@@ -1985,7 +2106,7 @@ class QuestsHandler(ApiHandler):
                 ).all()
             )
 
-        log.info("Working with {} hosts".format(len(hosts)))
+        log.info("QUEST [{}]: Working with {} hosts".format(tx, len(hosts)))
 
         if len(hosts) == 0:
             raise exc.BadRequest("No hosts found with given list")
@@ -2010,11 +2131,11 @@ class QuestsHandler(ApiHandler):
              for labor in quest.get_open_labors()]
         )
 
-        log.info(
-            "Quest creation complete.  Created quest {}".format(quest.id)
-        )
-
         self.created("/api/v1/quests/{}".format(quest.id), json)
+
+        log.info(
+            "QUEST [{}]: Created quest {}".format(tx, quest.id)
+        )
 
     def get(self):
         """**Get all Quests**
@@ -2243,6 +2364,9 @@ class QuestHandler(ApiHandler):
         :statuscode 404: The Quest was not found.
         :statuscode 409: There was a conflict with another resource.
         """
+
+        log.info("QUEST: Updating {}".format(id))
+
         quest = self.session.query(Quest).filter_by(id=id).scalar()
 
         if not quest:
@@ -2277,6 +2401,12 @@ class QuestHandler(ApiHandler):
         json = quest.to_dict(self.href_prefix)
 
         self.success(json)
+
+        log.info("QUEST [{}]: Update {}: {} {}".format(
+            id,
+            "new description {}".format(new_desc) if new_desc else "",
+            "new creator {}".format(new_creator) if new_creator else ""
+        ))
 
     def delete(self, id):
         """**Delete a Quest**
