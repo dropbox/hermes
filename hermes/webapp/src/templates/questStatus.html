@@ -184,6 +184,34 @@
                             </span>
                         </div>
                         <!-- LIST OF LABORS IN SELECTED QUEST -->
+                        <!-- tools on top -->
+                        <div class="quest-actions">
+                            <button style="float: left" ng-click="qc.showHostTags = !qc.showHostTags">
+                                {{qc.showHostTags ? "Hide" : "Show"}} Tags
+                            </button>
+                            <span style="float: left">&nbsp;</span>
+                            <button style="float:left" ng-click="qc.selectAll()">
+                                Select All
+                            </button>
+                            <button style="float:left" ng-click="qc.deselectAll()">
+                                Deselect All
+                            </button>
+                            <span>
+                                Throw <select ng-disabled="qc.selectedLabors.length == 0"
+                                              ng-model="qc.throwableTypesSelection"
+                                              ng-model-options="qc.selectOptions"
+                                              ng-options="optValue.description for optValue in qc.throwableTypes">
+                                </select> for {{qc.selectedLabors.length}} selected hosts.
+                            </span>
+                            <button class="create-button be-positive"
+                                    ng-click="qc.createEventsModal = true"
+                                    ng-disabled="qc.selectedLabors.length == 0">
+                                <img ng-if="qc.createInProgress"
+                                     src="/img/loading_15.gif"
+                                     style="margin: 5px; float: left"/>
+                                Throw Events
+                            </button>
+                        </div>
                         <div class="quest-labors">
                             <div class="header row">
                                 <div class="col-md-3">
@@ -216,7 +244,7 @@
                                                     <span ng-if="$parent.$first && $first">
                                                         <a href="mailto:{{owner}}{{owner.indexOf('@') == -1 ? '@' + qc.domain : ''}}"
                                                            target="_blank">
-                                                            <span class="glyphicon glyphicon-envelope btn-glyph"></span>
+                                                            <span style="padding: 0" class="glyphicon glyphicon-envelope btn-glyph"></span>
                                                         </a>
                                                     </span>
                                                 </div>
@@ -232,68 +260,58 @@
                                              ng-click="qc.toggleSelect(host['hostname'])"
                                                 >
                                             <div class="row">
-                                                <div class="col-md-3">{{host['hostname']}}
+                                                <div class="col-md-3">
+                                                    <strong>{{host['hostname']}}</strong>
                                                 </div>
                                                 <div class="col-md-4">
                                                     {{qc.hostOwners[host['hostname']]}}
                                                 </div>
-                                                <div class="col-md-5">
-                                                    {{laborType}}
+                                                <div class="col-md-5">{{laborType}}</div>
+                                            </div>
+                                            <div ng-if="qc.showHostTags" class="row">
+                                                <div class="col-md-12">
+                                                    <div ng-if="!qc.hostTags || qc.hostTags[host['hostname']].length != 0" class="details">
+                                                        <img ng-if="!qc.hostTags" src="/img/loading_15.gif" alt="Tag information loading" />
+                                                        <ul ng-if="qc.hostTags">
+                                                            <li><strong>Tags:</strong></li>
+                                                            <li ng-repeat="tag in qc.hostTags[host['hostname']] track by $index">
+                                                                {{tag}}
+                                                            </li>
+                                                        </ul>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-1">
                                             <a ng-href="/v1/labors/{{host['laborId']}}?byQuery=owner={{qc.hostOwners[host['hostname']] | encode}}">
-                                                <span class="glyphicon glyphicon-new-window btn-glyph"></span>
+                                                <span style="padding: 0" class="glyphicon glyphicon-new-window btn-glyph"></span>
                                             </a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div ng-if="qc.selectedQuest['creator'] == qc.user" class="quest-actions">
-                            <button style="float:left"
-                                    ng-click="qc.selectAll()">
+                        <!-- tools on bottom -->
+                        <div class="quest-actions" ng-if="qc.hostnames.length > 10">
+                            <button style="float: left" ng-click="qc.showHostTags = !qc.showHostTags">
+                                {{qc.showHostTags ? "Hide" : "Show"}} Tags
+                            </button>
+                            <span style="float: left">&nbsp;</span>
+                            <button style="float:left" ng-click="qc.selectAll()">
                                 Select All
                             </button>
-                            <button style="float:left"
-                                    ng-click="qc.deselectAll()">
+                            <button style="float:left" ng-click="qc.deselectAll()">
                                 Deselect All
                             </button>
                             <span>
-                            Throw <select ng-disabled="qc.selectedLabors.length == 0"
-                                          ng-model="qc.creatorThrowableTypesSelection"
-                                          ng-model-options="qc.selectOptions"
-                                          ng-options="optValue.description for optValue in qc.creatorThrowableTypes">
-                            </select> for {{qc.selectedLabors.length}} selected hosts.
+                                Throw <select ng-disabled="qc.selectedLabors.length == 0"
+                                              ng-model="qc.throwableTypesSelection"
+                                              ng-model-options="qc.selectOptions"
+                                              ng-options="optValue.description for optValue in qc.throwableTypes">
+                                </select> for {{qc.selectedLabors.length}} selected hosts.
                             </span>
                             <button class="create-button be-positive"
-                                    ng-click="qc.createEventsModal = 'creator'"
-                                    ng-disabled="qc.selectedLabors.length == 0">
-                                <img ng-if="qc.createInProgress"
-                                     src="/img/loading_15.gif"
-                                     style="margin: 5px; float: left"/>
-                                Throw Events
-                            </button>
-                        </div>
-                        <div ng-if="qc.selectedQuest['creator'] != qc.user" class="quest-actions">
-                            <button style="float:left"
-                                    ng-click="qc.selectAll()">
-                                Select All
-                            </button>
-                            <button style="float:left"
-                                    ng-click="qc.deselectAll()">
-                                Deselect All
-                            </button>
-                            <span>
-                            Throw <select ng-disabled="qc.selectedLabors.length == 0"
-                                          ng-model="qc.userThrowableTypesSelection"
-                                          ng-model-options="qc.selectOptions"
-                                          ng-options="optValue.description for optValue in qc.userThrowableTypes">
-                            </select> for {{qc.selectedLabors.length}} selected hosts.
-                            </span>
-                            <button class="create-button be-positive"
-                                    ng-click="qc.createEventsModal = 'user'"
+                                    ng-click="qc.createEventsModal = true"
                                     ng-disabled="qc.selectedLabors.length == 0">
                                 <img ng-if="qc.createInProgress"
                                      src="/img/loading_15.gif"
@@ -306,39 +324,19 @@
             </div>
         </div>
     </div>
-    <div ng-cloak class="modal-wrapper fade" ng-if="qc.createEventsModal == 'creator'">
+    <div ng-cloak class="modal-wrapper fade" ng-if="qc.createEventsModal">
         <div id="confirmModal" class="modal-dialog" role="dialog">
             <div class="dialog-callout">
-                "{{qc.selectedCreatorType.description}}"
+                "{{qc.selectedType.description}}"
             </div>
             <div class="dialog-text">
-                Are you sure you want to create a <code>{{qc.selectedCreatorType.category}}
-                {{qc.selectedCreatorType.state}}</code> event for
+                Are you sure you want to create a <code>{{qc.selectedType.category}}
+                {{qc.selectedType.state}}</code> event for
                 {{qc.selectedLabors.length}} servers?
             </div>
             <div class="dialog-buttons">
                 <button style="float: none" class="big-button be-positive"
-                        ng-click="qc.createEvents('creator')">Yes
-                </button>
-                <button style="float: none" class="big-button"
-                        ng-click="qc.createEventsModal = false">No
-                </button>
-            </div>
-        </div>
-    </div>
-    <div ng-cloak class="modal-wrapper fade" ng-if="qc.createEventsModal == 'user'">
-        <div id="confirmModal2" class="modal-dialog" role="dialog">
-            <div class="dialog-callout">
-                "{{qc.selectedUserType.description}}"
-            </div>
-            <div class="dialog-text">
-                Are you sure you want to create a <code>{{qc.selectedUserType.category}}
-                {{qc.selectedUserType.state}}</code> event for
-                {{qc.selectedLabors.length}} servers?
-            </div>
-            <div class="dialog-buttons">
-                <button style="float: none" class="big-button be-positive"
-                        ng-click="qc.createEvents('user')">Yes
+                        ng-click="qc.createEvents()">Yes
                 </button>
                 <button style="float: none" class="big-button"
                         ng-click="qc.createEventsModal = false">No

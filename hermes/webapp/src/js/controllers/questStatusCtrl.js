@@ -20,11 +20,14 @@
         vm.selectedQuestCompletedLabors = 0;
         vm.labors = null;
         vm.selectedLabors = [];
+        vm.hostnames = [];
+        vm.hostTags = null;
+        vm.showHostTags = false;
         vm.countByTypes = null;
-        vm.selectedCreatorType = null;
-        vm.selectedUserType = null;
         vm.creatorThrowableTypes = null;
         vm.userThrowableTypes = null;
+        vm.selectedType = null;
+        vm.throwableTypes = null;
         vm.createEventsModal = false;
         vm.createInProgress = false;
         vm.limit = 10;
@@ -41,8 +44,7 @@
         vm.filterOwnChanged = filterOwnChanged;
         vm.selectAll = selectAll;
         vm.deselectAll = deselectAll;
-        vm.creatorThrowableTypesSelection = creatorThrowableTypesSelection;
-        vm.userThrowableTypesSelection = userThrowableTypesSelection;
+        vm.throwableTypesSelection = throwableTypesSelection;
         vm.createEvents = createEvents;
 
         vm.selectOptions = {
@@ -85,12 +87,10 @@
 
         hermesService.getCreatorThrowableEventsTypes().then(function(types) {
             vm.creatorThrowableTypes = types;
-            vm.creatorThrowableTypesSelection(vm.creatorThrowableTypes[0])
         });
 
         hermesService.getUserThrowableEventTypes().then(function(types) {
             vm.userThrowableTypes = types;
-            vm.userThrowableTypesSelection(vm.userThrowableTypes);
         });
 
 
@@ -289,6 +289,16 @@
             vm.selectedLabors = [];
             vm.countByTypes = null;
 
+            // change the modal type and throwable events type
+            if (vm.selectedQuest['creator'] == vm.user) {
+                vm.throwableTypes = vm.creatorThrowableTypes;
+            } else {
+                vm.throwableTypes = vm.userThrowableTypes;
+            }
+            if (!vm.selectedType || vm.throwableTypes.indexOf(vm.selectedType) == -1) {
+                vm.selectedType = vm.throwableTypes[0]
+            }
+
             // Scroll back to the top of the page
             var detailsDiv = document.getElementById('quest-details');
             smoothScroll(detailsDiv, {duration: 700, easing: 'easeInOutQuad', offset: 100});
@@ -298,13 +308,13 @@
             // NOTE: this will have duplicate entries for hostname because we
             // are using a list that has both open and closed labors.  But
             // the external querier should clean that up for us
-            var hostnames = [];
+            vm.hostnames = [];
             for (var idx in quest['labors']) {
                 var hostname = quest['labors'][idx]['host']['hostname'];
-                hostnames.push(hostname);
+                vm.hostnames.push(hostname);
             }
 
-            var get1 = hermesService.getOwnerInformation(hostnames);
+            var get1 = hermesService.getOwnerInformation(vm.hostnames);
             var get2 = hermesService.getQuestDetails(quest.id);
 
             $q.all([
@@ -316,6 +326,14 @@
 
                 $location.update_path('/v1/quests/' + quest.id, false);
                 analyzeLabors(data[0], data[1]);
+            });
+
+            // get the host tags just in case the user wants to display them
+            hermesService.getHostTags(vm.hostnames).then(function(data) {
+                console.log(data);
+                vm.hostTags = data;
+            }).catch(function(error){
+                vm.errorMessage = "Could not load host tags: " + error.statusText;
             });
         }
 
@@ -360,6 +378,7 @@
                 var creator = questData['creator'];
                 var forOwner = laborsUnique[idx]['forOwner'];
                 var forCreator = laborsUnique[idx]['forCreator'];
+
 
                 if (forOwner && !sortedLabors[owner]) {
                     sortedLabors[owner] = {};
@@ -501,8 +520,8 @@
             for (var idx in vm.labors) {
                 for (var idy in vm.labors[idx]) {
                     for (var idz in vm.labors[idx][idy]["hosts"]) {
-                        if (vm.selectedLabors.indexOf(vm.labors[idx][idy]["hosts"][idz]) == -1) {
-                            vm.selectedLabors.push(vm.labors[idx][idy]["hosts"][idz]);
+                        if (vm.selectedLabors.indexOf(vm.labors[idx][idy]["hosts"][idz]["hostname"]) == -1) {
+                            vm.selectedLabors.push(vm.labors[idx][idy]["hosts"][idz]["hostname"]);
                         }
                     }
                 }
@@ -520,22 +539,11 @@
         /**
          * The getter/setter for event types
          */
-        function creatorThrowableTypesSelection(selection) {
+        function throwableTypesSelection(selection) {
             if (angular.isDefined(selection)) {
-                vm.selectedCreatorType = selection;
+                vm.selectedType = selection;
             } else {
-                return vm.selectedCreatorType;
-            }
-        }
-
-        /**
-         * The getter/setter for event types
-         */
-        function userThrowableTypesSelection(selection) {
-            if (angular.isDefined(selection)) {
-                vm.selectedUserType = selection;
-            } else {
-                return vm.selectedUserType;
+                return vm.selectedType;
             }
         }
 
@@ -553,15 +561,8 @@
                 return;
             }
 
-            var typeToThrow;
-            if (type == "creator") {
-                typeToThrow = vm.selectedCreatorType;
-            } else {
-                typeToThrow = vm.selectedUserType;
-            }
-
             vm.result = hermesService.createEvents(
-                vm.user, vm.selectedLabors, typeToThrow,
+                vm.user, vm.selectedLabors, vm.selectedType,
                 "Created by " + vm.user + " via Web UI."
             )
                 .then(function(response) {
