@@ -1243,7 +1243,7 @@ def main():
     if args.hermes_server:
         settings.hermes_server = args.hermes_server
 
-    if args.verbose:
+    if args.debug:
         logging.basicConfig(level=logging.DEBUG, format=settings.log_format)
     elif args.quiet:
         logging.basicConfig(level=logging.ERROR, format=settings.log_format)
