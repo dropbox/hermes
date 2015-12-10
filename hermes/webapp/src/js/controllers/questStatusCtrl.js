@@ -278,8 +278,6 @@
 
         function newQuestSelection(quest) {
             vm.errorMessage = null;
-            var detailsDiv = document.getElementById('quest-details');
-            smoothScroll(detailsDiv, {duration: 700, easing: 'easeInOutQuad', offset: 100});
             vm.selectedQuest = quest;
             vm.selectedQuestDetails = null;
             vm.selectedQuestUniqueLabors = 0;
@@ -290,6 +288,10 @@
             vm.labors = null;
             vm.selectedLabors = [];
             vm.countByTypes = null;
+
+            // Scroll back to the top of the page
+            var detailsDiv = document.getElementById('quest-details');
+            smoothScroll(detailsDiv, {duration: 700, easing: 'easeInOutQuad', offset: 100});
 
             // make an array of all the hostnames, and have the hermes service
             // give us back a hostname to owner mapping
@@ -367,7 +369,7 @@
                     sortedLabors[creator] = {};
                 }
 
-                // if this labor is completed, we will file it by the complete event type
+                // if this labor is completed, we will file it by the completed event type
                 if (laborsUnique[idx]['completionEvent']) {
                     var key = laborsUnique[idx]['completionEvent']['eventType']['description'];
                     // update the count of labors by type
@@ -378,12 +380,20 @@
                         if (sortedLabors[owner][key]) {
                             sortedLabors[owner][key]['count']++;
                             sortedLabors[owner][key]['hosts'].push(
-                                laborsUnique[idx]['host']['hostname']
+                                {
+                                    'hostname': laborsUnique[idx]['host']['hostname'],
+                                    'laborId': laborsUnique[idx]['id']
+                                }
                             )
                         } else {
                             sortedLabors[owner][key] = {
                                 'count': 1,
-                                'hosts': [laborsUnique[idx]['host']['hostname']]
+                                'hosts': [
+                                    {
+                                        'hostname': laborsUnique[idx]['host']['hostname'],
+                                        'laborId': laborsUnique[idx]['id']
+                                    }
+                                ]
                             }
                         }
                     }
@@ -393,12 +403,20 @@
                         if (sortedLabors[creator][key]) {
                             sortedLabors[creator][key]['count']++;
                             sortedLabors[creator][key]['hosts'].push(
-                                laborsUnique[idx]['host']['hostname']
+                                {
+                                    'hostname': laborsUnique[idx]['host']['hostname'],
+                                    'laborId': laborsUnique[idx]['id']
+                                }
                             )
                         } else {
                             sortedLabors[creator][key] = {
                                 'count': 1,
-                                'hosts': [laborsUnique[idx]['host']['hostname']]
+                                'hosts': [
+                                    {
+                                        'hostname': laborsUnique[idx]['host']['hostname'],
+                                        'laborId': laborsUnique[idx]['id']
+                                    }
+                                ]
                             }
                         }
                     }
@@ -416,12 +434,20 @@
                         if (sortedLabors[owner][key]) {
                             sortedLabors[owner][key]['count']++;
                             sortedLabors[owner][key]['hosts'].push(
-                                laborsUnique[idx]['host']['hostname']
+                                {
+                                    'hostname': laborsUnique[idx]['host']['hostname'],
+                                    'laborId': laborsUnique[idx]['id']
+                                }
                             )
                         } else {
                             sortedLabors[owner][key] = {
                                 'count': 1,
-                                'hosts': [laborsUnique[idx]['host']['hostname']]
+                                'hosts': [
+                                   {
+                                        'hostname': laborsUnique[idx]['host']['hostname'],
+                                        'laborId': laborsUnique[idx]['id']
+                                    }
+                                ]
                             }
                         }
                     }
@@ -431,12 +457,20 @@
                         if (sortedLabors[creator][key]) {
                             sortedLabors[creator][key]['count']++;
                             sortedLabors[creator][key]['hosts'].push(
-                                laborsUnique[idx]['host']['hostname']
+                                {
+                                    'hostname': laborsUnique[idx]['host']['hostname'],
+                                    'laborId': laborsUnique[idx]['id']
+                                }
                             )
                         } else {
                             sortedLabors[creator][key] = {
                                 'count': 1,
-                                'hosts': [laborsUnique[idx]['host']['hostname']]
+                                'hosts': [
+                                    {
+                                        'hostname': laborsUnique[idx]['host']['hostname'],
+                                        'laborId': laborsUnique[idx]['id']
+                                    }
+                                ]
                             }
                         }
                     }

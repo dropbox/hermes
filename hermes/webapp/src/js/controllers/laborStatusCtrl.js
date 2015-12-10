@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    function LaborStatusCtrl(hermesService, $q, $routeParams, $location, $cookies) {
+    function LaborStatusCtrl(hermesService, $q, $routeParams, $location, $cookies, smoothScroll) {
         var vm = this;
 
         vm.errorMessage = null;
@@ -302,6 +302,17 @@
                     }
                 }
 
+                // finally, if we did request a labor, let's scroll to it
+                if ($routeParams.laborId) {
+                    setTimeout(function() {
+                        var laborDiv = document.getElementById("l" + $routeParams.laborId);
+                        smoothScroll(laborDiv, {
+                            duration: 700,
+                            easing: 'easeInOutQuad',
+                            offset: 100
+                        });
+                    }, 100);
+                }
                 getHostTags();
             }).catch(function(error) {
                 vm.errorMessage = "Could not load open labors!  Please try again later.";
@@ -436,6 +447,7 @@
         '$q',
         '$routeParams',
         '$location',
-        '$cookies'
+        '$cookies',
+        'smoothScroll'
     ];
 })();

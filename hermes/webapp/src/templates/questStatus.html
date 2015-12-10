@@ -1,7 +1,9 @@
 <div ng-controller="QuestStatusCtrl as qc">
     <div class="row">
-        <div class="col-md-3 quest-list">
-            <div class="quest-list-filter">
+        <!-- SIDE BAR-->
+        <div class="col-md-3 sidebar">
+            <!-- LIST FILTERING -->
+            <div class="sidebar-filter">
                 <div>
                     <button class="big-wide-button be-positive"
                             style="margin-bottom: 10px;"
@@ -94,13 +96,15 @@
                 <div ng-if="qc.errorMessage" class="error-message"
                      ng-bind="qc.errorMessage"></div>
             </div>
+            <!-- LOADING INDICATOR -->
             <div class="quest-list-entry selected"
                  ng-if="!qc.selectedQuest && !qc.errorMessage">
                 <div>
                     <img src="/img/loading.gif"/>
                 </div>
             </div>
-            <div class="overviews">
+            <!-- LIST OF QUESTS WITH OVERVIEWS -->
+            <div class="quest-list">
                 <div class="quest-list-entry"
                      ng-repeat="quest in qc.questData | limitTo:qc.limit:qc.offset track by quest.id"
                      ng-class="[(qc.selectedQuest.id == quest.id) ? 'selected': '', quest.overDue ? 'overdue': '']"
@@ -118,7 +122,8 @@
                     </div>
                 </div>
             </div>
-            <div class="quest-list-filter" style="border: none; -webkit-border-radius: 0px 0px 5px 5px;-moz-border-radius: 0px 0px 5px 5px;border-radius: 0px 0px 5px 5px;">
+            <!-- BOTTOM OF LIST PAGENATOR -->
+            <div class="sidebar-filter" style="border: none; -webkit-border-radius: 0px 0px 5px 5px;-moz-border-radius: 0px 0px 5px 5px;border-radius: 0px 0px 5px 5px;">
                 <div style="padding: 5px 0px 5px 0px">
                     <label>
                         Limit:
@@ -149,9 +154,11 @@
                 </div>
             </div>
         </div>
+        <!-- SELECTED QUEST DETAILS -->
         <div class="col-md-9">
             <div class="row" style="margin-left: 0px">
                 <div id="quest-details" class="col-md-12">
+                    <!-- LOADING INDICATOR -->
                     <div ng-if="!qc.selectedQuestDetails && !qc.errorMessage"
                          style="padding: 10px;">
                         <img src="/img/loading.gif"/>
@@ -176,50 +183,69 @@
                                 {{qc.selectedQuestCompletedLabors}} labors completed.
                             </span>
                         </div>
+                        <!-- LIST OF LABORS IN SELECTED QUEST -->
                         <div class="quest-labors">
                             <div class="header row">
-                                <div class="col-md-1"></div>
-                                <div class="col-md-11 labor-entry row">
-                                    <div class="col-md-3">Labor Owner</div>
-                                    <div class="col-md-2">Host</div>
-                                    <div class="col-md-3">Host Owner</div>
-                                    <div class="col-md-4">Labor</div>
+                                <div class="col-md-3">
+                                    <div class="row">
+                                        <div class="col-md-3"></div>
+                                        <div class="col-md-9">Labor Owner</div>
+                                    </div>
                                 </div>
+                                <div class="col-md-8">
+                                    <div class="row">
+                                        <div class="col-md-3">Host</div>
+                                        <div class="col-md-4">Host Owner</div>
+                                        <div class="col-md-5">Labor</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-1"></div>
                             </div>
+                            <!-- grouping of all machines by an owner -->
                             <div class="owner-group"
                                  ng-repeat="(owner, labors) in qc.labors">
+                                <!-- subgrouping by labor type -->
                                 <div class="type-group"
                                      ng-repeat="(laborType, details) in labors">
+                                    <!-- an individual row for the owner-->
                                     <div class="row"
                                          ng-repeat="host in details.hosts track by $index">
-                                        <div class="col-md-1">
-                                            <span ng-if="$parent.$first && $first">
-                                                <a href="mailto:{{owner}}{{
-                                                    owner.indexOf('@') == -1 ? '@' + qc.domain : ''
-                                                }}"
-                                                   target="_blank">
-                                                    <img src="/img/send_email_15.png"
-                                                         alt="Send email to {{owner}}"/>
-                                                </a>
-                                            </span>
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <span ng-if="$parent.$first && $first">
+                                                        <a href="mailto:{{owner}}{{owner.indexOf('@') == -1 ? '@' + qc.domain : ''}}"
+                                                           target="_blank">
+                                                            <span class="glyphicon glyphicon-envelope btn-glyph"></span>
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                                <div class="col-md-9">
+                                                    <span ng-if="$parent.$first && $first">
+                                                        {{owner}}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-md-11 labor-entry row"
-                                             ng-class="qc.selectedLabors.indexOf(host) != -1 ? 'selected': ''"
-                                             ng-click="qc.toggleSelect(host)"
+                                        <div class="col-md-8 labor-entry"
+                                             ng-class="qc.selectedLabors.indexOf(host['hostname']) != -1 ? 'selected': ''"
+                                             ng-click="qc.toggleSelect(host['hostname'])"
                                                 >
-                                            <div class="col-md-3">
-                                                <span ng-if="$parent.$first && $first">
-                                                    {{owner}}
-                                                </span>
+                                            <div class="row">
+                                                <div class="col-md-3">{{host['hostname']}}
+                                                </div>
+                                                <div class="col-md-4">
+                                                    {{qc.hostOwners[host['hostname']]}}
+                                                </div>
+                                                <div class="col-md-5">
+                                                    {{laborType}}
+                                                </div>
                                             </div>
-                                            <div class="col-md-2">{{host}}
-                                            </div>
-                                            <div class="col-md-3">
-                                                {{qc.hostOwners[host]}}
-                                            </div>
-                                            <div class="col-md-4">
-                                                {{laborType}}
-                                            </div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <a ng-href="/v1/labors/{{host['laborId']}}?byQuery=owner={{qc.hostOwners[host['hostname']] | encode}}">
+                                                <span class="glyphicon glyphicon-new-window btn-glyph"></span>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
