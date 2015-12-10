@@ -65,9 +65,9 @@ def request_get(path):
         if response.status_code < 500:
             break
 
-    if response.status_code == requests.codes.not_found:
-        raise HermesNotFound("{} returned 404".format(
-            settings.hermes_server + path)
+    if 400 <= response.status_code < 500:
+        raise HermesNotFound("{} returned {}".format(
+            settings.hermes_server + path, response.status_code)
         )
 
     if response.status_code != requests.codes.ok or not response.content:
@@ -77,7 +77,7 @@ def request_get(path):
             data = "Received invalid response: {}".format(response.content)
 
         raise HermesException(
-            "Error: {}".format(data)
+            "Error: {} {} {}".format(response.status_code, requests.codes.ok, data)
         )
 
     return response
@@ -556,18 +556,18 @@ def list_host_labors_monitoring(args):
                 if time_left.days <= 5:
                     critical = True
 
-    except HermesNotFound as exc:
+    except HermesNotFound:
+        # if the error was that the hostname wasn't found, just return
+        # an empty list because hermes doesn't know about this host and
+        # so we can assume it has no open labors
+        labors = []
+
+    except HermesException as exc:
         # FIXME -- add error codes to Hermes API and test for that
-        if exc.message.startswith("Error: No host"):
-            # if the error was that the hostname wasn't found, just return
-            # an empty list because hermes doesn't know about this host and
-            # so we can assume it has no open labors
-            labors = []
-        else:
-            print "UNKNOWN: 404 querying Hermes returned an exception"
-            print ""
-            traceback.print_exc(file=sys.stdout)
-            sys.exit(3)
+        print "UNKNOWN: Hermes returned an exception"
+        print ""
+        traceback.print_exc(file=sys.stdout)
+        sys.exit(3)
 
     response = request_get("/api/v1/fates?limit=all&expand=eventtypes")
     fates = response.json()["fates"]
