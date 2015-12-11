@@ -3,9 +3,6 @@
 import argparse
 import logging
 import os
-import sys
-from threading import Thread
-from time import sleep
 import tornado.ioloop
 import tornado.httpserver
 import tornado.web
@@ -72,10 +69,10 @@ def main():
     }
 
     # load and register any hooks we have
-    hooks = get_hooks([settings.plugin_dir])
-    for hook in hooks:
-        logging.debug("registering hook {}".format(hook))
-        models.register_hook(hook)
+    # hooks = get_hooks([settings.plugin_dir])
+    # for hook in hooks:
+    #     logging.debug("registering hook {}".format(hook))
+    #     models.register_hook(hook)
 
     my_settings = {
         "db_uri": settings.database,
@@ -85,6 +82,8 @@ def main():
     }
 
     application = Application(my_settings=my_settings, **tornado_settings)
+
+    logging.info("HERMES SERVER v{}".format(version.__version__))
 
     # If Sentry DSN is set, try to import raven
     if settings.sentry_dsn:

@@ -251,7 +251,7 @@ def list_event_types(args):
         if len(str(event_type["id"])) > max_length:
             max_length = len(str(event_type["id"]))
 
-    print"{}{}{}{}".format(
+    print "{}{}{}{}".format(
         str.ljust("ID", max_length + 4),
         str.ljust("CATEGORY", 20),
         str.ljust("STATE", 20),

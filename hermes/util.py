@@ -61,7 +61,7 @@ def slack_message(message):
         log.warn("Error writing to Slack: {}".format(exc.message))
 
 
-def email_message(recipients, subject, message, html_message=None):
+def email_message(recipients, subject, message, html_message=None, cc=None):
     """Email a message to a user.
 
     Args:
@@ -79,6 +79,38 @@ def email_message(recipients, subject, message, html_message=None):
     else:
         extra_recipients = [settings.email_always_copy]
 
+    if cc and isinstance(cc, basestring):
+        extra_recipients.append(cc)
+    elif cc:
+        extra_recipients.extend(cc)
+
+    # If this is the dev environment, we need to only send to the dev recipient
+    # and put a tag explaining what would have happened
+
+    if settings.environment == "dev":
+        recipients_statement = "To: {}   CC: {}\n".format(
+            recipients, extra_recipients
+        )
+        subject = "[DEV] {}".format(subject)
+        message = (
+            "[DEV]: Sent to {}\nOriginally addressed as: {}\n\n{}".format(
+                settings.dev_email_recipient,
+                recipients_statement,
+                message
+            )
+        )
+        if html_message:
+            html_message = (
+                "<p><strong>DEV:</strong> Sent to {}<br />"
+                "Originally addressed as: {}<br/></p>{}".format(
+                    settings.dev_email_recipient,
+                    recipients_statement,
+                    html_message
+                )
+            )
+        recipients = [settings.dev_email_recipient]
+        extra_recipients = []
+
     part1 = MIMEText(message, 'plain')
     if html_message:
         part2 = MIMEText(html_message, 'html')
@@ -95,8 +127,13 @@ def email_message(recipients, subject, message, html_message=None):
     msg["Subject"] = subject
     msg["From"] = settings.email_sender_address
     msg["To"] = ", ".join(recipients)
-    if extra_recipients:
-        msg["Cc"] = ", ".join(extra_recipients)
+    msg["Cc"] = ", ".join(extra_recipients)
+
+    logging.debug("Sending email: From {}, To {}, Msg: {}".format(
+        settings.email_sender_address,
+        recipients + extra_recipients,
+        msg.as_string()
+    ))
 
     try:
         smtp = smtplib.SMTP("localhost")
@@ -108,3 +145,36 @@ def email_message(recipients, subject, message, html_message=None):
         smtp.quit()
     except Exception as exc:
         log.warn("Error sending email: {}".format(exc.message))
+
+
+class PluginHelper(object):
+    @classmethod
+    def request_get(cls, path="", params={}):
+        """Make an HTTP GET request for the given path
+
+        Args:
+            path: the full path to the resource
+            params: the query parameters to send
+        Returns:
+            the http response
+        """
+        response = requests.get(settings.query_server + path, params=params)
+
+        return response
+
+    @classmethod
+    def request_post(cls, path="", params={}, json_body={}):
+        """Make an HTTP POST request for the given path
+
+        Args:
+            path: the full path to the resource
+            params: the query params to send
+            json_body: the body of the message in JSON format
+        Returns:
+            the http response
+        """
+        response = requests.post(
+            settings.query_server + path, params=params, json=json_body
+        )
+
+        return response

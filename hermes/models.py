@@ -5,6 +5,7 @@ import functools
 import logging
 import textwrap
 
+from requests.exceptions import HTTPError
 from sqlalchemy import create_engine, or_, union_all, desc, and_
 from sqlalchemy.event import listen
 from sqlalchemy.exc import IntegrityError
@@ -17,7 +18,7 @@ from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.types import Integer, String, Boolean, BigInteger
 from sqlalchemy.types import DateTime
 
-from .util import slack_message, email_message
+from .util import slack_message, email_message, PluginHelper
 from .settings import settings
 import exc
 
@@ -1232,10 +1233,49 @@ class Quest(Model):
                 len(self.labors)
             )
 
+            # Get all the hosts that were in this labor
+            all_hosts = []
+            for labor in self.labors:
+                all_hosts.append(labor.host.hostname)
+            hosts = set(all_hosts)
+            hostnames = list(hosts)
+
+            # Now, look up the owners of those hosts
+            owners = []
+            try:
+                all_owners = []
+                log.info("Looking up participants {}".format(", ".join(hostnames)))
+                response = PluginHelper.request_post(
+                    json_body={"hostnames": hostnames}
+                )
+                results = response.json()['results']
+                for host in hostnames:
+                    all_owners.append(results[host])
+                owners = list(set(all_owners))
+            except HTTPError:
+                log.error(
+                    "Quest {} could not load participants "
+                    "to email about closure: {}".format(
+                        self.id, response.status_code
+                    )
+                )
+            except ValueError:
+                log.error(
+                    "Quest {} could not load participants b/c of JSON error"
+                    .format(self.id)
+                )
+            except Exception:
+                log.error(
+                    "Quest {} could not load participants "
+                    "b/c something horrible happened".format(self.id)
+                )
+
+            # Email quest creator and CC the participants
             email_message(
                 self.creator, "Quest {} completed".format(self.id),
-                msg
+                msg, cc=owners
             )
+
 
     @classmethod
     def get_open_quests(cls, session):
