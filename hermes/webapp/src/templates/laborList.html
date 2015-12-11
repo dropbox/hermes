@@ -131,7 +131,7 @@
                     <img src="/img/loading.gif"/>
                 </div>
                 <!--LABOR ENTRY REPEATER-->
-                <div class="labor-list-row" ng-if="lsc.laborData  && !lsc.errorMessage"
+                <div class="labor-list-row" ng-if="lsc.laborData"
                      ng-repeat="labor in (pageData = (lsc.laborData | limitTo:lsc.limit:lsc.offset)) track by labor.id">
                     <!-- QUEST HEADER -->
                     <div class="quest-info" ng-if="labor.quest && labor.quest.id != pageData[$index-1].quest.id">

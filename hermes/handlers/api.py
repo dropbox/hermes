@@ -12,8 +12,8 @@ import string
 import time
 
 
-from .util import ApiHandler, PluginHelper
-from ..util import id_generator
+from .util import ApiHandler
+from ..util import id_generator, PluginHelper
 from .. import exc
 from ..models import Host, EventType, Event, Labor, Fate, Quest
 from ..settings import settings
@@ -2034,7 +2034,7 @@ class QuestsHandler(ApiHandler):
 
         tx = id_generator()
 
-        log.info("QUEST [{}]: Creating a new quest", tx)
+        log.info("QUEST [{}]: Creating a new quest".format(tx))
 
         try:
             fate_id = self.jbody["fateId"]
@@ -2473,6 +2473,7 @@ class ExtQueryHandler(ApiHandler):
         """
         Pass through post to the external query handler
         """
+
         json_data = json.loads(self.request.body)
         response = PluginHelper.request_post(json_body=json_data)
         if (

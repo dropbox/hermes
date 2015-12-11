@@ -64,4 +64,6 @@ settings = Settings({
     "auth_token_expiry": 600,  # 10 minutes
     "sentry_dsn": None,
     "plugin_dir": "plugins ",
+    "environment": "dev",
+    "dev_email_recipient": "",
 })
