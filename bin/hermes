@@ -251,19 +251,22 @@ def list_event_types(args):
         if len(str(event_type["id"])) > max_length:
             max_length = len(str(event_type["id"]))
 
-    print"{}{}{}".format(
+    print "{}{}{}{}".format(
         str.ljust("ID", max_length + 4),
-        str.ljust("CATEGORY", 20), str.ljust("STATE", 20)
+        str.ljust("CATEGORY", 20),
+        str.ljust("STATE", 20),
+        str.ljust("DESC", 20)
     )
     for event_type in event_types["eventTypes"]:
         type_id = (
             str(event_type["id"]) + "*"
             if event_type["restricted"] else str(event_type["id"])
         )
-        print "{}{}{}".format(
+        print "{}{}{}{}".format(
             str.ljust("(" + type_id + ")", max_length + 4),
             str.ljust(str(event_type["category"]), 20),
-            str.ljust(str(event_type["state"]), 20)
+            str.ljust(str(event_type["state"]), 20),
+            str.ljust(str(event_type["description"]), 20)
         )
 
     print "\n* = restricted; cannot be thrown by hand."
