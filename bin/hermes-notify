@@ -5,7 +5,7 @@ import logging
 import textwrap
 
 import hermes
-from hermes.handlers.util import PluginHelper
+from hermes.util import PluginHelper
 from hermes.models import get_db_session, get_db_engine, Session, Quest, Labor
 from hermes.settings import settings
 from hermes.util import email_message
