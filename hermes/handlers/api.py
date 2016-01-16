@@ -865,7 +865,7 @@ class EventsHandler(ApiHandler):
                 "hostname": "example",
                 "user": "johnny",
                 "category": "system-reboot",
-                "event": "completed",
+                "state": "completed",
                 "note": "Sample description"
             }
 
