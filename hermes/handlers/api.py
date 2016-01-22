@@ -2558,7 +2558,8 @@ class ServerConfig(ApiHandler):
             }
         """
         result_json = {
-            "domain": settings.domain
+            "domain": settings.domain,
+            "fullstoryId": settings.fullstory_id
         }
 
         self.success(result_json)

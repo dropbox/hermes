@@ -66,4 +66,5 @@ settings = Settings({
     "plugin_dir": "plugins ",
     "environment": "dev",
     "dev_email_recipient": "",
+    "fullstory_id": None,
 })

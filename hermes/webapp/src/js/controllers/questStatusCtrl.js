@@ -330,7 +330,6 @@
 
             // get the host tags just in case the user wants to display them
             hermesService.getHostTags(vm.hostnames).then(function(data) {
-                console.log(data);
                 vm.hostTags = data;
             }).catch(function(error){
                 vm.errorMessage = "Could not load host tags: " + error.statusText;

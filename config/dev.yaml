@@ -58,3 +58,6 @@ auth_token_expiry: 600
 
 # Additional plugin directory (full path)
 # plugin_dir:
+
+# Specify the org identifier for FullStory integration
+# fullstory_id:
