@@ -1,11 +1,11 @@
 language: python
 python:
-    - "2.7"
-
+- '2.7'
 install:
-    - pip install -r requirements-dev.txt
-    - pip install .
-
+- pip install -r requirements-dev.txt
+- pip install .
 script: py.test -vvv tests/
-
 after_success: curl -X POST http://readthedocs.org/build/dbx_hermes
+notifications:
+  slack:
+    secure: q2LtdP0ATZOFPZG2vI4CS1mCL+jZKVImzCq8mdOX3iM2FkIVKo4YxT/bNUJiWb4xOrenpuFz7J8scbY0gu3e3lgUGTSWFjQc9W6NEvgGKImSunqkF5vKi1VkAvFuYTbBxW6kQpRadTyRrcmVrK2OoBDyeVqIa5crmJ8oswCnSM0IE8m6qJk0RkRZvdJzRdWgGhWjri0Mk+Bh/6gRZPOpjpfjHhtFv2qAqPH1G3z/KaheH/PsckGx9/iQdAIvRkK02/e9ne82ON8sy05RN8WPgCMm4kk5gdfdlD7ZUUtOqlKgNHmQyggjgd7DfxgFzPI62P9zvHiHyYGHubZ/XJYwWVHy6oP9PIcUxEH01MnoNxKYwFDLD6ujG0+Cb4umB8SacPNnXdjZ8AG+gndTlHdqRXm7KPaAaGqA+HuPlRJysBEnuvr6WeCZOJ6KWjgK+Z0xaR7GQB1obfId7Pc3zhqYXf9G0+hMLVAYJ+eJrfEZauYPtsAAW0qeOiyEDsJkFyv0Qrnee537R/12A0mV1YjWIBSvvYXQJzyUx01FIR9v0hFnT7/0P4L9cluoKxZt4Yl4q57edPQ6XlerhG/1zbkCRDqq/xaG5RSEw3nbhTTbNE8WHj3lkJ9Qd1+YCjr9Ta1xJjJpEdfBVBQ5UwAR3BCuu5Hkmg7WG4q/zDnw6qkPN2s=
