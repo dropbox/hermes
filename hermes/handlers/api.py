@@ -1,5 +1,8 @@
 from __future__ import division
 
+
+from datetime import datetime
+from dateutil import parser, tz
 import json
 import logging
 import pytz
@@ -17,9 +20,6 @@ from ..util import id_generator, PluginHelper
 from .. import exc
 from ..models import Host, EventType, Event, Labor, Fate, Quest
 from ..settings import settings
-
-from datetime import datetime
-from dateutil import parser
 
 
 log = logging.getLogger(__name__)
@@ -149,6 +149,7 @@ class HostsHandler(ApiHandler):
         else:
             self.created(data={"hosts": hosts, "totalHosts": len(hosts)})
 
+        print hostnames
         log.info("HOST: Created {}".format(", ".join(hostnames)))
 
     def get(self):
@@ -1174,6 +1175,8 @@ class EventsHandler(ApiHandler):
         :query string hostname: (*optional*) Filter Events by Host's hostname
         :query int limit: (*optional*) Limit result to N resources.
         :query int offset: (*optional*) Skip the first N resources.
+        :query string after: (*optional*) Only select events at and after a given timestamp
+        :query string before: (*optional*) Only select events before a given timestamp
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
@@ -1182,6 +1185,16 @@ class EventsHandler(ApiHandler):
         event_type_id = self.get_arguments("eventTypeId")
         host_id = self.get_argument("hostId", None)
         hostname = self.get_argument("hostname", None)
+
+        after_time = self.get_argument("after", None)
+        if after_time:
+            after_time = parser.parse(after_time, yearfirst=True)
+            after_time = after_time.replace(tzinfo=None)
+            
+        before_time = self.get_argument("before", None)
+        if before_time:
+            before_time = parser.parse(before_time, yearfirst=True)
+            before_time = before_time.replace(tzinfo=None)
 
         events = self.session.query(Event).order_by(desc(Event.timestamp))
 
@@ -1202,6 +1215,13 @@ class EventsHandler(ApiHandler):
                 raise exc.BadRequest("No host {} found".format(hostname))
 
             events = events.filter(Event.host == host)
+
+        if after_time:
+            logging.info(after_time)
+            events = events.filter(Event.timestamp >= after_time)
+        if before_time:
+            logging.info(before_time)
+            events = events.filter(Event.timestamp < before_time)
 
         offset, limit, expand = self.get_pagination_values()
         events, total = self.paginate_query(events, offset, limit)
