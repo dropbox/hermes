@@ -15,7 +15,7 @@
 @xlight-orange: #FFCCAF;
 @red: #c92929;
 @light-red: #E6CFD0;
-@xlight-red:#EA9C9C;
+@xlight-red: #EA9C9C;
 @dark-red: #944D4D;
 @xdark-red: #6A1C0E;
 @red-gray: #4D2828;
@@ -37,7 +37,6 @@
 @error-color: @red;
 @success-color: @blue;
 @link-color: @blue;
-
 
 // Width variables (appears count calculates by raw css)
 @width2: 100%;
@@ -111,8 +110,8 @@ button {
   -o-transform: none;
   transform: none;
   &:hover {
-    -webkit-box-shadow:  2px 2px 3px @shadow-color;
-    -moz-box-shadow:  2px 2px 3px @shadow-color;
+    -webkit-box-shadow: 2px 2px 3px @shadow-color;
+    -moz-box-shadow: 2px 2px 3px @shadow-color;
     box-shadow: 2px 2px 3px @shadow-color;
     transform: translate(-1px, -1px);
     -webkit-transform: translate(-1px, -1px);
@@ -125,7 +124,7 @@ button {
   }
   &:active {
     background: desaturate(@btn-color2, 15%);
-    -webkit-box-shadow:  inset 0px 0px 6px lighten(@shadow-color, 20%);
+    -webkit-box-shadow: inset 0px 0px 6px lighten(@shadow-color, 20%);
     -moz-box-shadow: inset 0px 0px 6px lighten(@shadow-color, 20%);
     box-shadow: inset 0px 0px 6px lighten(@shadow-color, 20%);
     transform: translate(-1px, -1px);
@@ -535,7 +534,7 @@ a {
   overflow: hidden;
   .panel-row {
     overflow: hidden;
-    &.top-row{
+    &.top-row {
       .helper-panel {
         -webkit-border-radius: 5px 5px 0px 0px;
         -moz-border-radius: 5px 5px 0px 0px;
@@ -605,7 +604,7 @@ a {
     color: @black;
     border-collapse: separate;
     border-spacing: 5px;
-    thead tr th button[disabled]  {
+    thead tr th button[disabled] {
       color: @black;
       opacity: 1;
     }
@@ -667,9 +666,9 @@ a {
 }
 
 .box-continuation {
-  -webkit-box-shadow: inset 0 -30px 30px -30px rgba(0,0,0,0.5);
-  -moz-box-shadow: inset 0 -30px 30px -30px rgba(0,0,0,0.5);
-  box-shadow: inset 0 -30px 30px -30px rgba(0,0,0,0.5);
+  -webkit-box-shadow: inset 0 -30px 30px -30px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: inset 0 -30px 30px -30px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 -30px 30px -30px rgba(0, 0, 0, 0.5);
 }
 
 .remove-img-button {
@@ -813,92 +812,120 @@ a {
   .labor-actions.disabled {
     opacity: 0.5;
   }
-  .labor-entry {
-    -ms-transition: 0.15s ease-in all;
-    -o-transition: 0.15s ease-in all;
-    -webkit-transition: 0.15s ease-in all;
-    -moz-transition: 0.15s ease-in all;
-    transition: 0.15s ease-in all;
-    background: @unselected-color;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    border: transparent 2px solid;
+
+  .labor-entry-wrapper {
+    padding: 0;
     margin-bottom: 10px;
-    overflow: auto;
-    padding: 2px 15px;
-    -webkit-transform: none;
-    -moz-transform: none;
-    -ms-transform: none;
-    -o-transform: none;
-    transform: none;
-    &:hover {
-      -moz-box-shadow: 2px 2px 5px 0px @shadow-color;
-      -webkit-box-shadow: 2px 2px 5px 0px @shadow-color;
-      box-shadow: 2px 2px 5px 0px @shadow-color;
+
+    .entry-outer {
       cursor: pointer;
-      -webkit-transform: translate(-1px, -1px);
-      -moz-transform: translate(-1px, -1px);
-      -ms-transform: translate(-1px, -1px);
-      -o-transform: translate(-1px, -1px);
-      transform: translate(-1px, -1px);
-    }
-    .hostname {
-      -moz-border-radius: 5px 0px 0px 0px;
-      -webkit-border-radius: 5px 0px 0px 0px;
-      border-radius: 5px 0px 0px 0px;
-      font-size: 1.0em;
-      padding: 2px 5px;
-    }
-    .labor-type {
-      -moz-border-radius: 0px 5px 0px 0px;
-      -webkit-border-radius: 0px 5px 0px 0px;
-      border-radius: 0px 5px 0px 0px;
-      font-size: 1.0em;
-      padding: 2px 5px;
-      text-align: right;
-    }
-    .info-panel {
-      font-size: 0.8em;
-      padding: 5px;
-      ul {
-        -moz-border-radius: 5px;
-        -webkit-border-radius: 5px;
-        background: @white;
-        border-radius: 5px;
-        display: block;
-        margin: 0px;
-        padding: 0px;
+      -ms-transition: 0.1s ease-in all;
+      -o-transition: 0.1s ease-in all;
+      -webkit-transition: 0.1s ease-in all;
+      -moz-transition: 0.1s ease-in all;
+      transition: 0.1s ease-in all;
+
+      border-radius: 5px;
+      border: none;
+      background-color: @xlight-gray;
+      overflow: auto;
+
+      &.selected {
+        background-color:@selected-color;
       }
-      li {
-        display: inline-block;
-        margin-right: 5px;
-        padding: 0;
-      }
-      .label-holder {
-        float: left;
-        font-size: 1em;
-        font-weight: bold;
-        margin: 7px 5px 5px 0px;
-      }
-      .details {
-        -moz-border-radius: 5px;
-        -webkit-border-radius: 5px;
-        background: @white;
-        border-radius: 5px;
-        margin: 2px 0px;
-        overflow: hidden;
+
+      .btn-glyph {
+        color: @med-gray;
+        cursor: pointer;
+        font-size: 1.2em;
         padding: 5px;
+        &.hover {
+          text-shadow: none !important;
+          -webkit-transform: none !important;
+          -moz-transform: none !important;
+          -ms-transform: none !important;
+          -o-transform: none !important;
+          transform: none !important;
+        }
+        &.small {
+          font-size: 0.8em;
+        }
+        &.selected {
+          color: @blue;
+        }
+      }
+      &:hover {
+        -moz-box-shadow: 2px 2px 5px 0px @shadow-color;
+        -webkit-box-shadow: 2px 2px 5px 0px @shadow-color;
+        box-shadow: 2px 2px 5px 0px @shadow-color;
+        cursor: pointer;
+        -webkit-transform: translate(-1px, -1px);
+        -moz-transform: translate(-1px, -1px);
+        -ms-transform: translate(-1px, -1px);
+        -o-transform: translate(-1px, -1px);
+        transform: translate(-1px, -1px);
+      }
+      .entry-inner {
+        width: ~"calc(100% - 30px)";
+        float: left;
+        background-color: @light-gray;
+        min-height: 40px;
+        -webkit-border-radius: 0px 5px 5px 0px;
+        -moz-border-radius: 0px 5px 5px 0px;
+        border-radius: 0px 5px 5px 0px;
+        padding: 2px;
+        border-left: 2px solid @med-gray;
+        .hostname {
+          -moz-border-radius: 5px 0px 0px 0px;
+          -webkit-border-radius: 5px 0px 0px 0px;
+          border-radius: 5px 0px 0px 0px;
+          font-size: 1.0em;
+          padding: 2px 10px;
+        }
+        .labor-owner {
+          padding: 2px 10px;
+          font-size: 0.8em;
+        }
+        .info-panel {
+          clear: both;
+          font-size: 0.8em;
+          padding: 5px;
+          ul {
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            background: @white;
+            border-radius: 5px;
+            display: block;
+            margin: 0px;
+            padding: 0px;
+          }
+          li {
+            display: inline-block;
+            margin-right: 5px;
+            padding: 0;
+          }
+          .label-holder {
+            float: left;
+            font-size: 1em;
+            font-weight: bold;
+            margin: 7px 5px 5px 0px;
+          }
+          .details {
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            background: @white;
+            border-radius: 5px;
+            margin: 0;
+            overflow: hidden;
+            padding: 5px;
+          }
+        }
       }
     }
   }
-  .labor-entry.selected {
-    -moz-transition: 0.15s ease-in all;
-    -ms-transition: 0.15s ease-in all;
-    -o-transition: 0.15s ease-in all;
-    -webkit-transition: 0.15s ease-in all;
-    background: @selected-color;
-    transition: 0.15s ease-in all;
+
+  .labor-count {
+    padding-bottom: 10px;
   }
   .quest-info {
     margin: 10px 0px;
