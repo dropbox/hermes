@@ -200,3 +200,30 @@ def test_multi_host_events(sample_data1_server):
     result_json = result.json()
 
     assert result_json['totalEvents'] == 3
+
+
+def test__before_after_query(sample_data1_server):
+    client = sample_data1_server
+    event2 = client.get("/events/2").json()
+
+    assert event2['timestamp'] is not None
+
+    assert_created(
+        client.create(
+            "/events",
+            hostname="example",
+            user="testman@example.com",
+            eventTypeId=1,
+            note="This is a test event"
+        ),
+        "/api/v1/events/3"
+    )
+
+    new_event = client.get("/events/3").json()
+    new_timestamp = new_event['timestamp']
+
+    result = client.get("/events/?after={}".format(new_timestamp)).json()
+    assert result['totalEvents'] == 1
+
+    result = client.get("/events/?before={}".format(new_timestamp)).json()
+    assert result['totalEvents'] == 2
