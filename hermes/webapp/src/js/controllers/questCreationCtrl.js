@@ -14,6 +14,7 @@
         vm.targetDate.setTime(Math.round(vm.targetDate.getTime() / 900000) * 900000);
 
         vm.errorMessages = null;
+        vm.addHostErrorMessages = [];
         vm.queryErrorMessage = null;
         vm.successMessage = null;
         vm.createInProgress = false;
@@ -175,9 +176,20 @@
          * @param host the host to add
          */
         function addHost(host) {
-            if (!host) return;
-            if (vm.hostList.indexOf(host) == -1) {
-                vm.hostList.push(host);
+            vm.addHostErrorMessages = [];
+            if (!host) {
+                vm.addHostErrorMessages.push("Hostname empty.");
+                return;
+            }
+
+            var hosts = host.split(",");
+            for (var idx in hosts) {
+                var host = hosts[idx].trim();
+                if (vm.hostList.indexOf(host) == -1) {
+                    vm.hostList.push(host);
+                } else {
+                    vm.addHostErrorMessages.push("Ignoring duplicate host " + host);
+                }
             }
         }
 
