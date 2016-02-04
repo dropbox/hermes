@@ -8,7 +8,7 @@
         <!-- ROW ONE -->
         <div class="row panel-row top-row">
             <div class="col-md-6 create-panel">
-                <div><strong>For hosts:</strong></div>
+                <div><strong>For {{qc.hostList.length}} hosts:</strong></div>
                 <div class="host-list" box-continuation watch="qc.hostList">
                     <div ng-repeat="host in qc.hostList track by $index">
                         <span role="button" aria-label="Remove host {{host}} from list" class="glyphicon glyphicon-remove-sign btn-glyph small"
@@ -17,10 +17,13 @@
                         {{host}}
                     </div>
                 </div>
+                <div class="error-message" ng-if="qc.addHostErrorMessages.length != 0">
+                    <div ng-repeat="message in qc.addHostErrorMessages track by $index">{{message}}</div>
+                </div>
                 <div><label for="hostName">Add host:</label></div>
                 <div class="row">
                     <div class="col-md-10">
-                        <form ng-submit="qc.addHost(qc.hostNameEntry)">
+                        <form ng-submit="qc.addHost(qc.hostNameEntry); qc.hostNameEntry = ''">
                             <input style="width: 100%" id="hostName" type="text" ng-model="qc.hostNameEntry" />
                         </form>
                     </div>
@@ -56,7 +59,7 @@
                         &nbsp;
                     </div>
                     <div class="col-md-4">
-                        <button ng-click="qc.moveQueriedToQueued()">Add All</button>
+                        <button ng-click="qc.moveQueriedToQueued()" ng-disabled="qc.queriedHosts.length == 0" >Add All {{qc.queriedHosts.length}} Hosts</button>
                     </div>
                 </div>
             </div>
