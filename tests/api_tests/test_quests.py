@@ -1,6 +1,7 @@
 import json
 import pytest
 import requests
+import logging
 
 from .fixtures import tornado_server, tornado_app, sample_data1_server
 
@@ -102,6 +103,7 @@ def test_update(sample_data1_server):
     client = sample_data1_server
 
     target_time = datetime.utcnow() + timedelta(days=7)
+    target_time2 = datetime.utcnow() + timedelta(days=12)
 
     # Create a quest
     assert_created(
@@ -204,8 +206,38 @@ def test_update(sample_data1_server):
         strip=["embarkTime", "labors"]
     )
 
+    # Update the target time
+    assert_success(
+        client.update(
+            "/quests/1",
+            targetTime=str(target_time2)
+        ),
+        {
+            "id": 1,
+            "creator": "tommy@example.com",
+            "targetTime": str(target_time2),
+            "description": "Newer desc",
+            "completionTime": None
+        },
+        strip=["embarkTime", "labors"]
+    )
 
-def test_quest_lifecycle(sample_data1_server):
+    # Verify target time updated
+    assert_success(
+        client.get("/quests/1"),
+        {
+            "id": 1,
+            "creator": "tommy@example.com",
+            "targetTime": str(target_time2),
+            "description": "Newer desc",
+            "completionTime": None
+        },
+        strip=["embarkTime", "labors"]
+    )
+
+
+def test_quest_lifecycle(sample_data1_server, caplog):
+    caplog.setLevel(logging.INFO)
     client = sample_data1_server
 
     # We start with 2 events in the test data
@@ -318,7 +350,8 @@ def test_quest_lifecycle(sample_data1_server):
     )
 
     # Ensure that the quest doesn't have a completion time yet
-    # Also, test two meta features: progress info and filtering to show only open labors
+    # Also, test two meta features: progress info and
+    # filtering to show only open labors
     assert_success(
         client.get("/quests/1?progressInfo=true"),
         {
@@ -445,7 +478,8 @@ def test_quest_lifecycle(sample_data1_server):
     )
 
     # Ensure that the quest doesn't have a completion time yet
-    # Also, test two meta features: progress info and filtering to show only open labors
+    # Also, test two meta features: progress info and
+    # filtering to show only open labors
     assert_success(
         client.get("/quests/1?progressInfo=true&onlyOpenLabors=true&expand=labors&expand=eventtypes&expand=fates"),
         {
