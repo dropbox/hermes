@@ -15,6 +15,7 @@
 
         vm.laborData = null;
         vm.selected = [];
+        vm.laborsPerQuest = {};
         vm.hostTags = null;
         vm.hostOwners = null;
         vm.throwableTypes = null;
@@ -285,6 +286,12 @@
                 for (var idx in vm.laborData) {
                     if (vm.laborData[idx]['id'] == $routeParams.laborId) {
                         index = idx;
+                    }
+                    var questId = vm.laborData[idx]['questId'];
+                    if (questId in vm.laborsPerQuest) {
+                        vm.laborsPerQuest[questId] = vm.laborsPerQuest[questId] + 1;
+                    } else {
+                        vm.laborsPerQuest[questId] = 0;
                     }
                 }
 

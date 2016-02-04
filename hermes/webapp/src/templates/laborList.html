@@ -131,7 +131,7 @@
                     <img src="/img/loading.gif"/>
                 </div>
                 <!--LABOR ENTRY REPEATER-->
-                <div class="labor-list-row" ng-if="lsc.laborData"
+                <div id="l{{labor.id}}" class="labor-list-row" ng-if="lsc.laborData"
                      ng-repeat="labor in (pageData = (lsc.laborData | limitTo:lsc.limit:lsc.offset)) track by labor.id">
                     <!-- QUEST HEADER -->
                     <div class="quest-info" ng-if="labor.quest && labor.quest.id != pageData[$index-1].quest.id">
@@ -151,43 +151,46 @@
                             The following labors were created as a result of events that were not part of a quest creation.
                         </div>
                     </div>
-                    <div id="l{{labor.id}}" class="labor-entry"
-                         ng-click="lsc.toggleSelect(labor.id)"
-                         ng-class="lsc.selected.indexOf(labor.id) != -1 ? 'selected': ''">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="row">
-                                    <div class="hostname col-md-12"><strong>{{labor.host.hostname}}:</strong> {{labor.fate.description}}</div>
-                                    <div class="info-panel col-md-12">
-                                        <div style="float: left">
-                                            <strong>Labor For:&nbsp;</strong>
-                                        </div>
-                                        <div>
-                                            <div ng-if="labor.forOwner == true">
-                                                Server Owner
-                                            </div>
-                                            <div ng-if="labor.forCreator == true">
-                                                Quest Creator
-                                            </div>
-                                        </div>
+                    <div class="labor-count" ng-if="labor.quest && labor.quest.id != pageData[$index-1].quest.id">
+                        <strong>{{lsc.laborsPerQuest[labor.quest.id]}} labors in this quest.</strong>
+                    </div>
+                    <!-- ACTUAL LABOR ENTRY BITS -->
+                    <div class="labor-entry-wrapper" ng-click="lsc.toggleSelect(labor.id)">
+                        <div class="entry-outer" ng-class="lsc.selected.indexOf(labor.id) != -1 ? 'selected': ''">
+                            <div style="width: 30px; float:left; height: 100%">
+                                <span role="checkbox" class="glyphicon glyphicon-check btn-glyph" style="text-align: center; width: 100%"
+                                        ng-class="lsc.selected.indexOf(labor.id) != -1 ? 'selected': ''">
+                                </span>
+                            </div>
+                            <div class="entry-inner">
+                                <div style="width: 50%; float: left">
+                                    <div class="hostname"><strong>{{labor.host.hostname}}:</strong> {{labor.fate.description}}</div>
+                                </div>
+                                <div style="width: 50%; float:left; text-align: right">
+                                    <div class="labor-owner">
+                                        <strong>Labor For:&nbsp;</strong>
+                                        <span ng-if="labor.forOwner == true">
+                                            Server Owner
+                                        </span>
+                                        <span ng-if="labor.forCreator == true">
+                                            Quest Creator
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="info-panel col-md-8">
-                                <div class="label-holder">
-                                    <strong>Tags:</strong>
-                                </div>
-                                <div class="details">
-                                    <img ng-if="!lsc.hostTags" src="/img/loading_15.gif" alt="Tag information loading" />
-                                    <ul ng-if="lsc.hostTags">
-                                        <li>
-                                            owner=<img ng-if="!lsc.hostOwners" src="/img/loading_15.gif" alt="Owner information loading" />
-                                            <span ng-if="lsc.hostOwners">{{lsc.hostOwners[labor.host.hostname]}}</span>
-                                        </li>
-                                        <li ng-repeat="tag in lsc.hostTags[labor.host.hostname] track by $index">
-                                            {{tag}}
-                                        </li>
-                                    </ul>
+                                <div class="info-panel">
+                                    <div class="details">
+                                        <img ng-if="!lsc.hostTags" src="/img/loading_15.gif" alt="Tag information loading" />
+                                        <ul ng-if="lsc.hostTags">
+                                            <li><strong>Tags:</strong></li>
+                                            <li>
+                                                owner=<img ng-if="!lsc.hostOwners" src="/img/loading_15.gif" alt="Owner information loading" />
+                                                <span ng-if="lsc.hostOwners">{{lsc.hostOwners[labor.host.hostname]}}</span>
+                                            </li>
+                                            <li ng-repeat="tag in lsc.hostTags[labor.host.hostname] track by $index">
+                                                {{tag}}
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
