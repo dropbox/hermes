@@ -149,8 +149,9 @@ class HostsHandler(ApiHandler):
         else:
             self.created(data={"hosts": hosts, "totalHosts": len(hosts)})
 
-        print hostnames
-        log.info("HOST: Created {}".format(", ".join(hostnames)))
+        log.info("HOST: Created {}".format(", ".join(
+            [host["hostname"] for host in hostnames]
+        )))
 
     def get(self):
         """**Get all Hosts**
@@ -939,7 +940,7 @@ class EventsHandler(ApiHandler):
         :reqjson string hostname: (*optional*) The hostname of the Host of this Event
         :regjson string hostnames: (*optional*) The list of hostnames for which we want to throw this Event
         :reqjson string hostQuery: (*optional*) The external query to run to get Hosts for which to create Events
-        :regjson int queryId: (*optional*) The Quest ID which has hosts for which we want to create Events
+        :regjson int questId: (*optional*) The Quest ID which has hosts for which we want to create Events
         :regjson string user: The user responsible for throwing this Event
         :regjson int eventTypeId: The id of the EventType
         :regjson string category: the category to use for the event
@@ -2373,6 +2374,7 @@ class QuestHandler(ApiHandler):
 
         :reqjson string description: the new description of the Quest
         :reqjson string creator: The new username of the creator (owner)
+        :regjson timestamp targetTime: Set a new targetTime
 
         :reqheader Content-Type: The server expects a json body specified with
                                  this header.
@@ -2394,6 +2396,7 @@ class QuestHandler(ApiHandler):
 
         new_desc = None
         new_creator = None
+        new_target_time = None
         try:
             if "description" in self.jbody:
                 new_desc = self.jbody["description"]
@@ -2401,6 +2404,15 @@ class QuestHandler(ApiHandler):
                 new_creator = self.jbody['creator']
                 if not EMAIL_REGEX.match(new_creator):
                     new_creator += "@" + self.domain
+            if "targetTime" in self.jbody:
+                new_target_time = parser.parse(
+                    self.jbody["targetTime"]
+                )
+                new_target_time = new_target_time.replace(tzinfo=None)
+                if new_target_time <= datetime.utcnow():
+                    raise exc.BadRequest(
+                        "Quest target date must be in future"
+                    )
         except KeyError as err:
             raise exc.BadRequest(
                 "Missing Required Argument: {}".format(err.message))
@@ -2414,6 +2426,10 @@ class QuestHandler(ApiHandler):
                 quest = quest.update(
                     creator=new_creator
                 )
+            if new_target_time:
+                quest = quest.update(
+                    target_time=new_target_time
+                )
 
         except IntegrityError as err:
             raise exc.Conflict(str(err.orig))
@@ -2422,10 +2438,11 @@ class QuestHandler(ApiHandler):
 
         self.success(json)
 
-        log.info("QUEST [{}]: Update {}: {} {}".format(
+        log.info("QUEST [{}]: Updated: {} {} {}".format(
             id,
             "new description {}".format(new_desc) if new_desc else "",
-            "new creator {}".format(new_creator) if new_creator else ""
+            "new creator {}".format(new_creator) if new_creator else "",
+            "new target time {}".format(new_target_time) if new_target_time else ""
         ))
 
     def delete(self, id):

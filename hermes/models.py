@@ -1199,7 +1199,7 @@ class Quest(Model):
     def check_for_victory(self):
         """Test to see if all the Labors are completed.
 
-        Called when an associated Achievment is completed.
+        Called when a labor is completed.
         """
         labors = self.session.query(Labor).filter(
             and_(
@@ -1232,6 +1232,11 @@ class Quest(Model):
             msg += "There were {} labors in the Quest.".format(
                 len(self.labors)
             )
+
+            # if we aren't going to be sending email notifications, we
+            # can just stop here
+            if not settings.email_notifications:
+                return
 
             # Get all the hosts that were in this labor
             all_hosts = []
@@ -1275,7 +1280,6 @@ class Quest(Model):
                 self.creator, "Quest {} completed".format(self.id),
                 msg, cc=owners
             )
-
 
     @classmethod
     def get_open_quests(cls, session):
