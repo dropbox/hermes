@@ -956,6 +956,56 @@ def create_quest(args):
         )
 
 
+def edit_quest(args):
+    logging.debug("edit_quest()")
+
+    if not args.creator and not args.desc and not args.due:
+        sys.exit(
+            "Must specify a new creator, a new description, or a new due date."
+        )
+
+    try:
+        response = request_get("/api/v1/quests/{}".format(args.quest_id))
+    except HermesNotFound:
+        sys.exit("Quest {} does not exist".format(args.quest_id))
+
+    quest = response.json()
+
+    json = {}
+
+    if args.creator:
+        json['creator'] = args.creator
+    if args.desc:
+        json['description'] = args.desc
+    if args.due:
+        try:
+            target_time = parser.parse(args.due, yearfirst=True)
+            target_time = target_time.replace(tzinfo=tz.tzlocal())
+            target_time = target_time.astimezone(tz.tzutc())
+            target_time = target_time.replace(tzinfo=None)
+            json["targetTime"] = str(target_time)
+        except ValueError:
+            sys.exit(
+                "Invalid target date: {}"
+                " -- must be in the form of YYYY-MM-DD HH:MM, "
+                "with hours and minutes optional".format(args.due)
+            )
+
+    response = request_put("/api/v1/quests/{}".format(args.quest_id), json)
+
+    if response.json()["status"] == "ok":
+        print "Quest {} updated: {} {} {}".format(
+            args.quest_id,
+            "creator set to {}".format(args.creator) if args.creator else "",
+            "due date set to {}".format(args.due) if args.due else "",
+            "desc set to {}".format(args.desc) if args.desc else ""
+        )
+    else:
+        sys.exit(
+            "Received unexpected status editing quest {}".format(args.quest_id)
+        )
+
+
 def parse_cli_args():
     description_msg = "Hermes CLI"
     parser = argparse.ArgumentParser(description=description_msg)
@@ -1236,6 +1286,31 @@ def parse_cli_args():
         help="Query for hosts with a search string"
     )
     quest_create_parser.set_defaults(func=create_quest)
+
+    # quest editing parser
+    quest_edit_parser = quest_subparser.add_parser(
+        "edit",
+        description="Edit an existing open Hermes Quest.  You can change the "
+                    "creator if someone else should now be responsible, or you"
+                    "can update the description or target date and time."
+    )
+    quest_edit_parser.add_argument(
+        "quest_id", type=int,
+        help="The ID of the Quest to edit"
+    )
+    quest_edit_parser.add_argument(
+        "-d", "--description", type=str, dest="desc",
+        help="A new description for the Quest"
+    )
+    quest_edit_parser.add_argument(
+        "-c", "--creator", type=str, dest="creator",
+        help="The new creator who will now own this Quest"
+    )
+    quest_edit_parser.add_argument(
+        "--due", type=str, metavar='YYYY-MM-DD HH:MM',
+        help="New target date as YYYY-MM-DD HH:MM, with hours and minutes optional"
+    )
+    quest_edit_parser.set_defaults(func=edit_quest)
 
     return parser.parse_args()
 
