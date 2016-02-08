@@ -164,10 +164,22 @@
                         <img src="/img/loading.gif"/>
                     </div>
                     <div ng-if="qc.labors" class="quest-details">
-                        <div quest-progress-chart
-                             colors="qc.colors"
-                             types="qc.countByTypes"
-                             data="qc.selectedQuestDetails">
+                        <!--<div quest-progress-chart-->
+                             <!--colors="qc.colors"-->
+                             <!--types="qc.countByTypes"-->
+                             <!--data="qc.selectedQuestDetails">-->
+                        <!--</div>-->
+                        <div class="quest-info-holder">
+                            <div class="flex-row" ng-class="qc.selectedQuest.overDue ? 'overdue' : ''">
+                                <div class="quest-number">Quest {{qc.selectedQuest.id}}</div>
+                                <div class="sub-info">
+                                    <span ng-if="qc.selectedQuest.overDue">OVERDUE</span>
+                                    <span ng-if="qc.selectedQuest.targetTime">Due on: {{qc.selectedQuest.targetTime}} | </span>
+                                    <span>Created by <a href="mailto:{{qc.selectedQuest.creator}}">{{qc.selectedQuest.creator}}</a></span>
+                                    <span>on {{qc.selectedQuest.embarkTime}}</span>
+                                </div>
+                            </div>
+                            <div class="description">{{qc.selectedQuest.description}}</div>
                         </div>
                         <div class="quest-overview">
                             <span>
