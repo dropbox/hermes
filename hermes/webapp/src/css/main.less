@@ -50,6 +50,10 @@
   padding: 0px;
 }
 
+a {
+  text-decoration: underline;
+}
+
 body {
   font-family: 'Titillium Web', Verdana;
   font-size: 1.2em;
@@ -226,6 +230,7 @@ a {
     margin-top: 20px;
     vertical-align: middle;
     a {
+      text-decoration: none;
       -moz-border-radius: 5px 5px 0px 0px;
       -webkit-border-radius: 5px 5px 0px 0px;
       border-bottom: 5px @header-color solid;
@@ -416,7 +421,41 @@ a {
 }
 
 .quest-details {
-  padding: 20px 0px 20px 0px;
+  padding: 0px 0px 20px 0px;
+  .quest-info-holder {
+    overflow: auto;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    .flex-row{
+      display: flex;
+      flex-flow: row nowrap;
+      align-items: flex-end;
+      &.overdue {
+        color: @red;
+      }
+    }
+    .quest-number {
+      padding: 5px;
+      width: 20%;
+      font-size: 1.75em;
+      font-weight: bold;
+      border-bottom: 2px solid @blue;
+    }
+    .sub-info {
+      font-size: 1em;
+      padding: 5px;
+      width: 80%;
+      border-bottom: 2px solid @blue;
+      text-align: right;
+    }
+    .description {
+      padding: 5px;
+      font-size: 1.5em;
+      font-weight: normal;
+      clear: both;
+    }
+  }
   .quest-overview {
     font-size: 1.5em;
     font-weight: bold;
