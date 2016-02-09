@@ -1,0 +1,110 @@
+<div ng-cloak ng-controller="QuestEditCtrl as qc">
+    <div class="row quest-editing col-md-12">
+        <div class="row">
+            <div class="col-md-12 edit-panel">
+                <div><h1>Editing <a ng-href="/v1/quests/{{qc.quest.id}}">Quest {{qc.quest.id}}</a></h1></div>
+            </div>
+        </div>
+        <!-- ROW ONE-->
+        <div class="row panel-row top-row">
+            <div class="col-md-6 edit-panel">
+                <div>
+                    <label style="display: inline;" for="newCreator">Creator/Owner:</label>
+                    <span ng-if="!qc.editingCreator"> {{qc.quest.creator}}</span>
+                    <form style="display: inline;" ng-if="qc.editingCreator" ng-submit="qc.saveCreator()">
+                        <input style="display: inline; width: auto;" id="newCreator" type="text" ng-model="qc.newCreator"/>
+                    </form>
+                    <span ng-if="!qc.editingCreator" id="toggleCreatorEditing" aria-label="Toggle creator editing" role="checkbox" class="glyphicon glyphicon-edit btn-glyph"
+                            ng-click="qc.editingCreator = true; qc.newCreator = qc.quest.creator; qc.focus('newCreator')">
+                    </span>
+                    <span ng-if="qc.editingCreator" id="submitCreatorEditing" aria-label="Save new creator/owner" role="checkbox" class="glyphicon glyphicon-ok btn-glyph"
+                            ng-click="qc.editingCreator = false; qc.saveCreator();">
+                    </span>
+                    <span ng-if="qc.editingCreator" id="cancelCreatorEditing" aria-label="Cancel editing creator/owner" role="checkbox" class="glyphicon glyphicon-remove btn-glyph"
+                            ng-click="qc.editingCreator = false; ">
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-4 helper-panel">
+                <div>The creator/owner of the quest is responsible for managing and closing out the quest.</div>
+            </div>
+        </div>
+        <!-- ROW TWO-->
+        <div class="row panel-row">
+            <div class="col-md-6 edit-panel">
+                <div>
+                    <strong>Current Target Time:</strong> {{qc.quest.targetTime}}
+                    <span ng-if="!qc.editingDate" id="toggleDateEditing" aria-label="Toggle date editing" role="checkbox" class="glyphicon glyphicon-edit btn-glyph"
+                            ng-class="{'selected': qc.editingDate}"
+                            ng-click="qc.editingDate = true;">
+                    </span>
+                </div>
+                <div class="edit-block" ng-if="qc.editingDate">
+                    <div style="display: inline-block; min-height: 210px;"><label for="datepicker">New Target Date:</label>
+                        <uib-datepicker id="datepicker" ng-model="qc.targetDate" min-date="qc.today" show-weeks="false" max-mode="day" custom-class="qc.calDateClasser(date, mode)"></uib-datepicker>
+                    </div>
+                    <div style="display: inline-block; min-height: 210px;"><label for="timepicker">New Target Time:</label>
+                        <uib-timepicker id="timepicker" ng-model="qc.targetDate" minute-step="15"></uib-timepicker>
+                    </div>
+                    <div>
+                        <span ng-if="qc.editingDate" id="submitDateEditing" aria-label="Save new target time" role="checkbox" class="glyphicon glyphicon-ok btn-glyph"
+                            ng-click="qc.editingDate = false; qc.saveTargetTime();">
+                        </span>
+                        <span ng-if="qc.editingDate" id="cancelDateEditing" aria-label="Cancel editing target time" role="checkbox" class="glyphicon glyphicon-remove btn-glyph"
+                                ng-click="qc.editingDate = false; ">
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 helper-panel">
+                <div>The targeted completion date and time for the quest.  As the date gets closer, notifications to service owners will intensify.</div>
+            </div>
+        </div>
+        <!-- ROW THREE -->
+        <div class="row panel-row">
+            <div class="col-md-6 edit-panel">
+                <div>
+                    <label for="description">Edit description:</label>
+                    <span ng-style="qc.editingDesc ? {'opacity': 0, 'cursor': 'default'}: {}" id="toggleDescEditing" aria-label="Toggle date editing" role="checkbox" class="glyphicon glyphicon-edit btn-glyph"
+                            ng-click="qc.editingDesc = true;">
+                    </span>
+                    <p ng-if="!qc.editingDesc">{{qc.quest.description}}</p>
+                    <div ng-if="qc.editingDesc">
+                        <textarea id="description"  ng-model="qc.description">
+                        </textarea>
+                    </div>
+                    <div>
+                        <span ng-if="qc.editingDesc" id="submitDescEditing" aria-label="Save new description" role="checkbox" class="glyphicon glyphicon-ok btn-glyph"
+                            ng-click="qc.editingDesc = false; qc.saveDescription();">
+                        </span>
+                        <span ng-if="qc.editingDesc" id="cancelDescEditing" aria-label="Cancel editing description" role="checkbox" class="glyphicon glyphicon-remove btn-glyph"
+                                ng-click="qc.editingDesc = false; ">
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 helper-panel">
+                <div>The Quest description is what most users will see so be as
+descriptive as possible.  Let users know what is going on
+and what action they should take.</div>
+            </div>
+        </div>
+        <!-- ROW BOTTOM -->
+        <div class="row panel-row bottom-row">
+            <div class="col-md-6 edit-panel">
+                &nbsp;
+            </div>
+            <div class="col-md-4 helper-panel">
+                &nbsp;
+            </div>
+        </div>
+    </div>
+    <div ng-cloak class="modal-wrapper fade" ng-if="qc.successMessage">
+        <div id="successModal" class="modal-dialog" role="dialog">
+            <div>{{qc.successMessage}}</div>
+            <div>
+                <button class="be-positive" ng-click="qc.successMessage = null">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

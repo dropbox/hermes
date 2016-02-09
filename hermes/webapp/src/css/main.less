@@ -438,9 +438,14 @@ a {
     .quest-number {
       padding: 5px;
       width: 20%;
-      font-size: 1.75em;
-      font-weight: bold;
       border-bottom: 2px solid @blue;
+      span {
+        font-size: 1.75em;
+        font-weight: bold;
+      }
+      a {
+        font-size: 0.65em;
+      }
     }
     .sub-info {
       font-size: 1em;
@@ -565,6 +570,85 @@ a {
       //padding-left: 15px;
       //padding-right: 15px;
       //padding-top: 5px;
+    }
+  }
+}
+
+.quest-editing {
+  overflow: hidden;
+  .panel-row {
+    overflow: hidden;
+    &.top-row {
+      .helper-panel {
+        -webkit-border-radius: 5px 5px 0px 0px;
+        -moz-border-radius: 5px 5px 0px 0px;
+        border-radius: 5px 5px 0px 0px;
+      }
+    }
+    &:not(.top-row) {
+      .helper-panel, .edit-panel {
+        padding-top: 20px;
+      }
+    }
+    &.bottom-row {
+      .helper-panel {
+        -webkit-border-radius: 0px 0px 5px 5px;
+        -moz-border-radius: 0px 0px 5px 5px;
+        border-radius: 0px 0px 5px 5px;
+        padding-bottom: 0;
+        margin-bottom: 0;
+        max-height: 8px;
+      }
+      .edit-panel {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        max-height: 8px;
+      }
+    }
+  }
+  .helper-panel {
+    height: 100%;
+    background: @unselected-color;
+    padding: 10px;
+    padding-bottom: 20010px;
+    margin-bottom: -20000px;
+    &:last-of-type {
+      -webkit-border-radius: 0px 0px 5px 5px;
+      -moz-border-radius: 0px 0px 5px 5px;
+      border-radius: 0px 0px 5px 5px;
+    }
+  }
+  .edit-panel {
+    padding: 10px;
+    padding-bottom: 20010px;
+    margin-bottom: -20000px;
+    &:not(:first-child) {
+      padding-top: 50px;
+    }
+    .edit-block {
+      -moz-transition: 0.5s ease-out all;
+      -ms-transition: 0.5s ease-out all;
+      -o-transition: 0.5s ease-out all;
+      transition: 0.5s ease-out all;
+      height: auto;
+      max-height: 500px;
+    }
+    .edit-block.ng-enter {
+      max-height: 0;
+      transition: 0.25s ease-out all;
+    }
+
+    .edit-block.ng-enter-active {
+      max-height: 500px;
+    }
+
+    .edit-block.ng-leave {
+      max-height: 500px;
+      transition: 0.25s ease-out all;
+    }
+
+    .edit-block.ng-leave-active {
+      max-height: 0;
     }
   }
 }
@@ -792,6 +876,10 @@ a {
   padding: 20px;
   color: @btn-text-color;
   background: @success-color;
+  button {
+    border: 1px solid @xlight-blue;
+    margin-top: 10px;
+  }
 }
 
 #confirmModal {

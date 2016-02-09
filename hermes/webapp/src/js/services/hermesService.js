@@ -23,6 +23,7 @@
             getQuestCreatorThrowableEventTypes: getQuestCreatorThrowableEventTypes,
             runQuery: runQuery,
             createQuest: createQuest,
+            updateQuest: updateQuest,
             createEvents: createEvents,
             getServerConfig: getServerConfig
         };
@@ -72,6 +73,37 @@
 
             function createQuestFailed(error) {
                 console.error("API for creating a quest failed! " + error.status + " " + error.statusText);
+                throw error;
+            }
+        }
+
+        /**
+         * Update a given quest with new values
+         * @param questId the id of the quest to update
+         * @param fields hash of fields to update.  Should only contain "owner", "description", and/or "targetTime"
+         */
+        function updateQuest(questId, fields) {
+            var json = {};
+            if ("creator" in fields) {
+                json["creator"] = fields["creator"];
+            }
+            if ("description" in fields) {
+                json["description"] = fields["description"];
+            }
+            if ("targetTime" in fields) {
+                json["targetTime"] = fields["targetTime"];
+            }
+
+            return $http.put("/api/v1/quests/" + questId, json)
+                .then(updateQuestCompleted)
+                .catch(updateQuestFailed);
+
+            function updateQuestCompleted(response) {
+                return response;
+            }
+
+            function updateQuestFailed(error) {
+                console.error("API for updating a quest failed! " + error.status + " " + error.statusText);
                 throw error;
             }
         }
