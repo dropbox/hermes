@@ -1445,6 +1445,7 @@ class Quest(Model):
         if "quests" in expand:
             expand.remove("quests")
 
+        # FIXME: this should be an ISO time but will require fixing client and web UI as well
         out = {
             "id": self.id,
             "embarkTime": str(self.embark_time),

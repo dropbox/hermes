@@ -171,7 +171,13 @@
                         <!--</div>-->
                         <div class="quest-info-holder">
                             <div class="flex-row" ng-class="qc.selectedQuest.overDue ? 'overdue' : ''">
-                                <div class="quest-number">Quest {{qc.selectedQuest.id}}</div>
+                                <div class="quest-number">
+                                    <span>Quest {{qc.selectedQuest.id}}</span>
+                                    <a ng-href="/v1/quests/{{qc.selectedQuest.id}}/edit">
+                                        <span ng-if="qc.selectedQuest.creator == qc.user" id="toggleEditing" aria-label="Edit this quest" role="checkbox" class="glyphicon glyphicon-edit btn-glyph">
+                                        </span>
+                                    </a>
+                                </div>
                                 <div class="sub-info">
                                     <span ng-if="qc.selectedQuest.overDue">OVERDUE</span>
                                     <span ng-if="qc.selectedQuest.targetTime">Due on: {{qc.selectedQuest.targetTime}} | </span>
