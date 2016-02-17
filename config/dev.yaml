@@ -61,3 +61,13 @@ auth_token_expiry: 600
 
 # Specify the org identifier for FullStory integration
 # fullstory_id:
+
+# StrongPOC integration (optional)
+# strongpoc_server:
+
+# Specify the environment - dev is default, set to prod for production
+# environment: "dev"
+
+# if environment is dev, send emails to the following email address instead
+# of actual recipients
+# dev_email_recipient:

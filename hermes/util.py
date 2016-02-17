@@ -69,6 +69,7 @@ def email_message(recipients, subject, message, html_message=None, cc=None):
         message: the content of the email we wish to send
         recipients: the email address to whom we wish to send the email
     """
+
     if not settings.email_notifications:
         return
 
@@ -149,32 +150,42 @@ def email_message(recipients, subject, message, html_message=None, cc=None):
 
 class PluginHelper(object):
     @classmethod
-    def request_get(cls, path="", params={}):
+    def request_get(cls, path="", params={}, server=None):
         """Make an HTTP GET request for the given path
 
         Args:
             path: the full path to the resource
             params: the query parameters to send
+            server: the server to talk to, default is query_server
         Returns:
             the http response
         """
-        response = requests.get(settings.query_server + path, params=params)
+
+        if not server:
+            server = settings.query_server
+
+        response = requests.get(server + path, params=params)
 
         return response
 
     @classmethod
-    def request_post(cls, path="", params={}, json_body={}):
+    def request_post(cls, path="", params={}, json_body={}, server=None):
         """Make an HTTP POST request for the given path
 
         Args:
             path: the full path to the resource
             params: the query params to send
             json_body: the body of the message in JSON format
+            server: the server to talk to, default is query_server
         Returns:
             the http response
         """
+
+        if not server:
+            server = settings.query_server
+
         response = requests.post(
-            settings.query_server + path, params=params, json=json_body
+            server + path, params=params, json=json_body
         )
 
         return response
