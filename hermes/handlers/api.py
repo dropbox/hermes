@@ -2600,3 +2600,97 @@ class ServerConfig(ApiHandler):
         }
 
         self.success(result_json)
+
+
+class QuestMailHandler(ApiHandler):
+    def post(self, id):
+        """**Send a message to all owners that are involved with a quest**
+
+        **Example Request:**
+
+        .. sourcecode:: http
+
+            POST /api/v1/quest/20/mail HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            {
+                "serverOwners": true,
+                "laborOwners": false,
+                "from": "user@example.com",
+                "subject": "Hello!",
+                "message": "Work is about to commence."
+            }
+
+        **Example response:**
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 OK
+            Location: /api/v1/hosts/example
+
+            {
+                "status": "created",
+            }
+
+        **Note:**
+        Hermes will automatically append a link to the quest so users can go there directly from the email
+
+        :param id the ID of the quest we are working with when sending an email
+        :regjson boolean serverOwners: send to all owners of servers that have labors in this quest
+        :regjson boolean laborOwners: send to all labor owners (e.g. server owners if they own the active labor or the quest owner if they own the active labor)
+        :regjson string from: the sender email address
+        :regjson string subject: the subject line of the email
+        :regjson string message: the body of the message
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :statuscode 201: Email was created and sent
+
+        """
+
+        log.info("QUEST [{}]: Creating a new quest".format(id))
+
+        server_owners = self.jbody.get('serverOwners', None)
+        labor_owners = self.jbody.get('laborOwners', None)
+
+        if not server_owners and not labor_owners:
+            raise exc.BadRequest(
+                "Must specify serverOwners and/or laborOwners as true"
+            )
+
+        try:
+            from_address = self.jbody['from']
+            subject = self.jbody['subject']
+            message = self.jbody['message']
+        except KeyError as err:
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
+        except ValueError as err:
+            raise exc.BadRequest(err.message)
+
+        # Open the quest and grab the labors
+
+        # Grab the hostnames and look up the owners
+
+        # If we want labor owners, loop through and see if who that should
+        # be and add them to recipients
+
+        # If we want server owners, loop through hosts
+        # and add owners to the list
+
+        # Resolve the owners using StrongPOC
+
+        # Send email
+
+        self.created()
+
+        log.info(
+            "QUEST [{}]: sent email to {}{}{}".format(
+                id,
+                "server owners" if server_owners else "",
+                " and " if server_owners and labor_owners else "",
+                "labor owners" if labor_owners else ""
+            )
+        )

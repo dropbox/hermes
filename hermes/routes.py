@@ -26,6 +26,7 @@ HANDLERS = [
     # Quests
     (r"/api/v1/quests\/?", api.QuestsHandler),
     (r"/api/v1/quests/(?P<id>\d+)\/?", api.QuestHandler),
+    (r"/api/v1/quests/(?P<id>\d+)/mail\/?", api.QuestMailHandler),
 
     # Queries to 3rd party tools
     (r"/api/v1/extquery\/?", api.ExtQueryHandler),
