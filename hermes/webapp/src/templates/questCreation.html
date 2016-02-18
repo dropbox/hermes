@@ -67,7 +67,7 @@
         <!-- ROW TWO -->
         <div class="row panel-row">
             <div class="col-md-6 create-panel">
-                <div><label>Start with fate:
+                <div><label>Quest type:
                     <select ng-model="qc.fateSelection"
                             ng-model-options="qc.selectOptions"
                             ng-options="optValue.description for optValue in qc.startingFates">
@@ -76,11 +76,9 @@
             </div>
             <div class="col-md-4 helper-panel">
                 <div>
-                    <strong>Need help picking a starting fate?</strong>
-                    <p>Use the explorer to
-see all the possible fates and the chain of labors that
-will satisfy them.</p>
-                    <button type="button" ng-click="qc.showFatesModal = true">Fates Explorer</button>
+                    <strong>Need help picking a quest type?</strong>
+                    <p>Use the explorer to see the quest types and what kind of workflow each implies..</p>
+                    <button type="button" ng-click="qc.showFatesModal = true">Quest Type Explorer</button>
                 </div>
             </div>
         </div>

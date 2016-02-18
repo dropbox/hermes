@@ -61,13 +61,16 @@ def slack_message(message):
         log.warn("Error writing to Slack: {}".format(exc.message))
 
 
-def email_message(recipients, subject, message, html_message=None, cc=None):
+def email_message(recipients, subject, message, html_message=None, cc=None, sender=None):
     """Email a message to a user.
 
     Args:
         subject: the subject of the email we wish to send
         message: the content of the email we wish to send
         recipients: the email address to whom we wish to send the email
+        html_message: optional html formatted message we wish to send
+        cc: optional list of email addresses to carbon copy
+        sender: optional sender email address
     """
 
     if not settings.email_notifications:
@@ -126,7 +129,7 @@ def email_message(recipients, subject, message, html_message=None, cc=None):
         msg = part1
 
     msg["Subject"] = subject
-    msg["From"] = settings.email_sender_address
+    msg["From"] = settings.email_sender_address if not sender else sender
     msg["To"] = ", ".join(recipients)
     msg["Cc"] = ", ".join(extra_recipients)
 

@@ -16,7 +16,7 @@ import time
 
 
 from .util import ApiHandler
-from ..util import id_generator, PluginHelper
+from ..util import id_generator, PluginHelper, email_message
 from .. import exc
 from ..models import Host, EventType, Event, Labor, Fate, Quest
 from ..settings import settings
@@ -2600,3 +2600,165 @@ class ServerConfig(ApiHandler):
         }
 
         self.success(result_json)
+
+
+class QuestMailHandler(ApiHandler):
+    def post(self, id):
+        """**Send a message to all owners that are involved with a quest**
+
+        **Example Request:**
+
+        .. sourcecode:: http
+
+            POST /api/v1/quest/20/mail HTTP/1.1
+            Host: localhost
+            Content-Type: application/json
+            {
+                "serverOwners": true,
+                "laborOwners": false,
+                "from": "user@example.com",
+                "subject": "Hello!",
+                "message": "Work is about to commence."
+            }
+
+        **Example response:**
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 OK
+            Location: /api/v1/hosts/example
+
+            {
+                "status": "created",
+            }
+
+        **Note:**
+        Hermes will automatically append a link to the quest so users can go there directly from the email
+
+        :param id the ID of the quest we are working with when sending an email
+        :regjson boolean serverOwners: send to all owners of servers that have labors in this quest
+        :regjson boolean laborOwners: send to all labor owners (e.g. server owners if they own the active labor or the quest owner if they own the active labor)
+        :regjson string from: the sender email address
+        :regjson string subject: the subject line of the email
+        :regjson string message: the body of the message
+
+        :reqheader Content-Type: The server expects a json body specified with
+                                 this header.
+
+        :statuscode 201: Email was created and sent
+
+        """
+
+        server_owners = self.jbody.get('serverOwners', False)
+        labor_owners = self.jbody.get('laborOwners', False)
+
+        if not server_owners and not labor_owners:
+            raise exc.BadRequest(
+                "Must specify serverOwners and/or laborOwners as true"
+            )
+
+        log.info(
+            "QUEST [{}]: sent email to {}{}{}".format(
+                id,
+                "server owners" if server_owners else "",
+                " and " if server_owners and labor_owners else "",
+                "labor owners" if labor_owners else ""
+            )
+        )
+
+        try:
+            from_address = self.jbody['from']
+            subject = self.jbody['subject']
+            message = self.jbody['message']
+        except KeyError as err:
+            raise exc.BadRequest(
+                "Missing Required Argument: {}".format(err.message)
+            )
+        except ValueError as err:
+            raise exc.BadRequest(err.message)
+
+        # Open the quest and grab the labors
+        quest = self.session.query(Quest).get(id)
+        if not quest:
+            raise exc.NotFound(
+                "Quest {} not found".format(id)
+            )
+
+        labors = quest.labors
+        # Grab the hostnames and look up the owners
+        hostnames = set()
+        for labor in labors:
+            hostnames.add(labor.host.hostname)
+
+        # get the owner information
+        try:
+            results = PluginHelper.request_post(
+                json_body={
+                    "operation": "owners",
+                    "hostnames": list(hostnames)
+                }
+            )
+            owners = results.json()['results']
+        except Exception as e:
+            logging.error("Failed to get host owners: " + e.message)
+            raise exc.BadRequest(
+                "Host owners not found"
+            )
+
+        # get contact information from strongpoc
+        strongpoc_contacts = None
+        if settings.strongpoc_server:
+            # get the contact information
+            try:
+                results = PluginHelper.request_get(
+                    path = "/api/pocs/?expand=teams&expand=service_providers&expand=contact_types&service_provider__name=hermes&contact_type__name=email",
+                    server = settings.strongpoc_server
+                )
+                strongpoc_results = results.json()
+                strongpoc_contacts = {}
+                for result in strongpoc_results:
+                    strongpoc_contacts[result['team']['name']] = result['value']
+            except Exception as e:
+                logging.error("Failed to get strongpoc contacts: " + e.message)
+
+        recipients = set()
+
+        # If we want labor owners, loop through and see if who that should
+        # be and add them to recipients
+        if labor_owners:
+            for labor in labors:
+                if labor.for_creator:
+                    # add quest creator to recipients
+                    recipients.add(quest.creator)
+                if labor.for_owner:
+                    # add machine owner to recipients
+                    owner = owners[labor.host.hostname]
+                    if owner in strongpoc_contacts:
+                        recipients.add(strongpoc_contacts[owner])
+                    else:
+                        recipients.add("{}@{}".format(owner, settings.domain))
+
+        # If we want server owners, loop through hosts
+        # and add owners to the list
+        if server_owners:
+            for labor in labors:
+                # add machine owner to recipients
+                owner = owners[labor.host.hostname]
+                if owner in strongpoc_contacts:
+                    recipients.add(strongpoc_contacts[owner])
+                else:
+                    recipients.add("{}@{}".format(owner, settings.domain))
+
+        # Send email
+        email_message(recipients, subject, message, sender=from_address)
+
+        self.created()
+
+        log.info(
+            "QUEST [{}]: sent email to {}{}{}".format(
+                id,
+                "server owners" if server_owners else "",
+                " and " if server_owners and labor_owners else "",
+                "labor owners" if labor_owners else ""
+            )
+        )
