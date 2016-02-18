@@ -33,6 +33,9 @@
         vm.limit = 10;
         vm.offset = 0;
         vm.totalQuests = 10;
+        vm.messageSubject = null;
+        vm.messageEmail = null;
+        vm.showMessageBlock = false;
 
         vm.colors = ['#688ab4', '#9cbfea', '#232f3e', '#7e8184'];
 
@@ -46,6 +49,7 @@
         vm.deselectAll = deselectAll;
         vm.throwableTypesSelection = throwableTypesSelection;
         vm.createEvents = createEvents;
+        vm.createQuestEmail = createQuestEmail;
 
         vm.selectOptions = {
             updateOn: 'default change blur',
@@ -193,6 +197,18 @@
             vm.questData = null;
             vm.selectedQuest= null;
             getOpenQuests();
+        }
+
+        function createQuestEmail() {
+            hermesService.createQuestEmail(vm.selectedQuestDetails['id'], vm.messageEmail, vm.messageSubject, vm.user, true, false)
+                .then(function (response){
+                    vm.createSuccessMessage = "Successfully sent email.";
+                    vm.messageSubject = null;
+                    vm.messageEmail = null;
+                    vm.showMessageBlock = false;
+                }).catch(function (error){
+                    vm.createErrorMessage = "Email failed to send"
+                })
         }
 
         function getOpenQuests() {

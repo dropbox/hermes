@@ -457,11 +457,9 @@ a {
       padding: 5px;
       width: 20%;
       border-bottom: 2px solid @blue;
-      span {
-        font-size: 1.75em;
-        font-weight: bold;
-      }
-      a {
+      font-size: 1.75em;
+      font-weight: bold;
+      .quest-buttons {
         font-size: 0.65em;
       }
     }
@@ -477,6 +475,41 @@ a {
       font-size: 1.5em;
       font-weight: normal;
       clear: both;
+    }
+    .message-block {
+      padding: 10px;
+      background: @xlight-blue;
+      overflow: auto;
+      -webkit-border-radius: 0 0 5px 5px;
+      -moz-border-radius: 0 0 5px 5px;
+      border-radius: 0 0 5px 5px;
+      label, button {
+        margin-top: 10px;
+      }
+
+       -moz-transition: 0.5s ease-out all;
+      -ms-transition: 0.5s ease-out all;
+      -o-transition: 0.5s ease-out all;
+      transition: 0.5s ease-out all;
+      height: auto;
+      max-height: 500px;
+    }
+    .message-block.ng-enter {
+      max-height: 0;
+      transition: 0.25s ease-out all;
+    }
+
+    .message-block.ng-enter-active {
+      max-height: 500px;
+    }
+
+    .message-block.ng-leave {
+      max-height: 500px;
+      transition: 0.25s ease-out all;
+    }
+
+    .message-block.ng-leave-active {
+      max-height: 0;
     }
   }
   .quest-overview {

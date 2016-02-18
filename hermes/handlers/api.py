@@ -2733,7 +2733,7 @@ class QuestMailHandler(ApiHandler):
                 if labor.for_owner:
                     # add machine owner to recipients
                     owner = owners[labor.host.hostname]
-                    if owner in strongpoc_contacts:
+                    if strongpoc_contacts and  owner in strongpoc_contacts:
                         recipients.add(strongpoc_contacts[owner])
                     else:
                         recipients.add("{}@{}".format(owner, settings.domain))
@@ -2744,7 +2744,7 @@ class QuestMailHandler(ApiHandler):
             for labor in labors:
                 # add machine owner to recipients
                 owner = owners[labor.host.hostname]
-                if owner in strongpoc_contacts:
+                if strongpoc_contacts and owner in strongpoc_contacts:
                     recipients.add(strongpoc_contacts[owner])
                 else:
                     recipients.add("{}@{}".format(owner, settings.domain))

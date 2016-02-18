@@ -168,19 +168,15 @@
                         <img src="/img/loading.gif"/>
                     </div>
                     <div ng-if="qc.labors" class="quest-details">
-                        <!--<div quest-progress-chart-->
-                             <!--colors="qc.colors"-->
-                             <!--types="qc.countByTypes"-->
-                             <!--data="qc.selectedQuestDetails">-->
-                        <!--</div>-->
                         <div class="quest-info-holder">
                             <div class="flex-row" ng-class="qc.selectedQuest.overDue ? 'overdue' : ''">
                                 <div class="quest-number">
                                     <span>Quest {{qc.selectedQuest.id}}</span>
-                                    <a ng-href="/v1/quests/{{qc.selectedQuest.id}}/edit">
-                                        <span ng-if="qc.selectedQuest.creator == qc.user" id="toggleEditing" aria-label="Edit this quest" role="checkbox" class="glyphicon glyphicon-edit btn-glyph">
+                                    <span class="quest-buttons">
+                                        <a ng-href="/v1/quests/{{qc.selectedQuest.id}}/edit"><span ng-if="qc.selectedQuest.creator == qc.user" id="toggleEditing" aria-label="Edit this quest" role="checkbox" class="glyphicon glyphicon-edit btn-glyph"></span></a>
+                                        <span id="toggleMailBlock" aria-label="Send email to this quest" role="checkbox" ng-class="{'selected': qc.showMessageBlock}" class="glyphicon glyphicon-envelope btn-glyph email-button" ng-click="qc.showMessageBlock=!qc.showMessageBlock" >
                                         </span>
-                                    </a>
+                                    </span>
                                 </div>
                                 <div class="sub-info">
                                     <span ng-if="qc.selectedQuest.overDue">OVERDUE</span>
@@ -188,6 +184,14 @@
                                     <span>Created by <a href="mailto:{{qc.selectedQuest.creator}}">{{qc.selectedQuest.creator}}</a></span>
                                     <span>on {{qc.selectedQuest.embarkTime}}</span>
                                 </div>
+                            </div>
+                            <div class="success-message" ng-if="qc.createSuccessMessage">{{ qc.createSuccessMessage }}</div>
+                            <div class="message-block" ng-if="qc.showMessageBlock">
+                                <label for="messageSubject">Subject:</label>
+                                <input type="text" ng-model="qc.messageSubject" id="messageSubject"/>
+                                <label for="messageEmail">Email:</label>
+                                <textarea ng-model="qc.messageEmail" id="messageEmail"></textarea>
+                                <button type="button" ng-click="qc.createQuestEmail()">Send Message</button>
                             </div>
                             <div class="description">{{qc.selectedQuest.description}}</div>
                         </div>
