@@ -174,7 +174,7 @@
                                     <span>Quest {{qc.selectedQuest.id}}</span>
                                     <span class="quest-buttons">
                                         <a ng-href="/v1/quests/{{qc.selectedQuest.id}}/edit"><span ng-if="qc.selectedQuest.creator == qc.user" id="toggleEditing" aria-label="Edit this quest" role="checkbox" class="glyphicon glyphicon-edit btn-glyph"></span></a>
-                                        <span id="toggleMailBlock" aria-label="Send email to this quest" role="checkbox" class="glyphicon glyphicon-envelope btn-glyph email-button" ng-click="qc.showMessageBlock=!qc.showMessageBlock">
+                                        <span id="toggleMailBlock" aria-label="Send email to this quest" role="checkbox" ng-class="{'selected': qc.showMessageBlock}" class="glyphicon glyphicon-envelope btn-glyph email-button" ng-click="qc.showMessageBlock=!qc.showMessageBlock" >
                                         </span>
                                     </span>
                                 </div>
@@ -186,7 +186,7 @@
                                 </div>
                             </div>
                             <div class="success-message" ng-if="qc.createSuccessMessage">{{ qc.createSuccessMessage }}</div>
-                            <div ng-if="qc.showMessageBlock">
+                            <div class="message-block" ng-if="qc.showMessageBlock">
                                 <label for="messageSubject">Subject:</label>
                                 <input type="text" ng-model="qc.messageSubject" id="messageSubject"/>
                                 <label for="messageEmail">Email:</label>
