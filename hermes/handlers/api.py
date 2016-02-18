@@ -16,7 +16,7 @@ import time
 
 
 from .util import ApiHandler
-from ..util import id_generator, PluginHelper
+from ..util import id_generator, PluginHelper, email_message
 from .. import exc
 from ..models import Host, EventType, Event, Labor, Fate, Quest
 from ..settings import settings
@@ -2649,15 +2649,22 @@ class QuestMailHandler(ApiHandler):
 
         """
 
-        log.info("QUEST [{}]: Creating a new quest".format(id))
-
-        server_owners = self.jbody.get('serverOwners', None)
-        labor_owners = self.jbody.get('laborOwners', None)
+        server_owners = self.jbody.get('serverOwners', False)
+        labor_owners = self.jbody.get('laborOwners', False)
 
         if not server_owners and not labor_owners:
             raise exc.BadRequest(
                 "Must specify serverOwners and/or laborOwners as true"
             )
+
+        log.info(
+            "QUEST [{}]: sent email to {}{}{}".format(
+                id,
+                "server owners" if server_owners else "",
+                " and " if server_owners and labor_owners else "",
+                "labor owners" if labor_owners else ""
+            )
+        )
 
         try:
             from_address = self.jbody['from']
@@ -2671,18 +2678,79 @@ class QuestMailHandler(ApiHandler):
             raise exc.BadRequest(err.message)
 
         # Open the quest and grab the labors
+        quest = self.session.query(Quest).get(id)
+        if not quest:
+            raise exc.NotFound(
+                "Quest {} not found".format(id)
+            )
 
+        labors = quest.labors
         # Grab the hostnames and look up the owners
+        hostnames = set()
+        for labor in labors:
+            hostnames.add(labor.host.hostname)
+
+        # get the owner information
+        try:
+            results = PluginHelper.request_post(
+                json_body={
+                    "operation": "owners",
+                    "hostnames": list(hostnames)
+                }
+            )
+            owners = results.json()['results']
+        except Exception as e:
+            logging.error("Failed to get host owners: " + e.message)
+            raise exc.BadRequest(
+                "Host owners not found"
+            )
+
+        # get contact information from strongpoc
+        strongpoc_contacts = None
+        if settings.strongpoc_server:
+            # get the contact information
+            try:
+                results = PluginHelper.request_get(
+                    path = "/api/pocs/?expand=teams&expand=service_providers&expand=contact_types&service_provider__name=hermes&contact_type__name=email",
+                    server = settings.strongpoc_server
+                )
+                strongpoc_results = results.json()
+                strongpoc_contacts = {}
+                for result in strongpoc_results:
+                    strongpoc_contacts[result['team']['name']] = result['value']
+            except Exception as e:
+                logging.error("Failed to get strongpoc contacts: " + e.message)
+
+        recipients = set()
 
         # If we want labor owners, loop through and see if who that should
         # be and add them to recipients
+        if labor_owners:
+            for labor in labors:
+                if labor.for_creator:
+                    # add quest creator to recipients
+                    recipients.add(quest.creator)
+                if labor.for_owner:
+                    # add machine owner to recipients
+                    owner = owners[labor.host.hostname]
+                    if owner in strongpoc_contacts:
+                        recipients.add(strongpoc_contacts[owner])
+                    else:
+                        recipients.add("{}@{}".format(owner, settings.domain))
 
         # If we want server owners, loop through hosts
         # and add owners to the list
-
-        # Resolve the owners using StrongPOC
+        if server_owners:
+            for labor in labors:
+                # add machine owner to recipients
+                owner = owners[labor.host.hostname]
+                if owner in strongpoc_contacts:
+                    recipients.add(strongpoc_contacts[owner])
+                else:
+                    recipients.add("{}@{}".format(owner, settings.domain))
 
         # Send email
+        email_message(recipients, subject, message, sender=from_address)
 
         self.created()
 

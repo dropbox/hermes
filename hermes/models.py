@@ -1484,7 +1484,7 @@ class Labor(Model):
         quest: the Quest to this this Labor belongs
         host: the Host to which this Labor pertains
         for_creator: if true, the labor will be designated for the quest creator
-        for_labor: if true, the labor is designate for the server owner
+        for_owner: if true, the labor is designate for the server owner
         creation_time: when this Labor was created
         ack_time: when this Labor was acknowledged
         ack_user: the user who acknowledged the Labor
