@@ -23,6 +23,7 @@
             getQuestCreatorThrowableEventTypes: getQuestCreatorThrowableEventTypes,
             runQuery: runQuery,
             createQuest: createQuest,
+            createQuestEmail: createQuestEmail,
             updateQuest: updateQuest,
             createEvents: createEvents,
             getServerConfig: getServerConfig
@@ -73,6 +74,36 @@
 
             function createQuestFailed(error) {
                 console.error("API for creating a quest failed! " + error.status + " " + error.statusText);
+                throw error;
+            }
+        }
+
+        /**
+         * Try to send an email to server or labor owners for a given quest
+         * @param questId ID for the quest to email about
+         * @param message message to send to server or labor owners
+         * @param subject subject of message to send
+         * @param sender email address to send from
+         * @param serverOwners boolean to send or not send to server owners
+         * @param laborOwners boolean to send or not send to labor owners
+         * @returns {*}
+         */
+        function createQuestEmail(questId, message, subject, sender, serverOwners, laborOwners) {
+            return $http.post("/api/v1/quests/" + questId + "/mail", {
+                'serverOwners': serverOwners,
+                'laborOwners': laborOwners,
+                'from': sender,
+                'subject': subject,
+                'message': message
+            }).then(createQuestEmailCompleted)
+                .catch(createQuestEmailFailed);
+
+            function createQuestEmailCompleted(response) {
+                return response;
+            }
+
+            function createQuestEmailFailed(error) {
+                console.error("API for creating a quest email failed! " + error.status + " " + error.statusText);
                 throw error;
             }
         }
