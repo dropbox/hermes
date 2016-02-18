@@ -203,6 +203,9 @@
             hermesService.createQuestEmail(vm.selectedQuestDetails['id'], vm.messageEmail, vm.messageSubject, vm.user, true, false)
                 .then(function (response){
                     vm.createSuccessMessage = "Successfully sent email.";
+                    vm.messageSubject = null;
+                    vm.messageEmail = null;
+                    vm.showMessageBlock = false;
                 }).catch(function (error){
                     vm.createErrorMessage = "Email failed to send"
                 })

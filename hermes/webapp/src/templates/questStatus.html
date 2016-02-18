@@ -185,9 +185,12 @@
                                     <span>on {{qc.selectedQuest.embarkTime}}</span>
                                 </div>
                             </div>
+                            <div class="success-message" ng-if="qc.createSuccessMessage">{{ qc.createSuccessMessage }}</div>
                             <div ng-if="qc.showMessageBlock">
-                                <input type="text" ng-model="qc.messageSubject" />
-                                <textarea ng-model="qc.messageEmail"></textarea>
+                                <label for="messageSubject">Subject:</label>
+                                <input type="text" ng-model="qc.messageSubject" id="messageSubject"/>
+                                <label for="messageEmail">Email:</label>
+                                <textarea ng-model="qc.messageEmail" id="messageEmail"></textarea>
                                 <button type="button" ng-click="qc.createQuestEmail()">Send Message</button>
                             </div>
                             <div class="description">{{qc.selectedQuest.description}}</div>

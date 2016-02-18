@@ -99,6 +99,7 @@
                 .catch(createQuestEmailFailed);
 
             function createQuestEmailCompleted(response) {
+                console.log("hermes service: message sent")
                 return response;
             }
 
