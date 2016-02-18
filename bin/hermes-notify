@@ -85,6 +85,21 @@ def main():
     except Exception as e:
         logging.error("Failed to get host owners: " + e.message)
 
+    strongpoc_contacts = None
+    if settings.strongpoc_server:
+        # get the contact information
+        try:
+            results = PluginHelper.request_get(
+                path = "/api/pocs/?expand=teams&expand=service_providers&expand=contact_types&service_provider__name=hermes&contact_type__name=email",
+                server = settings.strongpoc_server
+            )
+            strongpoc_results = results.json()
+            strongpoc_contacts = {}
+            for result in strongpoc_results:
+                strongpoc_contacts[result['team']['name']] = result['value']
+        except Exception as e:
+            logging.error("Failed to get strongpoc contacts: " + e.message)
+
     # get the tags for hosts
     try:
         results = PluginHelper.request_post(
@@ -118,9 +133,19 @@ def main():
         plain_msg = generate_plain_mesg(info, open_quests, owner, tags)
         html_msg = generate_html_mesg(info, open_quests, owner, tags)
 
-        recipient = args.send_to if args.send_to else "{}@{}".format(
-            owner, settings.domain
-        )
+        # send to strongPOC specified email, otherwise send to owner@domainname
+        if strongpoc_contacts and owner in strongpoc_contacts:
+            recipient = strongpoc_contacts[owner]
+        else:
+            recipient = "{}@{}".format(
+                owner, settings.domain
+            )
+
+        # always send email to args.send_to if defined
+        if args.send_to:
+            logging.debug('Overriding {} recipient for owner {}'.format(recipient, owner))
+            recipient = args.send_to
+            logging.debug('Sending email to {}'.format(recipient))
 
         email_message(
             recipient,

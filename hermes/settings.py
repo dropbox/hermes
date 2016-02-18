@@ -67,4 +67,5 @@ settings = Settings({
     "environment": "dev",
     "dev_email_recipient": "",
     "fullstory_id": None,
+    "strongpoc_server": None,
 })
