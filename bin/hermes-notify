@@ -43,8 +43,8 @@ def find_quest(quests, quest_id):
         if quest.id == quest_id:
             return quest
 
-
     return None
+
 
 def main():
     args = parse_args()
@@ -115,12 +115,21 @@ def main():
     # map the labors and quests to owners
     info = {}
     for labor in open_labors:
-        if not labor.for_owner:
+        if labor.for_creator and not labor.quest:
+            # FIXME: what should we do here?  See Issue #145
             continue
-        if owners[labor.host.hostname] not in info:
+        elif labor.for_creator and labor.quest:
+            if labor.quest.creator not in info:
+                info[labor.quest.creator] = {}
+
+        # if this is our first time seeing this owner, create the empty record
+        elif owners[labor.host.hostname] not in info:
             info[owners[labor.host.hostname]] = {}
 
-        owner = info[owners[labor.host.hostname]]
+        owner = (
+            info[owners[labor.host.hostname]] if labor.for_owner
+            else info[labor.quest.creator]
+        )
 
         quest_id = labor.quest_id if labor.quest else 0
         if quest_id not in owner:
