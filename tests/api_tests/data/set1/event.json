@@ -10,5 +10,83 @@
     "user": "system",
     "eventTypeId": 2,
     "note": "example needs a rebooted"
+  },
+  "event3": {
+    "hostname": "example",
+    "user": "system",
+    "eventTypeId": 3,
+    "note": "example needs a reboot"
+  },
+  "event4": {
+    "hostname": "example",
+    "user": "system",
+    "eventTypeId": 4,
+    "note": "example needs a rebooted"
+  },
+  "event5": {
+    "hostname": "example",
+    "user": "system",
+    "eventTypeId": 5,
+    "note": "example needs a reboot"
+  },
+  "event6": {
+    "hostname": "example",
+    "user": "system",
+    "eventTypeId": 3,
+    "note": "example needs a rebooted"
+  },
+  "event7": {
+    "hostname": "example",
+    "user": "system",
+    "eventTypeId": 4,
+    "note": "example needs a reboot"
+  },
+  "event8": {
+    "hostname": "example",
+    "user": "system",
+    "eventTypeId": 1,
+    "note": "example needs a rebooted"
+  },
+  "event9": {
+    "hostname": "sample",
+    "user": "system",
+    "eventTypeId": 3,
+    "note": "sample needs a reboot"
+  },
+  "event10": {
+    "hostname": "sample",
+    "user": "system",
+    "eventTypeId": 4,
+    "note": "sample needs a rebooted"
+  },
+  "event11": {
+    "hostname": "sample",
+    "user": "system",
+    "eventTypeId": 5,
+    "note": "sample needs a reboot"
+  },
+  "event12": {
+    "hostname": "test",
+    "user": "system",
+    "eventTypeId": 3,
+    "note": "test needs a reboot"
+  },
+  "event13": {
+    "hostname": "test",
+    "user": "system",
+    "eventTypeId": 1,
+    "note": "test needs a reboot"
+  },
+  "event14": {
+    "hostname": "test",
+    "user": "system",
+    "eventTypeId": 2,
+    "note": "test needs a reboot"
+  },
+  "event15": {
+    "hostname": "test",
+    "user": "system",
+    "eventTypeId": 4,
+    "note": "test needs a reboot"
   }
 }

@@ -1178,6 +1178,7 @@ class EventsHandler(ApiHandler):
         :query int offset: (*optional*) Skip the first N resources.
         :query string after: (*optional*) Only select events at and after a given timestamp
         :query string before: (*optional*) Only select events before a given timestamp
+        :query int afterEventType: (*optional*) Only select events at and after the last event of a given event type
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
@@ -1186,6 +1187,7 @@ class EventsHandler(ApiHandler):
         event_type_id = self.get_arguments("eventTypeId")
         host_id = self.get_argument("hostId", None)
         hostname = self.get_argument("hostname", None)
+        after_event_type = self.get_argument("afterEventType", None)
 
         after_time = self.get_argument("after", None)
         if after_time:
@@ -1202,12 +1204,13 @@ class EventsHandler(ApiHandler):
         if event_type_id:
             events = events.filter(Event.event_type_id.in_(event_type_id))
 
-        if host_id is not None:
+        if host_id:
             events = events.filter_by(host_id=host_id)
 
+        found_host = None
         if hostname:
             try:
-                host = (
+                found_host = (
                     self.session.query(Host).filter(
                         Host.hostname == hostname
                     ).one()
@@ -1215,7 +1218,7 @@ class EventsHandler(ApiHandler):
             except sqlalchemy.orm.exc.NoResultFound:
                 raise exc.BadRequest("No host {} found".format(hostname))
 
-            events = events.filter(Event.host == host)
+            events = events.filter(Event.host == found_host)
 
         if after_time:
             logging.info(after_time)
@@ -1223,6 +1226,23 @@ class EventsHandler(ApiHandler):
         if before_time:
             logging.info(before_time)
             events = events.filter(Event.timestamp < before_time)
+
+        if after_event_type:
+            # find most recent event of that type for the given host
+            # want all events greater than or equal to the time for that event
+            subquery = self.session.query(Event).order_by(desc(Event.timestamp)).filter(Event.event_type_id == after_event_type)
+
+            if host_id:
+                subquery = subquery.filter_by(host_id=host_id)
+
+            if found_host:
+                subquery = subquery.filter(Event.host == found_host)
+
+            event = subquery.first()
+            if not event:
+                raise exc.BadRequest("No event of type {} found".format(after_event_type))
+            else:
+                events = events.filter(Event.timestamp >= event.timestamp)
 
         offset, limit, expand = self.get_pagination_values()
         events, total = self.paginate_query(events, offset, limit)

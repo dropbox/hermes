@@ -2,7 +2,7 @@ import json
 import pytest
 import requests
 
-from .fixtures import tornado_server, tornado_app, sample_data1_server
+from .fixtures import tornado_server, tornado_app, sample_data1_server, sample_data2_server
 from .util import (
     assert_error, assert_success, assert_created, assert_deleted, Client
 )
@@ -227,3 +227,25 @@ def test__before_after_query(sample_data1_server):
 
     result = client.get("/events/?before={}".format(new_timestamp)).json()
     assert result['totalEvents'] == 2
+
+
+def test_after_event_type_query(sample_data2_server):
+    client = sample_data2_server
+    assert_success(
+        client.get("/events"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalEvents": 15
+        },
+        strip=["timestamp", "events"]
+    )
+    assert_success(
+        client.get("/events?hostname=example&afterEventType=3"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalEvents": 3
+        },
+        strip=["timestamp", "events"]
+    )
