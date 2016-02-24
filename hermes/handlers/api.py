@@ -517,6 +517,10 @@ class EventTypesHandler(ApiHandler):
         :reqjson string category: The category value of the EventType
         :regjson string state: The state value of the EventType
         :regjson string description: The human readable description of the EventType
+        :regjson boolean restricted: (*optional*) If true, the EventType
+                                    created will be restricted such that
+                                    only direct API calls can throw events of
+                                    that type (and the CLI/WebGUI would refuse)
 
         :reqheader Content-Type: The server expects a json body specified with
                                  this header.
@@ -1388,6 +1392,12 @@ class FatesHandler(ApiHandler):
         :reqjson int creationEventTypeId: the ID of the EventType that triggers this Fate
         :regjson int follows: (*optional*) The ID of the Fate this Fate must come after, or null
         :regjson string description: (*optional*) The human readable description this Fate
+        :regjson boolean forOwner: (*optional*) Indicates that Labors created by this Fate
+                                    would be designated for action by the server owner.
+                                    Default: true
+        :regjson boolean forCreator: (*optional*) Indicates that Labors created by this Fate
+                                    would be designated for action by the Quest owner.
+                                    Default: false
 
         :reqheader Content-Type: The server expects a json body specified with
                                  this header.

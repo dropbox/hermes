@@ -273,12 +273,16 @@ def list_event_types(args):
 
 
 def create_event_type(args):
-    logging.debug("create_event_type({},{})", args.category, args.state)
+    logging.debug(
+        "create_event_type(%s,%s)  Restricted? %s",
+        args.category, args.state, args.restricted
+    )
 
     json = {
         "category": args.category,
         "state": args.state,
-        "description": args.description
+        "description": args.description,
+        "restricted": args.restricted
     }
 
     response = request_post("/api/v1/eventtypes", json)
@@ -350,6 +354,15 @@ def create_fate(args):
         )
         return
 
+    if not args.for_owner and not args.for_creator:
+        print (
+            "To create a fate, you must specify either --for_owner or \n"
+            "--for_creator (or both) to indicate whether labors created\n"
+            "would be designated for action by server owners or Quest \n"
+            "creators, respectively."
+        )
+        return
+
     response = request_get("/api/v1/eventtypes?limit=all")
     event_types = response.json()["eventTypes"]
 
@@ -369,7 +382,9 @@ def create_fate(args):
     json = {
         "creationEventTypeId": creation_event_type["id"],
         "followsId": args.follows_id,
-        "description": args.description
+        "description": args.description,
+        "forCreator": args.for_creator,
+        "forOwner": args.for_owner
     }
 
     response = request_post("/api/v1/fates", json)
@@ -1054,6 +1069,13 @@ def parse_cli_args():
         "-d", "--description", required=True,
         help="Human readable description for this event type"
     )
+    event_type_create_parser.add_argument(
+        "-r", "--restricted", action='store_true', dest='restricted',
+        help=(
+            "Flag this event-type as one that can only be thrown via the API, "
+            "and not the WebUI or CLI"
+        )
+    )
     event_type_create_parser.set_defaults(func=create_event_type)
 
     # FATE COMMANDS
@@ -1070,7 +1092,8 @@ def parse_cli_args():
     # fate create parser
     fate_create_subparser = fate_subparser.add_parser("create")
     fate_create_subparser.add_argument(
-        "-cc", "--creation-category", help="The category of the creation event type",
+        "-cc", "--creation-category",
+        help="The category of the creation event type",
         dest="cc", type=str
     )
     fate_create_subparser.add_argument(
@@ -1084,6 +1107,16 @@ def parse_cli_args():
     fate_create_subparser.add_argument(
         "--follows", type=int, default=None, dest="follows_id",
         help="This Fate follows the Fate identified by ID."
+    )
+    fate_create_subparser.add_argument(
+        "--for_owner", action='store_true',
+        help="Labors created by this fate will be designated for server owners"
+    )
+    fate_create_subparser.add_argument(
+        "--for_creator", action='store_true',
+        help=(
+            "Labors created by this fate will be designated for Quest creators"
+        )
     )
     fate_create_subparser.add_argument(
         "--description", help="The human readable description of this fate",
@@ -1308,7 +1341,10 @@ def parse_cli_args():
     )
     quest_edit_parser.add_argument(
         "--due", type=str, metavar='YYYY-MM-DD HH:MM',
-        help="New target date as YYYY-MM-DD HH:MM, with hours and minutes optional"
+        help=(
+            "New target date as YYYY-MM-DD HH:MM, "
+            "with hours and minutes optional"
+        )
     )
     quest_edit_parser.set_defaults(func=edit_quest)
 
