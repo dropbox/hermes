@@ -1179,6 +1179,7 @@ class EventsHandler(ApiHandler):
         :query string after: (*optional*) Only select events at and after a given timestamp
         :query string before: (*optional*) Only select events before a given timestamp
         :query int afterEventType: (*optional*) Only select events at and after the last event of a given event type
+        :query string hostQuery: (*optional*) Only select events that match a given host query
 
         :statuscode 200: The request was successful.
         :statuscode 401: The request was made without being logged in.
@@ -1188,6 +1189,7 @@ class EventsHandler(ApiHandler):
         host_id = self.get_argument("hostId", None)
         hostname = self.get_argument("hostname", None)
         after_event_type = self.get_argument("afterEventType", None)
+        host_query = self.get_argument("hostQuery", None)
 
         after_time = self.get_argument("after", None)
         if after_time:
@@ -1220,6 +1222,24 @@ class EventsHandler(ApiHandler):
 
             events = events.filter(Event.host == found_host)
 
+        hostnames = []
+        if host_query:
+            response = PluginHelper.request_get(params={"query": host_query})
+            if (
+                response.status_code == 200
+                and response.json()["status"] == "ok"
+            ):
+                for hostname in response.json()["results"]:
+                    hostnames.append(hostname)
+                    logging.info("found host {}".format(hostname))
+            else:
+                raise exc.BadRequest("Bad host query: {}".format(host_query))
+
+        if hostnames:
+            events = (
+                events.join(Event.host).filter(Host.hostname.in_(hostnames))
+            )
+
         if after_time:
             logging.info(after_time)
             events = events.filter(Event.timestamp >= after_time)
@@ -1237,6 +1257,11 @@ class EventsHandler(ApiHandler):
 
             if found_host:
                 subquery = subquery.filter(Event.host == found_host)
+
+            if hostnames:
+                subquery = (
+                    subquery.join(Event.host).filter(Host.hostname.in_(hostnames))
+                )
 
             event = subquery.first()
             if not event:
