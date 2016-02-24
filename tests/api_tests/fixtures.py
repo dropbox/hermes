@@ -120,3 +120,26 @@ def sample_data1_server(tornado_server):
     client.post("/fates/", json=fates["fate5"])
 
     return client
+
+
+@pytest.fixture
+def sample_data2_server(tornado_server):
+    client = Client(tornado_server)
+    hosts_data = load_json("set1/hosts.json")
+    client.create("/hosts/", hosts=hosts_data["hosts"])
+
+    event_types_data = load_json("set1/eventtypes.json")
+    client.create("/eventtypes/", eventTypes=event_types_data["eventTypes"])
+
+    events = load_json("set1/event.json")
+    for x in range(1, len(events) + 1):
+        client.post("/events/", json=events["event{}".format(x)])
+
+    fates = load_json("set1/fates.json")
+    client.post("/fates/", json=fates["fate1"])
+    client.post("/fates/", json=fates["fate2"])
+    client.post("/fates/", json=fates["fate3"])
+    client.post("/fates/", json=fates["fate4"])
+    client.post("/fates/", json=fates["fate5"])
+
+    return client
