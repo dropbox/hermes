@@ -1,5 +1,6 @@
 /**
  * directive for building quest progress bars with Raphael
+ * FIXME -- We need a legend to explain the colors and what they mean
  */
 (function() {
     function fateGraph (hermesService, $timeout, $window) {
@@ -57,19 +58,9 @@
                             'yScale': 500,
                             'yOffset': 90,
                             'padding': 20,
-                            'rootNodeStyle': {
-                                'fill': "#000"
-                            },
-                            'childNodeStyle': {
-                                'fill': "#fff",
-                                'stroke': "#000",
-                                'stroke-width': 4
-                            },
-                            'endNodeStyle': {
-                                'fill': "#666",
-                                'stroke': '#000',
-                                'stroke-width': 4
-                            }
+                            'forOwnerColor': "#688ab4",
+                            'forCreatorColor': "#C96C37",
+                            'forBothColor': "#c900b4"
                         };
 
                         // draw our edges
@@ -82,20 +73,28 @@
                         // draw our nodes
                         for (var idx in graphData.nodes) {
                             var node = graphData.nodes[idx];
+                            var color = '#000';
+                            if (node['meta']['for'] == 'owner') {
+                                color = settings['forOwnerColor']
+                            } else if (node['meta']['for'] == 'creator') {
+                                color = settings['forCreatorColor']
+                            } else {
+                                color = settings['forBothColor']
+                            }
                             switch (node["type"]) {
                                 case "rootNode":
                                     drawRootNode(
-                                        paper, settings, node, graphSet
+                                        paper, settings, node, graphSet, color
                                     );
                                     break;
                                 case "childNode":
                                     drawChildNode(
-                                        paper, settings, node, graphSet
+                                        paper, settings, node, graphSet, color
                                     );
                                     break;
                                 case "endNode":
                                     drawEndNode(
-                                        paper, settings, node, graphSet
+                                        paper, settings, node, graphSet, color
                                     );
                                     break;
                             }
@@ -121,14 +120,16 @@
                  * @param settings the settings to use
                  * @param style the style to use for this node
                  * @param node the node to draw
+                 * @param color the color of this node
                  */
-                function drawRootNode(paper, settings, node, graphSet) {
+                function drawRootNode(paper, settings, node, graphSet, color) {
 
                     var x = node['x'] * settings['xScale'] + settings['xOffset'];
                     var y = node['y'] * settings['yScale'] + settings['yOffset'];
 
                     var circle = paper.circle(x, y, 8);
-                    circle.attr({'fill': '#000'});
+
+                    circle.attr({'fill': color, 'stroke': 0});
 
                     graphSet.push(circle);
                 }
@@ -139,17 +140,18 @@
                  * @param settings the settings to use
                  * @param style the style to use for this node
                  * @param node the node to draw
+                 * @param color the color of this node
                  */
-                function drawChildNode(paper, settings, node, graphSet) {
+                function drawChildNode(paper, settings, node, graphSet, color) {
                     var x = node['x'] * settings['xScale'] + settings['xOffset'];
                     var y = node['y'] * settings['yScale'] + settings['yOffset'];
 
                     var circle = paper.circle(x, y, 8);
-                    circle.attr({'fill': '#000'});
+                    circle.attr({'fill': color, 'stroke': 0});
                     graphSet.push(circle);
 
                     var circle2 = paper.circle(x, y, 6);
-                    circle2.attr({ 'fill': '#fff'});
+                    circle2.attr({ 'fill': '#fff', 'stroke': 0});
                 }
 
                 /**
@@ -158,20 +160,21 @@
                  * @param settings the settings to use
                  * @param style the style to use for this node
                  * @param node the node to draw
+                 * @param color the color of this node
                  */
-                function drawEndNode(paper, settings, node, graphSet) {
+                function drawEndNode(paper, settings, node, graphSet, color) {
                     var x = node['x'] * settings['xScale'] + settings['xOffset'];
                     var y = node['y'] * settings['yScale'] + settings['yOffset'];
 
                     var circle = paper.circle(x, y, 8);
-                    circle.attr({'fill': '#000'});
+                    circle.attr({'fill': color, 'stroke': 0});
                     graphSet.push(circle);
 
                     var circle2 = paper.circle(x, y, 6);
-                    circle2.attr({'fill': '#fff'});
+                    circle2.attr({'fill': '#fff', 'stroke': 0});
 
                     var circle3 = paper.circle(x, y, 4);
-                    circle3.attr({'fill': '#000'});
+                    circle3.attr({'fill': color, 'stroke': 0});
                 }
 
                 /**

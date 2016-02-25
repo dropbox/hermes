@@ -411,10 +411,30 @@
 
                 function parseFate(fates, fate) {
                     var rootId;
-                    if (!fate["followsId"]) {
-                        rootId = createNode(fate['id'], 'rootNode', fate['description']);
+
+                    // is this fate for the creator, owner, or both?
+                    var forType;
+                    if (fate["forOwner"]) {
+                        forType = "owner"
+                    } else if (fate["forCreator"]) {
+                        forType = "creator"
                     } else {
-                        rootId = createNode(fate['id'], 'childNode', fate['description']);
+                        forType = "both"
+                    }
+                    if (!fate["followsId"]) {
+                        rootId = createNode(
+                            fate['id'], 'rootNode', fate['description'],
+                            {
+                                for: forType
+                            }
+                        );
+                    } else {
+                        rootId = createNode(
+                            fate['id'], 'childNode', fate['description'],
+                            {
+                                for: forType
+                            }
+                        );
                     }
 
                     var children = [];
@@ -432,8 +452,12 @@
 
             /**
              * Create a node for the node-edge fates graph
+             * @params fateId the actual fate Id from the server
+             * @params nodeType "rootNode" or "childNode" to indicate what kind of node this is
+             * @params fateDesc the description of the fate, used as the label
+             * @params meta any additional meta data about this node we want to pass
              */
-            function createNode(fateId, nodeType, fateDesc) {
+            function createNode(fateId, nodeType, fateDesc, meta) {
                 var id = 'f' + fateId;
 
                 for (var node_id in graphData.nodes) {
@@ -450,6 +474,7 @@
                     size: 1,
                     type: nodeType,
                     label: fateDesc,
+                    meta: meta
                 };
 
                 graphData.nodes.push(node);
