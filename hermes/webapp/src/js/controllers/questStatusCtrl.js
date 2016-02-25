@@ -4,41 +4,69 @@
     function QuestStatusCtrl(hermesService, $q, $routeParams, $location, smoothScroll, $cookies) {
         var vm = this;
 
-        vm.errorMessage = null;
-        vm.filterOwn = false;
-        vm.filterByCreator = null;
-        vm.queryInput = null;
+        vm.errorMessage = null; // here we store any error message to show the user
+        vm.filterOwn = false;   // if true, user wants to filter quests by ones they created
+        vm.filterByCreator = null;  // if set, user wants to filter quests by the creator specified
+        vm.queryInput = null;   // if set, user wants to find quests related to machines returned by this query
 
-        vm.domain = null;
-        vm.user = null;
-        vm.questData = null;
-        vm.selectedQuest = null;
-        vm.selectedQuestDetails = null;
+        vm.domain = null;   // the domain name that hosts this instance of Hermes; ex: example.org
+        vm.user = null;     // the currently authenticated user
+        vm.questData = null;    // holds the raw quest overview data being displayed
+        vm.selectedQuest = null;    // the quest selected for detailed view
+        vm.selectedQuestDetails = null;     // the detailed data of the selected quest
+
+        /*
+            # of unique labors where a unique labor is designated as a starting labor.
+            In other words, if labor B was created as a result of labor A being closed,
+            then be count both of those as just 1 unique labor
+         */
         vm.selectedQuestUniqueLabors = 0;
+
+        /*
+            An "in progress" labor is an open labor that was created after a previous
+            labor was closed.
+         */
         vm.selectedQuestInProgLabors = 0;
+
+        /*
+            Starting labors are those that were originally created when the quest was
+            created.  They have no parent labor.
+         */
         vm.selectedQuestStartingLabors = 0;
+
+        /*
+            Completed labors are closed labors that have no child labors.  So, if
+            closing labor A created labor B and then labor B is now closed, this
+            accounts for 1 completed labor (see above note on unique labors)
+         */
         vm.selectedQuestCompletedLabors = 0;
+
+        /*
+          holds data on labors for the selected quest, sorted into buckets
+          based on who is responsible for acting
+         */
         vm.labors = null;
-        vm.selectedLabors = [];
-        vm.hostnames = [];
-        vm.hostTags = null;
-        vm.showHostTags = false;
-        vm.countByTypes = null;
-        vm.creatorThrowableTypes = null;
-        vm.userThrowableTypes = null;
-        vm.selectedType = null;
-        vm.throwableTypes = null;
-        vm.createEventsModal = false;
-        vm.createInProgress = false;
-        vm.limit = 10;
-        vm.offset = 0;
-        vm.totalQuests = 10;
-        vm.messageSubject = null;
-        vm.messageEmail = null;
-        vm.showMessageBlock = false;
 
-        vm.colors = ['#688ab4', '#9cbfea', '#232f3e', '#7e8184'];
+        vm.selectedLabors = [];     // the labors selected by clicking in the web ui
 
+        vm.hostTags = null;     // host the server tags for hosts with labors in the selected quest
+        vm.showHostTags = false;    // if true, the UI will display the server tags for the hosts in the selected quest
+        vm.countByTypes = null;     // in the selected quest, the count of labors by event type; will be used for drawing status image
+        vm.creatorThrowableTypes = null;    // holds the event types that a quest creator is allowed to throw; FIXME -- this sucks and should be based on labors
+        vm.userThrowableTypes = null;   // hold the event types that a server owner is allowed to throw: FIXME -- this sucks and should be based on labors
+        vm.selectedType = null; // the event type the user has picked from the UI to throw
+        vm.throwableTypes = null;   // based on the user and his relationship to the selected quest, this is a pointer to one of the above throwable event type lists
+        vm.createEventsModal = false;   // if true, show the "throw events" confirmation model
+        vm.createInProgress = false;    // if true, event creation is in progress so block are further requests
+
+        vm.limit = 10;  // the default # of quests to show on each page
+        vm.offset = 0;  // the default offset for the quest list page
+        vm.totalQuests = 10;    // the number of total quests found when filtered by the given parameters
+        vm.messageSubject = null;   // the subject of the email message to send from the message block in the UI
+        vm.messageEmail = null; // the body of the email message to send from the message block in the UI
+        vm.showMessageBlock = false;    // if true, show the email message creation block
+
+        /* pointers to our functions that we want to expose */
         vm.runNewFilter = runNewFilter;
         vm.getOpenQuests = getOpenQuests;
         vm.newQuestSelection = newQuestSelection;
@@ -187,10 +215,16 @@
             }
         }
 
+        /**
+         * Called when the user clicks "Create Quest" button
+         */
         function goToCreatePage() {
             $location.url("/v1/quest/new");
         }
 
+        /**
+         * Called when user changes filtering settings and hits "GO" button
+         */
         function runNewFilter() {
             $routeParams.questId = null;
             vm.offset = 0;
@@ -199,8 +233,14 @@
             getOpenQuests();
         }
 
+        /**
+         * Creates an email and sends it to all server owners participating in the selected quest
+         */
         function createQuestEmail() {
-            hermesService.createQuestEmail(vm.selectedQuestDetails['id'], vm.messageEmail, vm.messageSubject, vm.user, true, false)
+            hermesService.createQuestEmail(
+                vm.selectedQuestDetails['id'], vm.messageEmail,
+                vm.messageSubject, vm.user, true, false
+            )
                 .then(function (response){
                     vm.createSuccessMessage = "Successfully sent email.";
                     vm.messageSubject = null;
@@ -211,6 +251,9 @@
                 })
         }
 
+        /**
+         * Get all the open quests, filtered by any settings the user has entered
+         */
         function getOpenQuests() {
             vm.errorMessage = null;
 
@@ -292,6 +335,12 @@
             }
         }
 
+        /**
+         * Called when the user clicks on a quest in the left hand list.  This
+         * quest now becomes the selected quest and additional details are loaded
+         * for that quest including open labors, host owners, and host tags.
+         * @param quest
+         */
         function newQuestSelection(quest) {
             vm.errorMessage = null;
             vm.selectedQuest = quest;
@@ -301,6 +350,7 @@
             vm.selectedQuestStartingLabors = 0;
             vm.selectedQuestCompletedLabors = 0;
             vm.hostOwners = null;
+            vm.hostTags = null;
             vm.labors = null;
             vm.selectedLabors = [];
             vm.countByTypes = null;
@@ -324,13 +374,13 @@
             // NOTE: this will have duplicate entries for hostname because we
             // are using a list that has both open and closed labors.  But
             // the external querier should clean that up for us
-            vm.hostnames = [];
+            var hostnames = [];
             for (var idx in quest['labors']) {
                 var hostname = quest['labors'][idx]['host']['hostname'];
-                vm.hostnames.push(hostname);
+                hostnames.push(hostname);
             }
 
-            var get1 = hermesService.getOwnerInformation(vm.hostnames);
+            var get1 = hermesService.getOwnerInformation(hostnames);
             var get2 = hermesService.getQuestDetails(quest.id);
 
             $q.all([
@@ -345,7 +395,7 @@
             });
 
             // get the host tags just in case the user wants to display them
-            hermesService.getHostTags(vm.hostnames).then(function(data) {
+            hermesService.getHostTags(hostnames).then(function(data) {
                 vm.hostTags = data;
             }).catch(function(error){
                 vm.errorMessage = "Could not load host tags: " + error.statusText;
@@ -565,7 +615,7 @@
         /**
          * Create events for the selected hosts
          */
-        function createEvents(type) {
+        function createEvents() {
             if (vm.createInProgress) return;
             vm.createEventsModal = false;
             vm.createInProgress = true;
