@@ -229,8 +229,8 @@ def print_labor(labor, fates, verbose=False, tags=None):
     print "\n\tPossible Resolutions:"
     for fate in fates:
         if (
-            fate["creationEventTypeId"]
-                == labor["creationEvent"]["eventType"]["id"]
+            fate["id"]
+                == labor["fateId"]
         ):
             print "{}".format(textwrap.fill(
                 fate["description"], width=60,

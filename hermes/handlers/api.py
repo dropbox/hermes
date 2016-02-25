@@ -1053,11 +1053,12 @@ class EventsHandler(ApiHandler):
                 raise exc.NotFound("No such Quest {} found".format(id))
             for labor in quest.labors:
                 hostnames.append(labor.host.hostname)
-                log.info(
-                    "EVENTS [{}]: Hostnames after quest expansion: {}".format(
-                        tx, ", ".join(hostnames)
-                    )
+
+            log.info(
+                "EVENTS [{}]: Hostnames after quest expansion: {}".format(
+                    tx, ", ".join(hostnames)
                 )
+            )
 
         # We need to create a list of hostnames that don't have a Host record
         new_hosts_needed = set(hostnames)
@@ -1093,7 +1094,7 @@ class EventsHandler(ApiHandler):
                     events_to_create.append({
                         "host_id": host.id,
                         "user": user,
-                        "event_type_id": event_type_id,
+                        "event_type_id": event_type.id,
                         "note": note,
                         "tx": tx
                     })
