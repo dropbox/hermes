@@ -1272,7 +1272,7 @@ class EventsHandler(ApiHandler):
             if not event:
                 raise exc.BadRequest("No event of type {} found".format(after_event_type))
             else:
-                events = events.filter(Event.timestamp >= event.timestamp)
+                events = events.from_self().filter(Event.id >= event.id)
 
         offset, limit, expand = self.get_pagination_values()
         events, total = self.paginate_query(events, offset, limit)

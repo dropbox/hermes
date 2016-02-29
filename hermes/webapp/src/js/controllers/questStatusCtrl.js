@@ -343,6 +343,7 @@
          */
         function newQuestSelection(quest) {
             vm.errorMessage = null;
+            vm.createSuccessMessage = null;
             vm.selectedQuest = quest;
             vm.selectedQuestDetails = null;
             vm.selectedQuestUniqueLabors = 0;
