@@ -280,6 +280,7 @@
                 vm.limit = data['limit'] || vm.limit;
                 vm.offset = data['offset'] || vm.offset;
                 vm.totalLabors = data['totalLabors'] || vm.totalLabors;
+                vm.laborsPerQuest = {};
 
                 // find the labor requested and make that the selection
                 var index = -1;
@@ -291,7 +292,7 @@
                     if (questId in vm.laborsPerQuest) {
                         vm.laborsPerQuest[questId] = vm.laborsPerQuest[questId] + 1;
                     } else {
-                        vm.laborsPerQuest[questId] = 0;
+                        vm.laborsPerQuest[questId] = 1;
                     }
                 }
 
