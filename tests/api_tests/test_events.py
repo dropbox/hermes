@@ -249,3 +249,40 @@ def test_after_event_type_query(sample_data2_server):
         },
         strip=["timestamp", "events"]
     )
+
+
+def test_after_event_id_query(sample_data2_server):
+    """
+    Test the afterEventId param to the events endpoint.
+    """
+    client = sample_data2_server
+    assert_success(
+        client.get("/events"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalEvents": 15
+        },
+        strip=["timestamp", "events"]
+    )
+    # There are 8 events with hostname=example in the data set,
+    # with ID values 1-8.  After event Id 2, there should be 7 total events.
+    assert_success(
+        client.get("/events?hostname=example&afterEventId=2"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalEvents": 7
+        },
+        strip=["timestamp", "events"]
+    )
+    # After event Id 3 there should be 6 total events.
+    assert_success(
+        client.get("/events?hostname=example&afterEventId=3"),
+        {
+            "limit": 10,
+            "offset": 0,
+            "totalEvents": 6
+        },
+        strip=["timestamp", "events"]
+    )

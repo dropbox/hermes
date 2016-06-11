@@ -15,7 +15,7 @@ from sqlalchemy.orm import relationship, object_session, aliased, validates
 from sqlalchemy.orm import synonym, sessionmaker, Session as _Session, backref
 from sqlalchemy.orm import subqueryload
 from sqlalchemy.schema import Column, ForeignKey, Index, UniqueConstraint
-from sqlalchemy.types import Integer, String, Boolean, BigInteger
+from sqlalchemy.types import Integer, String, Text, Boolean, BigInteger
 from sqlalchemy.types import DateTime
 
 from .util import slack_message, email_message, PluginHelper
@@ -907,7 +907,7 @@ class Event(Model):
         Integer, ForeignKey("event_types.id"), nullable=False, index=True
     )
     event_type = relationship(EventType, lazy="joined", backref="events")
-    note = Column(String(length=1024), nullable=True)
+    note = Column(Text(), nullable=True)
     tx = Column(BigInteger, nullable=True, index=True)
 
     __table_args__ = (
