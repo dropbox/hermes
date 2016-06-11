@@ -1277,7 +1277,7 @@ class EventsHandler(ApiHandler):
                 events = events.from_self().filter(Event.id >= event.id)
 
         if after_event_id:
-            events = events.from_self().filter(Event.id >= int(after_event_id))
+            events = events.filter(Event.id >= int(after_event_id))
 
         offset, limit, expand = self.get_pagination_values()
         events, total = self.paginate_query(events, offset, limit)
