@@ -1184,6 +1184,7 @@ class EventsHandler(ApiHandler):
         :query string after: (*optional*) Only select events at and after a given timestamp
         :query string before: (*optional*) Only select events before a given timestamp
         :query int afterEventType: (*optional*) Only select events at and after the last event of a given event type
+        :query int afterEventId: (*optional*) Only select events at and after the specified event Id
         :query string hostQuery: (*optional*) Only select events that match a given host query
 
         :statuscode 200: The request was successful.
@@ -1194,13 +1195,14 @@ class EventsHandler(ApiHandler):
         host_id = self.get_argument("hostId", None)
         hostname = self.get_argument("hostname", None)
         after_event_type = self.get_argument("afterEventType", None)
+        after_event_id = self.get_argument("afterEventId", None)
         host_query = self.get_argument("hostQuery", None)
 
         after_time = self.get_argument("after", None)
         if after_time:
             after_time = parser.parse(after_time, yearfirst=True)
             after_time = after_time.replace(tzinfo=None)
-            
+
         before_time = self.get_argument("before", None)
         if before_time:
             before_time = parser.parse(before_time, yearfirst=True)
@@ -1273,6 +1275,9 @@ class EventsHandler(ApiHandler):
                 raise exc.BadRequest("No event of type {} found".format(after_event_type))
             else:
                 events = events.from_self().filter(Event.id >= event.id)
+
+        if after_event_id:
+            events = events.filter(Event.id >= int(after_event_id))
 
         offset, limit, expand = self.get_pagination_values()
         events, total = self.paginate_query(events, offset, limit)
