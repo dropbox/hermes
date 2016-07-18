@@ -78,7 +78,8 @@ def main():
         "db_uri": settings.database,
         "db_engine": None,
         "db_session": None,
-        "domain": settings.domain
+        "domain": settings.domain,
+        "count_events": settings.count_events,
     }
 
     application = Application(my_settings=my_settings, **tornado_settings)

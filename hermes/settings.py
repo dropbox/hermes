@@ -68,4 +68,5 @@ settings = Settings({
     "dev_email_recipient": "",
     "fullstory_id": None,
     "strongpoc_server": None,
+    "count_events": True,
 })

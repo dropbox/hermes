@@ -356,3 +356,15 @@ def test_after_event_id_query(sample_data2_server):
         },
         strip=["timestamp", "events"]
     )
+
+def test_count_events_disabled(sample_data2_server):
+    client = sample_data2_server
+    client.tornado_server.tornado_app.my_settings["count_events"] = False
+    assert_success(
+        client.get("/events"),
+        {
+            "limit": 10,
+            "offset": 0,
+        },
+        strip=["timestamp", "events"]
+    )

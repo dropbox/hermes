@@ -1280,19 +1280,20 @@ class EventsHandler(ApiHandler):
             events = events.filter(Event.id >= int(after_event_id))
 
         offset, limit, expand = self.get_pagination_values()
-        events, total = self.paginate_query(events, offset, limit)
+        events, total = self.paginate_query(events, offset, limit, count=self.count_events)
 
         events = events.from_self().order_by(Event.timestamp)
 
         json = {
             "limit": limit,
             "offset": offset,
-            "totalEvents": total,
             "events": [
                 event.to_dict(base_uri=self.href_prefix, expand=set(expand))
                 for event in events.all()
             ],
         }
+        if total is not None:
+            json["totalEvents"] = total
 
         self.success(json)
 
