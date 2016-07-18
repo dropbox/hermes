@@ -42,6 +42,7 @@ class BaseHandler(RequestHandler):
         self.engine = my_settings.get("db_engine")
         self.session = my_settings.get("db_session")()
         self.domain = my_settings.get("domain")
+        self.count_events = my_settings.get("count_events", True)
 
     def on_finish(self):
         self.session.close()
@@ -126,8 +127,10 @@ class ApiHandler(BaseHandler):
 
         return offset, limit, self.get_arguments("expand")
 
-    def paginate_query(self, query, offset, limit):
-        total = query.count()
+    def paginate_query(self, query, offset, limit, count=True):
+        total = None
+        if count:
+            total = query.count()
 
         query = query.offset(offset)
         if limit is not None:

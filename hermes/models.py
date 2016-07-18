@@ -148,7 +148,7 @@ def _set_sqlite_pragma(dbapi_connection, connection_record):
 
 
 def get_db_engine(url, echo=False):
-    engine = create_engine(url, pool_recycle=300, echo=echo)
+    engine = create_engine(url, pool_recycle=300, echo=False)
     Model.metadata.create_all(engine)
 
     if engine.driver == "pysqlite":

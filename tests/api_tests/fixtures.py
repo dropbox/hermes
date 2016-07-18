@@ -29,6 +29,7 @@ class Server(object):
     """ Wrapper around Tornado server with test helpers. """
 
     def __init__(self, tornado_app):
+        self.tornado_app = tornado_app
         self.server = tornado.httpserver.HTTPServer(
             tornado_app
         )
