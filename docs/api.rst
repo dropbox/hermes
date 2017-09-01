@@ -7,7 +7,7 @@ or command line tools would be available here.
 Authentication
 --------------
 
-Authentication is still in the works.  Right now, Hermes API is expected to sit behing some kind of authenticating proxy.
+Authentication is still in the works.  Right now, Hermes API is expected to sit behind some kind of authenticating proxy.
 
 Requests
 --------
